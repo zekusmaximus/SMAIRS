@@ -6,8 +6,9 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "skipLibCheck": true,
-    "types": ["node"]
+  "types": ["node"],
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "eslint.config.mjs"],
+  "include": ["vite.config.ts", "vitest.config.ts", "eslint.config.mjs", "tooling.d.ts"],
   "exclude": ["node_modules"]
 }

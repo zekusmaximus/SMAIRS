@@ -44,6 +44,7 @@
     "@typescript-eslint/parser": "^8.39.1",
     "@vitejs/plugin-react": "^4.0.0",
     "@vitest/coverage-v8": "^1.0.0",
+  "@tauri-apps/cli": "^2.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.34.0",
