@@ -94,3 +94,9 @@ __pycache__/
 
 # --- Experimental / Scratch ---
 scratch/
+
+# --- Added (baseline confirm) ---
+# (These entries already existed but ensured per scaffold requirements)
+node_modules/
+dist/
+.env

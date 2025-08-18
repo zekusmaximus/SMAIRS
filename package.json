@@ -9,6 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+  "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "tauri:dev": "tauri dev",
@@ -38,5 +39,6 @@
     "@testing-library/react": "^14.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0"
-  }
+  },
+  "packageManager": "pnpm@9.0.0"
 }
