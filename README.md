@@ -3,9 +3,11 @@
 > Purpose: A bespoke, single-use "Opening Lab" to analyze ONE professionally-edited manuscript (80k–120k words), select the optimal opening (scene or composite), generate minimal anchored revisions, and export a submission-ready bundle (opening pages + synopsis + rationale memo) within a two-week window.
 
 ## Why This Exists
+
 Traditional revision tools treat chapters as atoms and lose reference stability after edits. SMAIRS focuses on scenes, reveal sequencing, spoiler avoidance, anchored micro-edits, and quantified edit burden—providing decision confidence while preserving the author’s voice.
 
 ## High-Level Goals
+
 1. Scenes as atoms (granular analysis & recomposition)
 2. Reveal Graph (what the reader knows when)
 3. Spoiler Heatmap (violations if an alternate opening chosen)
@@ -15,14 +17,16 @@ Traditional revision tools treat chapters as atoms and lose reference stability 
 7. Export Bundle (opening pages, synopsis, memo)
 
 ## Delivery Phases (Target ≈14 days)
-| Phase | Days | Deliverable Summary |
-|-------|------|---------------------|
-| 1 Skeleton | 1–3 | Scene segmentation, reveal extraction prototype, inventory report |
-| 2 Opening Lab | 4–7 | Candidate scoring, spoiler heatmaps, context gaps, edit burden |
-| 3 Patch Packs | 8–11 | Anchored micro-edits, bridge drafts, tension curves, diffs |
-| 4 Export & Validate | 12–14 | Applied revisions, continuity checks, submission bundle |
+
+| Phase               | Days  | Deliverable Summary                                               |
+| ------------------- | ----- | ----------------------------------------------------------------- |
+| 1 Skeleton          | 1–3   | Scene segmentation, reveal extraction prototype, inventory report |
+| 2 Opening Lab       | 4–7   | Candidate scoring, spoiler heatmaps, context gaps, edit burden    |
+| 3 Patch Packs       | 8–11  | Anchored micro-edits, bridge drafts, tension curves, diffs        |
+| 4 Export & Validate | 12–14 | Applied revisions, continuity checks, submission bundle           |
 
 ## Stack Summary (Authoritative per PROJECT_VISION.md overrides conflicts)
+
 Desktop Shell: Tauri (Rust core + React/TypeScript front-end)
 UI: React 18 + Vite 5 + TypeScript 5
 Editor: CodeMirror 6 (virtual scrolling, large-doc performance)
@@ -37,6 +41,7 @@ Exports: Pandoc-driven (DOCX / MD / HTML / PDF) + diff/patch packs
 Privacy Model: Local-first (manuscript, indices, caches all on disk; outbound only for explicit LLM calls)
 
 ## Non-Negotiables
+
 - Local-first storage; no cloud sync
 - Scenes > chapters; anchors not line numbers
 - Robust anchor resolution (multi-tier fuzzy strategy)
@@ -44,6 +49,7 @@ Privacy Model: Local-first (manuscript, indices, caches all on disk; outbound on
 - Mock / offline LLM mode (deterministic fixtures)
 
 ## Repository Structure
+
 ```
 README.md                // You are here
 AGENT_STACK.md           // Prescriptive stack manifest (historical source)
@@ -66,6 +72,7 @@ LICENSE                  // MIT
 ```
 
 ### Key Folders
+
 - `src/` (future) feature-based modules: manuscript, search, llm, editor, ui, lib
 - `src-tauri/` Rust commands: index_build, index_query, file ops, SQLite helpers
 - `docs/` authoritative design & operational references
@@ -74,9 +81,11 @@ LICENSE                  // MIT
 - `out/` generated artifacts (comparison reports, patch packs, exports)
 
 ## Core Data Concepts (See `docs/CONTRACTS.md` for full interfaces)
+
 Scenes, Reveals, SpoilerViolations, OpeningCandidates, OpeningAnalyses, AnchoredEdits, TextAnchors, BridgeDrafts, PatchPacks.
 
 ## LLM Flow (Planned)
+
 1. Whole-manuscript structural analysis (scene inventory, hotspot detection)
 2. Candidate opening synthesis & reveal impact scoring
 3. Targeted micro-passes for hotspot edits & bridge paragraphs
@@ -85,6 +94,7 @@ Scenes, Reveals, SpoilerViolations, OpeningCandidates, OpeningAnalyses, Anchored
 Caching & Cost: Reusable static system prompt + compressed global synopsis hash; serialized queue (1–2 concurrent) with exponential backoff.
 
 ## Performance Budgets (Targets)
+
 - Cold start ≤ 4s
 - Open 120k-word manuscript (warm) ≤ 800ms
 - Search latency p95 ≤ 120ms
@@ -92,9 +102,11 @@ Caching & Cost: Reusable static system prompt + compressed global synopsis hash;
 - Anchor preservation ≥ 90% after edits
 
 ## Quickstart
+
 Scaffold is live; functionality beyond a hello screen & test harness is not implemented yet.
 
 Prerequisites:
+
 - Node 20 LTS (see `.nvmrc`; enable Corepack for pnpm)
 - pnpm 9 (`corepack enable`)
 - Rust (stable) + toolchain components `cargo`, `rustc`
@@ -104,6 +116,7 @@ Prerequisites:
 Environment (optional offline/dev flags): copy `.env.example` → `.env` (do NOT commit) and adjust.
 
 Install & Run:
+
 ```bash
 corepack enable
 pnpm install
@@ -115,11 +128,13 @@ pnpm tauri:dev    # Launch desktop shell (requires Tauri CLI)
 ```
 
 Assumptions / Notes:
+
 - `pnpm tauri:dev` needs a Tauri CLI in PATH (install globally: `cargo install tauri-cli@2` OR `pnpm add -D @tauri-apps/cli`).
 - No APIs, indexing, or LLM calls are wired yet; the window just hosts the React entrypoint.
 - `LLM_OFFLINE=1` keeps future LLM code paths in mock mode.
 
 ## Project Structure (Current Scaffold)
+
 ```
 .
 ├─ index.html                # Vite entry
@@ -139,6 +154,7 @@ Assumptions / Notes:
 ```
 
 ## Contributing & PR Checks
+
 Core scripts enforced in CI:
 | Command | Purpose |
 |---------|---------|
@@ -148,19 +164,23 @@ Core scripts enforced in CI:
 | `pnpm format` | Prettier write (manual) |
 
 PR Expectations (see `CONTRIBUTING.md` for full workflow):
+
 - Keep changes focused; add/update tests for behavior changes.
 - No committing real manuscript data or secrets; use `data/` locally only.
 - Add docs links instead of duplicating large explanations in the README.
 
 Reference Docs:
+
 - Architecture: `docs/ARCHITECTURE.md`
 - Data Contracts: `docs/CONTRACTS.md`
 - Runbooks: `docs/RUNBOOKS.md`
 
 ## Contribution Model
+
 Branch Naming: `feat/<scope>`, `fix/<scope>`, `chore/<scope>`, `docs/<scope>`
 Default Branch: `main`
 Working Branch Flow:
+
 1. Fork or branch from `main`
 2. Keep patches atomic & focused
 3. Add/update tests & docs for behavior changes
@@ -172,6 +192,7 @@ Definition of Done (DoD): Code + tests passing (≥95% critical-path coverage la
 Required PR Checks (future CI): type check, lint, unit tests, format, size guard, (later) performance smoke.
 
 ## Acceptance Test Targets (Initial High-Level)
+
 - Warm open 120k-word file < 800ms
 - Search character name p95 < 120ms
 - Structure pass returns hotspots + valid anchors
@@ -179,29 +200,36 @@ Required PR Checks (future CI): type check, lint, unit tests, format, size guard
 - Export four formats without crash
 
 ## Security & Privacy
+
 - No manuscript content committed; add to `data/` locally only
 - Never commit API keys; use environment variables / OS keychain
 - All LLM calls explicit & auditable
 
 ## Documentation Index
+
 - Architecture: `docs/ARCHITECTURE.md`
 - Data Contracts: `docs/CONTRACTS.md`
 - Runbooks (env, build, tests, export): `docs/RUNBOOKS.md`
 
 ### Quick Doc Links
+
 [Architecture](docs/ARCHITECTURE.md) · [Contracts](docs/CONTRACTS.md) · [Runbooks](docs/RUNBOOKS.md)
 
 ## Roadmap (Condensed)
+
 - Phase 1: Segmentation & Reveal Graph CLI prototype
 - Phase 2: Opening Lab scoring & reporting
 - Phase 3: Patch Packs generation
 - Phase 4: Export bundle + continuity verification
 
 ## License
+
 MIT (see `LICENSE`).
 
 ## Status
+
 Scaffold only. No runtime features implemented yet.
 
 ---
+
 Contributions welcome—respect scope: single manuscript, opening optimization, minimal precise revisions.

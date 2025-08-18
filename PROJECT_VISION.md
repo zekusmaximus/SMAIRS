@@ -20,133 +20,146 @@ This is a SINGLE-USE, BESPOKE application for ONE AUTHOR, ONE MANUSCRIPT, ONE SU
 ## 🚀 CORE FUNCTIONALITY - THE OPENING LAB
 
 ### 1. Scene-Level Analysis (Not Chapter-Level)
+
 **Purpose**: Find the best opening at the right granularity
 
 **Implementation**:
+
 ```typescript
 interface Scene {
-  id: string
-  chapterId: string
-  text: string
-  summary: string
-  anchorHash: string  // First/last 12 chars for stable reference
-  
+  id: string;
+  chapterId: string;
+  text: string;
+  summary: string;
+  anchorHash: string; // First/last 12 chars for stable reference
+
   // Scoring (calibrated with exemplars)
-  hookScore: number      // Based on rubric + examples
-  tensionScore: number   // Conflict density + stakes
-  clarityScore: number   // Understandable without context
-  
+  hookScore: number; // Based on rubric + examples
+  tensionScore: number; // Conflict density + stakes
+  clarityScore: number; // Understandable without context
+
   // Content tracking
-  characters: string[]
-  reveals: RevealRef[]   // What facts are exposed
-  requires: string[]     // What reader must know first
-  
+  characters: string[];
+  reveals: RevealRef[]; // What facts are exposed
+  requires: string[]; // What reader must know first
+
   // Metadata
-  beats: StoryBeat[]
-  location?: string
-  timeRef?: string       // Absolute or relative
+  beats: StoryBeat[];
+  location?: string;
+  timeRef?: string; // Absolute or relative
 }
 ```
 
 **Scene Segmentation**:
+
 - Break chapters into scenes (rule-based + AI assist)
 - Detect natural breaks: location changes, time jumps, POV shifts
 - Each scene gets unique anchor hash for stable reference
 
 ### 2. Reveal Graph & Spoiler Detection
+
 **Purpose**: Track what the reader knows when
 
 **Implementation**:
+
 ```typescript
 interface Reveal {
-  id: string
-  description: string           // "Sarah is the mole"
-  firstExposureSceneId: string  // Where first revealed
-  preReqs: string[]             // Other reveals needed first
-  type: 'plot' | 'character' | 'world' | 'backstory'
+  id: string;
+  description: string; // "Sarah is the mole"
+  firstExposureSceneId: string; // Where first revealed
+  preReqs: string[]; // Other reveals needed first
+  type: 'plot' | 'character' | 'world' | 'backstory';
 }
 
 interface SpoilerViolation {
-  revealId: string
-  mentionedIn: TextAnchor  // Quoted span + hash
-  shouldAppearIn: string    // Scene where it's properly revealed
-  severity: 'critical' | 'moderate' | 'minor'
-  fix: AnchoredEdit
+  revealId: string;
+  mentionedIn: TextAnchor; // Quoted span + hash
+  shouldAppearIn: string; // Scene where it's properly revealed
+  severity: 'critical' | 'moderate' | 'minor';
+  fix: AnchoredEdit;
 }
 ```
 
 **Spoiler Heatmap**: Visual/textual map showing violations when scene X opens
 
 ### 3. Opening Lab - Decision Support
+
 **Purpose**: Compare up to 5 opening candidates side-by-side
 
 **Candidates Can Be**:
+
 - Single scene
 - Composite (Scene 23a → micro-flashback → Scene 23b)
 - Multi-scene sequence
 
 **For Each Candidate, Calculate**:
+
 ```typescript
 interface OpeningAnalysis {
-  candidate: OpeningCandidate
-  
+  candidate: OpeningCandidate;
+
   // Scores (calibrated)
-  hookStrength: number
-  clarityUnderColdStart: number
-  marketAppeal: number
-  
+  hookStrength: number;
+  clarityUnderColdStart: number;
+  marketAppeal: number;
+
   // Problems
-  spoilerViolations: SpoilerViolation[]
-  missingContext: ContextGap[]
-  
+  spoilerViolations: SpoilerViolation[];
+  missingContext: ContextGap[];
+
   // Solutions
   editBurden: {
-    newWords: number
-    changedSpans: number
-    percentOfText: number
-  }
-  requiredPatches: AnchoredEdit[]
-  bridgeParagraphs: BridgeDraft[]
-  
+    newWords: number;
+    changedSpans: number;
+    percentOfText: number;
+  };
+  requiredPatches: AnchoredEdit[];
+  bridgeParagraphs: BridgeDraft[];
+
   // Visualization
-  tensionCurve: number[]  // Before/after
+  tensionCurve: number[]; // Before/after
 }
 ```
 
 ### 4. Anchored Recommendations (Not Line Numbers)
+
 **Purpose**: Recommendations that survive editing
 
 **Every Edit References**:
+
 ```typescript
 interface AnchoredEdit {
-  anchor: TextAnchor  // Quoted text + hash
-  sceneId: string
-  
-  original: string    // "Sarah's voice, guilty and thin"
-  suggested: string   // "Sarah's voice, low and thin"
-  reason: string      // "Removes premature reveal of guilt"
-  
-  type: 'replace' | 'insert' | 'delete'
-  priority: 'critical' | 'important' | 'optional'
+  anchor: TextAnchor; // Quoted text + hash
+  sceneId: string;
+
+  original: string; // "Sarah's voice, guilty and thin"
+  suggested: string; // "Sarah's voice, low and thin"
+  reason: string; // "Removes premature reveal of guilt"
+
+  type: 'replace' | 'insert' | 'delete';
+  priority: 'critical' | 'important' | 'optional';
 }
 
 interface TextAnchor {
-  quotedSpan: string    // Actual text (15-30 chars)
-  hash: string          // Stable identifier
-  context: string       // Surrounding text for verification
+  quotedSpan: string; // Actual text (15-30 chars)
+  hash: string; // Stable identifier
+  context: string; // Surrounding text for verification
 }
 ```
 
 ### 5. Lightweight Retrieval (Not Full RAG)
+
 **Purpose**: Precise lookups without complexity
 
 **Implementation**:
+
 - Local index of scenes, reveals, dependencies
 - Quick search: "Where is X first mentioned?"
 - Cross-reference validation
 - No external services, no vector DB overhead
 
 **Use Cases**:
+
 - Find all mentions of a character
 - Locate first reveal of plot point
 - Verify timeline references
@@ -157,6 +170,7 @@ interface TextAnchor {
 ## 🛠️ IMPLEMENTATION PLAN - LEAN & FOCUSED
 
 ### Phase 1: Skeleton (Days 1-3)
+
 ```bash
 # Core functionality, no UI
 - Scene segmentation from chapters
@@ -168,6 +182,7 @@ interface TextAnchor {
 **Deliverable**: Scene inventory with initial scores
 
 ### Phase 2: Opening Lab (Days 4-7)
+
 ```bash
 # Decision support system
 - Score potential openings (3-5 candidates)
@@ -180,6 +195,7 @@ interface TextAnchor {
 **Deliverable**: Opening comparison report with recommendations
 
 ### Phase 3: Patch Packs (Days 8-11)
+
 ```bash
 # Specific revision guidance
 - Generate anchored micro-edits
@@ -191,6 +207,7 @@ interface TextAnchor {
 **Deliverable**: Detailed revision instructions with anchored edits
 
 ### Phase 4: Export & Validate (Days 12-14)
+
 ```bash
 # Submission-ready output
 - Apply selected revisions
@@ -207,12 +224,14 @@ interface TextAnchor {
 ## 📊 SUCCESS METRICS - OUTCOME FOCUSED
 
 ### Must-Have Metrics
+
 1. **Opening decision confidence ≥ 80%** (you're certain it's the right choice)
 2. **Zero spoiler violations** in final version
 3. **Edit burden ≤ 10%** of opening pages
 4. **Cold-reader retention**: 2 of 3 readers continue past page 5
 
 ### Nice-to-Have Metrics
+
 5. **Continuity score**: 100% (no timeline/fact contradictions)
 6. **Submission bundle complete** in under 2 weeks
 7. **Version comparison clarity** (can see exactly what changed)
@@ -222,21 +241,24 @@ interface TextAnchor {
 ## 💡 CRITICAL DECISIONS
 
 ### What We're Building
+
 ✅ **Opening Lab** - Compare 3-5 scene-based openings  
 ✅ **Reveal Graph** - Track what reader knows when  
 ✅ **Spoiler Heatmap** - Visual violation detection  
 ✅ **Anchored Edits** - Survive text changes  
 ✅ **Bridge Paragraphs** - AI-drafted transitions  
-✅ **Export Bundle** - DOCX + synopsis + memo  
+✅ **Export Bundle** - DOCX + synopsis + memo
 
 ### What We're NOT Building
+
 ❌ Full manuscript reordering (just opening)  
 ❌ Complex UI (reports + exports are enough)  
 ❌ Real-time editing (batch revisions)  
 ❌ Multiple manuscripts  
-❌ Publishing workflow beyond submission  
+❌ Publishing workflow beyond submission
 
 ### Technology Choices
+
 - **AI**: Claude 3.5 Sonnet (primary), GPT-4 Turbo (backup)
 - **Retrieval**: Local index, no external DB
 - **Anchoring**: Quoted spans + hashes, not line numbers
@@ -284,7 +306,7 @@ EDIT BURDEN: 7.3% of text (acceptable)
 ## 🚨 CORE PRINCIPLES
 
 1. **Scenes are atoms**, not chapters
-2. **Anchors are references**, not line numbers  
+2. **Anchors are references**, not line numbers
 3. **Reveals are tracked**, creating spoiler detection
 4. **Edit burden is measured**, keeping changes minimal
 5. **Cold-reader clarity** is the north star
