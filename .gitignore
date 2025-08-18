@@ -1,0 +1,96 @@
+# --- Core ---
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.svelte-kit/
+.parcel-cache/
+.turbo/
+.vite/
+coverage/
+.nyc_output/
+.pnpm-store/
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Rust / Tauri ---
+target/
+src-tauri/target/
+src-tauri/**/target/
+**/*.rs.bk
+Cargo.lock
+*.rlib
+*.rmeta
+.fingerprint/
+
+# --- OS / Editors ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/recommendations.json
+!.vscode/settings.json
+*.swp
+*.swo
+*.iml
+
+# --- Env / Secrets ---
+.env
+.env.*
+*.local
+!.env.example        # (Add sanitized example later if needed)
+
+# --- Misc Caches ---
+.eslintcache
+.tsbuildinfo
+*.tsbuildinfo
+/.cache/
+.cache/
+cache/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Data (Local Manuscript & Outputs) ---
+data/
+out/
+
+# --- Coverage / Reports ---
+coverage-final.json
+lcov.info
+*.lcov
+
+# --- Generated Artifacts ---
+*.d.ts.map
+*.js.map
+*.cjs.map
+*.mjs.map
+
+# --- IDE Helpers ---
+.history/
+.python-version
+venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+
+# --- Archives ---
+*.tgz
+*.tar
+*.tar.gz
+*.zip
+
+# --- OS Trash ---
+*.orig
+
+# --- Experimental / Scratch ---
+scratch/
