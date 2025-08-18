@@ -29,7 +29,7 @@ Local desktop application analyzing a single manuscript. Primary risks: leakage 
 
 ## Dependencies
 
-- Keep Rust & JS deps updated (use `pnpm audit` / `cargo audit` in future).
+- Keep Rust & JS deps updated (use `npm audit` / `cargo audit` in future).
 
 ## Out of Scope
 

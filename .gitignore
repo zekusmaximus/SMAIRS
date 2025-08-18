@@ -10,8 +10,8 @@ build/
 .vite/
 coverage/
 .nyc_output/
-.pnpm-store/
-pnpm-debug.log*
+.pnpm-store/        # legacy (pnpm no longer primary, retain ignore to avoid cache churn)
+pnpm-debug.log*     # legacy debug logs (harmless if present)
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

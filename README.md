@@ -107,8 +107,8 @@ Scaffold is live; functionality beyond a hello screen & test harness is not impl
 
 Prerequisites:
 
-- Node 20 LTS (see `.nvmrc`; enable Corepack for pnpm)
-- pnpm 9 (`corepack enable`)
+- Node 20 LTS (see `.nvmrc`)
+- npm 10 (ships with Node 20+; ensure up to date via `npm i -g npm@latest` if needed)
 - Rust (stable) + toolchain components `cargo`, `rustc`
 - (Optional) Global Tauri CLI or add `@tauri-apps/cli` as a dev dependency
 - (Optional) Pandoc for future export pipeline
@@ -118,18 +118,17 @@ Environment (optional offline/dev flags): copy `.env.example` → `.env` (do NOT
 Install & Run:
 
 ```bash
-corepack enable
-pnpm install
-pnpm typecheck    # TS strict pass
-pnpm lint         # (after first run; will pass on scaffold)
-pnpm test         # Vitest + Testing Library
-pnpm dev          # Vite dev server (http://localhost:5173 by default)
-pnpm tauri:dev    # Launch desktop shell (requires Tauri CLI)
+npm ci            # Install deps (clean, uses package-lock.json)
+npm run typecheck # TS strict pass
+npm run lint      # ESLint
+npm test -- --run # Vitest + Testing Library
+npm run dev       # Vite dev server (http://localhost:5173 by default)
+npm run tauri:dev # Launch desktop shell (requires Tauri CLI)
 ```
 
 Assumptions / Notes:
 
-- `pnpm tauri:dev` needs a Tauri CLI in PATH (install globally: `cargo install tauri-cli@2` OR `pnpm add -D @tauri-apps/cli`).
+- `npm run tauri:dev` needs a Tauri CLI in PATH (install globally: `cargo install tauri-cli@2` OR add `@tauri-apps/cli` as a dev dependency).
 - No APIs, indexing, or LLM calls are wired yet; the window just hosts the React entrypoint.
 - `LLM_OFFLINE=1` keeps future LLM code paths in mock mode.
 
@@ -158,10 +157,10 @@ Assumptions / Notes:
 Core scripts enforced in CI:
 | Command | Purpose |
 |---------|---------|
-| `pnpm typecheck` | Strict TypeScript validation |
-| `pnpm lint` | ESLint (flat config) |
-| `pnpm test` | Vitest unit/component tests |
-| `pnpm format` | Prettier write (manual) |
+| `npm run typecheck` | Strict TypeScript validation |
+| `npm run lint` | ESLint (flat config) |
+| `npm test -- --run` | Vitest unit/component tests |
+| `npm run format` | Prettier write (manual) |
 
 PR Expectations (see `CONTRIBUTING.md` for full workflow):
 

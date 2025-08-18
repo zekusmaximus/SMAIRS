@@ -61,7 +61,7 @@ risks_and_fallbacks:
 ## 2) Versions & Tooling
 
 - **Node:** 20 LTS
-- **pnpm:** 9.x (use if present; otherwise npm ok)
+- **npm:** 10.x
 - **Rust:** stable (rustup default)
 - **Tauri:** `v2` (plus official plugins below)
 - **React:** `^18.2` • **TypeScript:** `^5.5` • **Vite:** `^5` • **Vitest:** `^1`
@@ -259,18 +259,17 @@ type Anchor = {
 **JS/TS**
 
 ```bash
-corepack enable
-pnpm i
-pnpm dev
-pnpm test
+npm ci
+npm run dev
+npm test -- --run
 ```
 
 **Rust/Tauri**
 
 ```bash
 rustup update
-pnpm tauri dev
-pnpm tauri build
+npm run tauri:dev
+npm run tauri:build
 ```
 
 **Optional**

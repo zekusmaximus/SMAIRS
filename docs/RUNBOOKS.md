@@ -5,11 +5,8 @@ Operational guides (scaffold – commands illustrative; implement later).
 ## 1. Environment Setup
 
 ```bash
-# Enable package manager shims
-corepack enable
-
 # Install JS/TS deps (after code exists)
-pnpm install
+npm ci
 
 # Ensure Rust toolchain
 rustup update
@@ -31,15 +28,15 @@ LLM_OFFLINE=1          (optional mock mode)
 ## 2. Development Workflow
 
 ```bash
-pnpm dev         # Vite dev server (future: concurrently with Tauri)
-pnpm tauri dev   # Launch Tauri shell once backend scaffold exists
+npm run dev         # Vite dev server (future: concurrently with Tauri)
+npm run tauri dev   # Launch Tauri shell once backend scaffold exists
 ```
 
 ## 3. Testing
 
 ```bash
-pnpm test        # Vitest (unit + component)
-pnpm test:watch  # Watch mode
+npm test -- --run # Vitest (unit + component)
+npm run test:watch  # Watch mode
 ```
 
 Planned coverage thresholds: critical path ≥ 90% lines / 95% branches (post MVP).
@@ -47,8 +44,8 @@ Planned coverage thresholds: critical path ≥ 90% lines / 95% branches (post MV
 ## 4. Building & Packaging
 
 ```bash
-pnpm build       # Front-end bundle (Vite)
-pnpm tauri build # Desktop binaries
+npm run build       # Front-end bundle (Vite)
+npm run tauri build # Desktop binaries
 ```
 
 ## 5. Index Operations
@@ -56,7 +53,7 @@ pnpm tauri build # Desktop binaries
 Triggered automatically on manuscript import & save (debounced). Manual (future CLI):
 
 ```bash
-pnpm run index:rebuild
+npm run index:rebuild
 ```
 
 ## 6. LLM Operations

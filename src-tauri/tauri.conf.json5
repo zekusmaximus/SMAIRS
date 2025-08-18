@@ -4,7 +4,7 @@
   productName: 'SMAIRS',
   identifier: 'com.smairs.app',
   build: {
-    beforeDevCommand: 'pnpm dev',
+    beforeDevCommand: 'npm run dev',
     frontendDist: '../dist',
   },
   app: {
