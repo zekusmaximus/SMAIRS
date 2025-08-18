@@ -1,17 +1,10 @@
 {
   "compilerOptions": {
     "composite": true,
-    "module": "ESNext",
+    "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "target": "ES2022",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "types": ["node"]
   },
-  "include": ["vite.config.ts"],
+  "include": ["vite.config.ts", "vitest.config.ts", "eslint.config.mjs"],
   "exclude": ["dist", "node_modules"]
 }
