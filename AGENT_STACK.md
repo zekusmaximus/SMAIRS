@@ -8,7 +8,7 @@ Here’s a single drop-in file you can add to your repo (I recommend `AGENT_STAC
 name: Manuscript Revision App Stack Manifest
 goal: "Build a local-first desktop app that edits and analyzes 80k–120k word novels with whole-manuscript AI."
 primary_stack:
-  app_shell: "Tauri (>=1.5)"
+  app_shell: "Tauri v2"
   ui: "React 18 + TypeScript 5 + Vite 5"
   editor: "CodeMirror 6"
   state: "Zustand"
@@ -45,7 +45,7 @@ risks_and_fallbacks:
 
 ## 1) Non-Negotiables (agents: do not change)
 
-* **Desktop shell:** Tauri (Rust core + JS/TS front-end). No Electron unless explicitly asked.
+* **Desktop shell:** Tauri v2 (Rust core + JS/TS front-end). No Electron unless explicitly asked.
 * **Editor:** CodeMirror 6 with virtual scrolling; must remain responsive on 120k+ words.
 * **Local-first:** All documents and indices live on disk; no cloud sync by default.
 * **LLM flow:** Prefer **single whole-document pass** for structure, then **targeted passes** for micro-edits.
@@ -60,10 +60,10 @@ risks_and_fallbacks:
 * **Node:** 20 LTS
 * **pnpm:** 9.x (use if present; otherwise npm ok)
 * **Rust:** stable (rustup default)
-* **Tauri:** `^1.5` (plus official plugins below)
+* **Tauri:** `v2` (plus official plugins below)
 * **React:** `^18.2` • **TypeScript:** `^5.5` • **Vite:** `^5` • **Vitest:** `^1`
 
-**NPM packages (minimum):**
+**NPM packages (minimum):** (scaffold uses `@tauri-apps/api@^2` and expects `@tauri-apps/cli@^2` available globally or as a dev dependency)
 
 * `react`, `react-dom`, `zustand`, `@tanstack/react-query` (for async LLM jobs & caching)
 * `@codemirror/state`, `@codemirror/view`, `@codemirror/language`, `@codemirror/search`

@@ -188,6 +188,9 @@ Required PR Checks (future CI): type check, lint, unit tests, format, size guard
 - Data Contracts: `docs/CONTRACTS.md`
 - Runbooks (env, build, tests, export): `docs/RUNBOOKS.md`
 
+### Quick Doc Links
+[Architecture](docs/ARCHITECTURE.md) · [Contracts](docs/CONTRACTS.md) · [Runbooks](docs/RUNBOOKS.md)
+
 ## Roadmap (Condensed)
 - Phase 1: Segmentation & Reveal Graph CLI prototype
 - Phase 2: Opening Lab scoring & reporting
