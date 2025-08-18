@@ -91,23 +91,71 @@ Caching & Cost: Reusable static system prompt + compressed global synopsis hash;
 - Smooth 60fps scrolling (virtual windowing)
 - Anchor preservation ≥ 90% after edits
 
-## Quickstart (Scaffold Only – functionality not yet implemented)
-Prerequisites:
-- Node 20 LTS (`.nvmrc`)
-- pnpm ≥ 9 (or npm if preferred)
-- Rust (stable toolchain via rustup)
-- (Optional) Pandoc (export formats)
+## Quickstart
+Scaffold is live; functionality beyond a hello screen & test harness is not implemented yet.
 
-Install & Dev (after code exists):
+Prerequisites:
+- Node 20 LTS (see `.nvmrc`; enable Corepack for pnpm)
+- pnpm 9 (`corepack enable`)
+- Rust (stable) + toolchain components `cargo`, `rustc`
+- (Optional) Global Tauri CLI or add `@tauri-apps/cli` as a dev dependency
+- (Optional) Pandoc for future export pipeline
+
+Environment (optional offline/dev flags): copy `.env.example` → `.env` (do NOT commit) and adjust.
+
+Install & Run:
 ```bash
 corepack enable
 pnpm install
-pnpm dev            # Starts Vite + (later) Tauri dev
-pnpm test           # Runs Vitest suite
-pnpm tauri dev      # Tauri shell once src-tauri is implemented
+pnpm typecheck    # TS strict pass
+pnpm lint         # (after first run; will pass on scaffold)
+pnpm test         # Vitest + Testing Library
+pnpm dev          # Vite dev server (http://localhost:5173 by default)
+pnpm tauri:dev    # Launch desktop shell (requires Tauri CLI)
 ```
 
-Offline / Mock Mode (future): set `LLM_OFFLINE=1` in environment (never commit `.env`).
+Assumptions / Notes:
+- `pnpm tauri:dev` needs a Tauri CLI in PATH (install globally: `cargo install tauri-cli@2` OR `pnpm add -D @tauri-apps/cli`).
+- No APIs, indexing, or LLM calls are wired yet; the window just hosts the React entrypoint.
+- `LLM_OFFLINE=1` keeps future LLM code paths in mock mode.
+
+## Project Structure (Current Scaffold)
+```
+.
+├─ index.html                # Vite entry
+├─ package.json              # Scripts & deps (strict TS, lint, test, tauri)
+├─ tsconfig.json             # App TS config (strict)
+├─ tsconfig.node.json        # Tooling TS config
+├─ vite.config.ts            # Vite + React plugin + @ alias
+├─ vitest.config.ts          # jsdom, coverage reporters
+├─ eslint.config.mjs         # Flat ESLint config
+├─ .prettierrc               # Prettier formatting rules
+├─ src/                      # React source (App entry, styles, tests)
+├─ src-tauri/                # Tauri v2 Rust shell (no commands yet)
+├─ tests/                    # Vitest setup (jest-dom)
+├─ docs/                     # ARCHITECTURE / CONTRACTS / RUNBOOKS
+├─ .github/workflows/ci.yml  # CI: typecheck, lint, test, soft audits
+└─ .env.example              # Example env (LLM_OFFLINE, DEBUG)
+```
+
+## Contributing & PR Checks
+Core scripts enforced in CI:
+| Command | Purpose |
+|---------|---------|
+| `pnpm typecheck` | Strict TypeScript validation |
+| `pnpm lint` | ESLint (flat config) |
+| `pnpm test` | Vitest unit/component tests |
+| `pnpm format` | Prettier write (manual) |
+
+PR Expectations (see `CONTRIBUTING.md` for full workflow):
+- Keep changes focused; add/update tests for behavior changes.
+- No committing real manuscript data or secrets; use `data/` locally only.
+- Add docs links instead of duplicating large explanations in the README.
+
+Reference Docs:
+- Architecture: `docs/ARCHITECTURE.md`
+- Data Contracts: `docs/CONTRACTS.md`
+- Runbooks: `docs/RUNBOOKS.md`
 
 ## Contribution Model
 Branch Naming: `feat/<scope>`, `fix/<scope>`, `chore/<scope>`, `docs/<scope>`
