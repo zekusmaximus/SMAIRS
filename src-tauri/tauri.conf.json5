@@ -1,0 +1,27 @@
+// Tauri v2 minimal config (no APIs enabled yet)
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SMAIRS",
+  "identifier": "com.smairs.app",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "SMAIRS",
+        "width": 1200,
+        "height": 800,
+        "resizable": true
+      }
+    ]
+  },
+  "tauri": {
+    "allowlist": {},
+    "security": {
+      "csp": null
+    }
+  }
+}
