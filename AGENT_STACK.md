@@ -18,17 +18,29 @@ primary_stack:
   tests: 'Vitest + @testing-library/react'
 os_targets: ['macOS (universal)', 'Windows x64', 'Linux x64']
 privacy_model: 'Local-first: docs, index, and caches stored locally; outbound only for explicit LLM calls.'
-llm:
-  primary: { provider: 'Anthropic', model: 'Claude Sonnet 4 (1M ctx)' }
-  fallback: { provider: 'Google', model: 'Gemini 2.5 Pro (1M ctx)' }
-  strategy:
-    - 'Whole-manuscript structural pass (1 call) + targeted chunk calls for line edits.'
-    - 'Use prompt caching / reuse static system preamble; queue requests; exponential backoff.'
-  env:
-    - 'ANTHROPIC_API_KEY'
-    - 'GOOGLE_API_KEY'
-    - 'LLM_PRIMARY=anthropic'
-    - 'LLM_SECONDARY=google'
+llm_capability_profiles:
+  STRUCTURE_LONGCTX:
+    primary: 'anthropic:claude-4-sonnet'      # 1M ctx beta (cost control gating)
+    fallback: 'openai:gpt-5'
+  FAST_ITERATE:
+    primary: 'openai:gpt-5-mini'
+    fallback: 'anthropic:claude-4-sonnet'
+  JUDGE_SCORER:
+    primary: 'google:gemini-2.5-pro'
+    fallback: 'openai:gpt-5-mini'
+llm_strategy:
+  - 'Whole-manuscript structural pass (STRUCTURE_LONGCTX) + targeted micro-passes (FAST_ITERATE).'
+  - 'Comparative / rubric evaluation via JUDGE_SCORER (cross-provider sanity).'
+  - 'Central queue: reuse static system preamble & synopsis hash; exponential backoff; Zod-validated JSON.'
+  - 'Strip reasoning / chain-of-thought from persisted artifacts; keep only final JSON/text.'
+llm_env:
+  - 'ANTHROPIC_API_KEY'
+  - 'OPENAI_API_KEY'
+  - 'GOOGLE_API_KEY'
+  - 'LLM_PROFILE__STRUCTURE (override primary id)'
+  - 'LLM_PROFILE__FAST (override)'
+  - 'LLM_PROFILE__JUDGE (override)'
+  - 'LLM_LONGCTX_ENABLE=true|false (gate >200k ctx usage)'
 performance_budgets:
   cold_start_s: 4
   idle_ram_mb: 160
@@ -38,10 +50,7 @@ performance_budgets:
 risks_and_fallbacks:
   - { risk: 'LLM unavailable', fallback: 'Return mock analysis; keep UI usable' }
   - { risk: 'Indexing slow', fallback: 'Defer index build; lazy per-chapter' }
-  - {
-      risk: 'DOCX track-changes hard',
-      fallback: 'Export clean DOCX + HTML diff pack; Pandoc for formats',
-    }
+  - { risk: 'DOCX track-changes hard', fallback: 'Export clean DOCX + HTML diff pack; Pandoc for formats' }
 ```
 
 ---
@@ -291,3 +300,46 @@ pandoc -v
 ---
 
 **End of file.**
+
+---
+
+## Provider Map & Fallbacks (Operational Reference)
+
+```
+STRUCTURE_LONGCTX:
+  primary: anthropic:claude-4-sonnet   # 1M ctx beta gated by LLM_LONGCTX_ENABLE
+  fallback: openai:gpt-5
+FAST_ITERATE:
+  primary: openai:gpt-5-mini
+  fallback: anthropic:claude-4-sonnet
+JUDGE_SCORER:
+  primary: google:gemini-2.5-pro
+  fallback: openai:gpt-5-mini
+```
+
+### Invocation Contract
+Input:
+```
+{ system: string; prompt: string; schema?: ZodType }
+```
+Output:
+```
+{ text: string; json?: any; usage: { in: number; out: number }; meta?: Record<string,unknown> }
+```
+Rules:
+- Always run post-hoc JSON validation (Zod) when `schema` provided; retry (FAST_ITERATE) once on validation fail.
+- Enable tool/extended thinking where available but never persist raw chain-of-thought; keep final answer only.
+- Unified usage accounting (normalize token units across providers if they differ).
+
+### Long-Context Policy
+- Default soft cap: ≤200k input tokens.
+- Allow 1M context only when `LLM_LONGCTX_ENABLE=true` AND operation is a designated whole-manuscript structural pass.
+- Batch / cache synopsis + static system prompt; avoid recomputing embeddings (none currently) and large preambles.
+- If >200k tokens and long context disabled → degrade: segmented passes + merge heuristic, log advisory.
+
+### Cost / Pricing Notes (Aug 2025 Snapshot – verify before release)
+- Claude Sonnet 4: ~$3 / Mtok input, $15 / Mtok output (higher tiers >200k); 1M ctx beta.
+- GPT-5 mini: faster, lower cost tier (see OpenAI pricing page).
+- Gemini 2.5 Pro: advanced reasoning; output pricing includes “thinking tokens”.
+
+These are operational notes; pricing not enforced in code, but usage metrics exposed for dashboards.

@@ -259,11 +259,16 @@ interface TextAnchor {
 
 ### Technology Choices
 
-- **AI**: Claude 3.5 Sonnet (primary), GPT-4 Turbo (backup)
+- **AI (Capability Profiles)**: The vision layer is model-agnostic. All AI references map to abstract capability profiles (see below) rather than pinned model IDs. Concrete defaults are implementation details and can shift without altering the vision.
+  - `STRUCTURE_LONGCTX` – Whole‑manuscript structural / reveal pass (≥400k token context; JSON-faithful output)
+  - `FAST_ITERATE` – Low-latency micro-passes, partial rewrites, retries
+  - `JUDGE_SCORER` – Comparative evaluation, rubric scoring, tie-breaks / cross‑provider sanity
 - **Retrieval**: Local index, no external DB
 - **Anchoring**: Quoted spans + hashes, not line numbers
 - **Versions**: Diffs + patches, not just snapshots
 - **Privacy**: Local-only processing, no external retention
+
+<sub>Current defaults (Aug 2025) — subject to change without vision edits: `STRUCTURE_LONGCTX→Claude Sonnet 4 (1M ctx beta)`, `FAST_ITERATE→GPT‑5 mini`, `JUDGE_SCORER→Gemini 2.5 Pro`.</sub>
 
 ---
 

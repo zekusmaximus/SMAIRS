@@ -34,7 +34,11 @@ State: Zustand (+ React Query for async orchestration)
 Search Index: Tantivy (Rust) via Tauri commands
 DB / Persistence: SQLite (tauri-plugin-sql) + flat text & YAML metadata
 LLM Orchestration: Whole-document structural pass + targeted micro passes
-LLM Providers: Primary Claude 3.5 Sonnet (1M ctx); Backup GPT-4 Turbo (PROJECT_VISION supersedes earlier Anthropic/Gemini spec). Fallback/mocking supported.
+LLM Capability Profiles (indirection layer):
+	- STRUCTURE_LONGCTX → default anthropic:claude-4-sonnet (1M ctx beta gated)
+	- FAST_ITERATE      → default openai:gpt-5-mini
+	- JUDGE_SCORER      → default google:gemini-2.5-pro
+Profiles are the contract; concrete models are overrideable via env.
 Testing: Vitest + @testing-library/react
 Packaging: Tauri bundler
 Exports: Pandoc-driven (DOCX / MD / HTML / PDF) + diff/patch packs
@@ -100,6 +104,36 @@ Caching & Cost: Reusable static system prompt + compressed global synopsis hash;
 - Search latency p95 ≤ 120ms
 - Smooth 60fps scrolling (virtual windowing)
 - Anchor preservation ≥ 90% after edits
+
+## Models & Environment Overrides
+
+Capability profiles decouple the product vision from concrete model IDs. Defaults (Aug 2025 – may change without README rewrite):
+
+```
+STRUCTURE_LONGCTX = anthropic:claude-4-sonnet
+FAST_ITERATE      = openai:gpt-5-mini
+JUDGE_SCORER      = google:gemini-2.5-pro
+```
+
+Override via environment variables in `.env` (copy from example):
+
+```
+LLM_PROFILE__STRUCTURE=anthropic:claude-4-sonnet
+LLM_PROFILE__FAST=openai:gpt-5-mini
+LLM_PROFILE__JUDGE=google:gemini-2.5-pro
+LLM_LONGCTX_ENABLE=true   # allow >200k / 1M ctx structural pass
+ANTHROPIC_API_KEY=...
+OPENAI_API_KEY=...
+GOOGLE_API_KEY=...
+LLM_OFFLINE=1             # mock mode
+```
+
+Cost / limits snapshot (verify before heavy use):
+- Claude Sonnet 4: ~$3/Mtok in, $15/Mtok out; 1M ctx beta (higher tier >200k).
+- GPT-5 mini: low-latency, lower-cost tier (see OpenAI pricing page).
+- Gemini 2.5 Pro: reasoning / judge use (see Google pricing page).
+
+Usage accounting will normalize token units across providers where feasible.
 
 ## Quickstart
 
