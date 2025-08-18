@@ -40,7 +40,9 @@ desktop.ini
 
 # --- Env / Secrets ---
 .env
+# (Confirmed ignore entries for environment & build artifacts)
 .env.*
+!.env.example
 *.local
 !.env.example        # (Add sanitized example later if needed)
 
