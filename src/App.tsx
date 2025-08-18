@@ -1,8 +1,8 @@
 import React from 'react';
 
 function EnvHint() {
-  const env = (import.meta as any).env;
-  const mode: string = env?.MODE || 'unknown';
+  // Vite provides typed env vars via vite/client; no need for any cast.
+  const mode = import.meta.env.MODE ?? 'unknown';
   return <small style={{ opacity: 0.6 }}>mode: {mode}</small>;
 }
 
