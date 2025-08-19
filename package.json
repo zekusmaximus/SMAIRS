@@ -9,11 +9,21 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-  "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "lint": "eslint .",
     "format": "prettier -w .",
     "test": "vitest run",
     "test:watch": "vitest",
+
+    "manuscript:validate": "tsx scripts/manuscript-validate.ts",
+    "manuscript:fix": "tsx scripts/manuscript-fix.ts",
+
+    "cli": "tsx src/cli/scene-inventory.ts",
+
+    "cli:test:win": "set FIXED_TIMESTAMP=2024-01-01T00:00:00Z&& set LLM_OFFLINE=1&& npm run cli -- data/manuscript.txt out/test-report.md",
+    "cli:test:nix": "FIXED_TIMESTAMP=2024-01-01T00:00:00Z LLM_OFFLINE=1 npm run cli -- data/manuscript.txt out/test-report.md",
+  "cache:clear": "node -e \"require('fs').rmSync('.smairs', { recursive: true, force: true })\"",
+
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
@@ -31,7 +41,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+
+    "fastest-levenshtein": "^1.0.16"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -44,7 +56,7 @@
     "@typescript-eslint/parser": "^8.39.1",
     "@vitejs/plugin-react": "^4.0.0",
     "@vitest/coverage-v8": "^1.0.0",
-  "@tauri-apps/cli": "^2.0.0",
+    "@tauri-apps/cli": "^2.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.34.0",
@@ -54,7 +66,9 @@
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.39.1",
     "vite": "^5.0.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+
+    "tsx": "^4.15.0"
   },
   "packageManager": "npm@10.0.0"
 }
