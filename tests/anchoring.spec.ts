@@ -81,3 +81,65 @@ describe('anchoring.resolve tiers', () => {
     expect(res).toBeNull();
   });
 });
+
+describe('anchoring.resolve churn acceptance (≥90% Tier1/2)', () => {
+  it('re-anchors ≥90% of scenes at Tier 1 or 2 after whitespace & smart-quote churn', () => {
+    // Construct ~10 scenes with some curly quotes and extra internal spacing
+    const sceneCores = [
+      'Scene 1: A simple opening line.',
+      'Scene 2: “Curly quoted introduction” with some text.',
+      'Scene 3: Dialogue — ‘single quotes’ and “double quotes”.',
+      'Scene 4: Spaced   words   inside   the   scene for stress test.',
+      'Scene 5: Short but clean.',
+      'Scene 6: Another line with “smart quotes” and some emphasis.',
+      'Scene 7: Contains    multiple    spaces mid section.',
+      'Scene 8: Plain content used as control.',
+      'Scene 9: Ending with a “quote”.',
+      'Scene 10: Final scene – crisp and neat.'
+    ];
+
+    const delim = '\n\n---\n\n';
+    let manuscript = '';
+    const snaps: import('../src/features/manuscript/anchoring.js').SceneSnap[] = [];
+    for (let i = 0; i < sceneCores.length; i++) {
+  const core = sceneCores[i];
+  if (!core) continue; // safety guard for strict indexing
+      const id = `sc${i + 1}`;
+      const offset = manuscript.length; // start index before appending core
+      manuscript += core;
+  const length = core.length; // core guaranteed defined above
+      // Append delimiter except after last
+      if (i < sceneCores.length - 1) manuscript += delim;
+      // Capture pre/post contexts (like cache snapshot logic, 64 chars window)
+      const preStart = Math.max(0, offset - 64);
+      const postEnd = Math.min(manuscript.length, offset + length + 64);
+      const preContext = manuscript.slice(preStart, offset);
+      const postContext = manuscript.slice(offset + length, postEnd);
+      snaps.push({
+        id,
+        sha: 'sha-' + id, // placeholder; resolver does not use
+        offset,
+        text: core,
+        preContext,
+        postContext,
+        length,
+      });
+    }
+
+    // Churn: collapse consecutive whitespace, normalize smart quotes.
+    const churn = (s: string) => s
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'")
+      .replace(/\s{2,}/g, ' ');
+    const churned = churn(manuscript);
+
+    let tier1or2 = 0;
+    for (const snapObj of snaps) {
+      const res = resolve(snapObj, churned);
+      if (res && (res.tier === 1 || res.tier === 2)) tier1or2++;
+    }
+
+    const ratio = tier1or2 / snaps.length;
+    expect(ratio).toBeGreaterThanOrEqual(0.9);
+  });
+});

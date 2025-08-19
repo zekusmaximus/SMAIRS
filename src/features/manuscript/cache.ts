@@ -21,7 +21,7 @@ export type CacheFile = {
 // Delta detail types
 export type MovedDelta = { id: string; from: number; to: number; tier: number; confidence: number };
 export type ModifiedDelta = { id: string; to: number; tier: number; confidence: number };
-export type UnresolvedDelta = { id: string; reason: string };
+export type UnresolvedDelta = { id: string; priorOffset: number; reason: string };
 
 export type Delta = {
   added: string[];          // newly appeared scene ids
@@ -103,8 +103,8 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
     }
 
     try {
-      // Bridge prev snapshot to anchoring SceneSnap shape
-  const anchorInput = {
+      // Bridge prev snapshot to anchoring SceneSnap shape (naming per anchoring.ts)
+      const anchorInput = {
         id: p.id,
         sha: p.sha,
         offset: p.offset,
@@ -112,7 +112,7 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
         postContext: p.post,
         length: p.len,
       };
-  const res = resolveAnchor(anchorInput, currentFullText);
+      const res = resolveAnchor(anchorInput, currentFullText);
       if (res) {
         if (sameSha) {
           moved.push({ id: p.id, from: p.offset, to: res.position, tier: res.tier, confidence: res.confidence });
@@ -120,11 +120,11 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
           modified.push({ id: p.id, to: res.position, tier: res.tier, confidence: res.confidence });
         }
       } else {
-        unresolved.push({ id: p.id, reason: 'anchor-resolution-failed' });
+        unresolved.push({ id: p.id, priorOffset: p.offset, reason: 'anchor-resolution-failed' });
       }
     } catch {
       // Do not crash on malformed rows; categorize as unresolved silently (debug log could go here)
-      unresolved.push({ id: p.id, reason: 'anchor-exception' });
+      unresolved.push({ id: p.id, priorOffset: p.offset, reason: 'anchor-exception' });
     }
   }
 
