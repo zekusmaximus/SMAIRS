@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { createHash } from "crypto";
 import type { Manuscript, Scene } from "./types.js";
+import { resolve as resolveAnchor } from "./anchoring.js"; // keep .js suffix (ESM)
 
 export type SceneSnap = {
   id: string;
@@ -17,11 +18,17 @@ export type CacheFile = {
   scenes: Record<string, SceneSnap>;
 };
 
+// Delta detail types
+export type MovedDelta = { id: string; from: number; to: number; tier: number; confidence: number };
+export type ModifiedDelta = { id: string; to: number; tier: number; confidence: number };
+export type UnresolvedDelta = { id: string; reason: string };
+
 export type Delta = {
-  added: string[];
-  removed: string[];
-  modified: string[]; // same id, different sha
-  moved: string[];    // same id, same sha, different offset
+  added: string[];          // newly appeared scene ids
+  removed: string[];        // disappeared scene ids
+  modified: ModifiedDelta[];// same id, different sha (content changed)
+  moved: MovedDelta[];      // same id, same sha, different offset
+  unresolved: UnresolvedDelta[]; // scenes we attempted to re-anchor but failed
 };
 
 export function computeSnapshot(ms: Manuscript, scenes: Scene[]): CacheFile {
@@ -61,40 +68,73 @@ export function writeCache(curr: CacheFile, path = ".smairs/cache.json") {
   writeFileSync(path, JSON.stringify(curr, null, 2), "utf-8");
 }
 
-export function diffCaches(prev: CacheFile | null, curr: CacheFile): Delta {
+export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullText?: string): Delta {
   const added: string[] = [];
   const removed: string[] = [];
-  const modified: string[] = [];
-  const moved: string[] = [];
+  const modified: ModifiedDelta[] = [];
+  const moved: MovedDelta[] = [];
+  const unresolved: UnresolvedDelta[] = [];
 
   const prevScenes = prev?.scenes ?? {};
   const currScenes = curr.scenes;
 
-  // Current → compare against prev
+  // Track current scene ids to mark additions
   for (const id of Object.keys(currScenes)) {
-    const c = currScenes[id];           // SceneSnap | undefined (under noUncheckedIndexedAccess)
-    if (!c) continue;                   // guard
-
-    const p = prevScenes[id];           // SceneSnap | undefined
+    const c = currScenes[id]; // guard (noUncheckedIndexedAccess)
+    if (!c) continue;
+    const p = prevScenes[id];
     if (!p) {
       added.push(id);
       continue;
     }
 
-    if (p.sha !== c.sha) {
-      modified.push(id);
-    } else if (p.offset !== c.offset) {
-      moved.push(id);
+    const sameSha = p.sha === c.sha;
+    const sameOffset = p.offset === c.offset;
+    if (sameSha && sameOffset) continue; // unchanged
+
+    // Need manuscript text to attempt anchor resolution; if missing, fallback to simple classification.
+    if (!currentFullText) {
+      if (sameSha) {
+        moved.push({ id, from: p.offset, to: c.offset, tier: 0, confidence: 0 });
+      } else {
+        modified.push({ id, to: c.offset, tier: 0, confidence: 0 });
+      }
+      continue;
+    }
+
+    try {
+      // Bridge prev snapshot to anchoring SceneSnap shape
+  const anchorInput = {
+        id: p.id,
+        sha: p.sha,
+        offset: p.offset,
+        preContext: p.pre,
+        postContext: p.post,
+        length: p.len,
+      };
+  const res = resolveAnchor(anchorInput, currentFullText);
+      if (res) {
+        if (sameSha) {
+          moved.push({ id: p.id, from: p.offset, to: res.position, tier: res.tier, confidence: res.confidence });
+        } else {
+          modified.push({ id: p.id, to: res.position, tier: res.tier, confidence: res.confidence });
+        }
+      } else {
+        unresolved.push({ id: p.id, reason: 'anchor-resolution-failed' });
+      }
+    } catch {
+      // Do not crash on malformed rows; categorize as unresolved silently (debug log could go here)
+      unresolved.push({ id: p.id, reason: 'anchor-exception' });
     }
   }
 
-  // Previous → detect removed
+  // Detect removed scenes (present in prev but not in curr)
   for (const id of Object.keys(prevScenes)) {
-    const c = currScenes[id];           // SceneSnap | undefined
+    const c = currScenes[id];
     if (!c) removed.push(id);
   }
 
-  return { added, removed, modified, moved };
+  return { added, removed, modified, moved, unresolved };
 }
 
 

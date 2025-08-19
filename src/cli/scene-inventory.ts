@@ -23,7 +23,7 @@ async function main() {
   // 🔹 change ledger
   const prev = readPrevCache();
   const current = computeSnapshot(manuscript, scenes);
-  const delta = diffCaches(prev, current);
+  const delta = diffCaches(prev, current, manuscript.rawText);
   writeCache(current);
 
   const report = generateReport(manuscript, scenes, analysis, delta);
@@ -33,6 +33,7 @@ async function main() {
   console.log(`   Chapters: ${manuscript.chapters.length}`);
   console.log(`   Scenes: ${scenes.length}`);
   console.log(`   Words: ${manuscript.wordCount}`);
+  console.log(`   Δ Added:${delta.added.length} Removed:${delta.removed.length} Modified:${delta.modified.length} Moved:${delta.moved.length} Unresolved:${delta.unresolved.length}`);
 }
 
 main().catch((e) => {

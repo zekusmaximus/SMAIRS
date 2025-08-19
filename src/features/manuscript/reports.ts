@@ -14,7 +14,7 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
     .join("\n");
 
   const deltaBlock = d
-    ? `\n## Changes Since Last Run\n- Added: ${d.added.length} ${fmtList(d.added)}\n- Removed: ${d.removed.length} ${fmtList(d.removed)}\n- Modified: ${d.modified.length} ${fmtList(d.modified)}\n- Moved: ${d.moved.length} ${fmtList(d.moved)}`
+    ? `\n## Changes Since Last Run\n- Added: ${d.added.length} ${fmtList(d.added)}\n- Removed: ${d.removed.length} ${fmtList(d.removed)}\n- Modified: ${d.modified.length} ${fmtList(d.modified.map(m=>m.id))}\n- Moved: ${d.moved.length} ${fmtList(d.moved.map(m=>m.id))}\n- Unresolved: ${d.unresolved.length} ${fmtList(d.unresolved.map(u=>u.id))}`
     : "";
 
   return `# Scene Inventory Report

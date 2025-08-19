@@ -12,7 +12,7 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
     },
     globals: true,
-    include: ['src/**/*.test.{ts,tsx}'],
+  include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.spec.ts'],
   },
   resolve: {
     alias: {

@@ -62,10 +62,6 @@ temp/
 *.log
 logs/
 
-# --- Data (Local Manuscript & Outputs) ---
-data/
-out/
-
 # --- Coverage / Reports ---
 coverage-final.json
 lcov.info
