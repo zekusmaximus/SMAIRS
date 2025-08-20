@@ -22,21 +22,20 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Manuscript validate (if exists)
-        run: |
-          if [ -f data/manuscript.txt ]; then
-            npm run manuscript:validate -- data/manuscript.txt || true
-          else
-            echo "No manuscript file present, skipping validation"
-          fi
+      - name: Manuscript validate
+        if: ${{ hashFiles('data/manuscript.txt') != '' }}
+        run: npm run manuscript:validate -- data/manuscript.txt
+        continue-on-error: true
 
-      - name: Deterministic CLI run (nix variant if script present)
+      - name: Deterministic CLI smoke (if script & manuscript present)
+        if: ${{ hashFiles('data/manuscript.txt') != '' }}
         run: |
           if npm run | grep -q cli:test:nix; then
             npm run cli:test:nix || true
           else
             echo "cli:test:nix script not found, skipping"
           fi
+        continue-on-error: true
 
       - name: Typecheck
         run: npm run typecheck
