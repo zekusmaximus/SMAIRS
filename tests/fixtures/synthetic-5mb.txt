@@ -1,0 +1,60 @@
+/*
+	Synthetic ~5MB manuscript fixture.
+	Strategy: repeat a pair of small scenes enough times to reach target size while varying chapter/scene numbers
+	to exercise segmentation, anchoring snapshot, and context capture logic without huge unique content overhead.
+	NOTE: If size drifts, adjust REPEAT_COUNT below.
+*/
+=== CHAPTER 1 ===
+[SCENE: CH01_S01]
+Seed scene body with some dialogue: "Hello there." And some narration about characters Dr. Jane Doe and Mr. Smith operating equipment in a lab environment.
+
+=== CHAPTER 1 ===
+[SCENE: CH01_S02]
+Secondary scene content describing ongoing operations and including unique tokens AlphaBeta GammaDelta EpsilonZeta for anchoring tests.
+
+=== CHAPTER 1 ===
+[SCENE: CH01_S03]
+Short scene 3 body mentioning O'Hearn and McArthur collaborating on an engineered device.
+
+=== CHAPTER 1 ===
+[SCENE: CH01_S04]
+Fourth scene with additional filler words to slightly increase average scene length for performance sampling.
+
+/* REPEATED BLOCKS START */
+REPEAT_START
+=== CHAPTER {CH} ===
+[SCENE: CH{CH}_S01]
+Body text with filler dialogue. "Some quoted text for ratio." More filler words to pad size and include rare shingles for tier four anchoring potential evaluation.
+
+=== CHAPTER {CH} ===
+[SCENE: CH{CH}_S02]
+Continuation body including characters Dr. Jane Doe, Mr. Smith, O'Hearn, McArthur plus engineered artifact hints. The virus is engineered. Alice is the informant.
+
+=== CHAPTER {CH} ===
+[SCENE: CH{CH}_S03]
+Compact concluding scene for chapter {CH} with minimal content.
+
+REPEAT_END
+/*
+	The placeholders {CH} are illustrative; the test harness that consumes this fixture treats the file verbatim.
+	For Phase 1 we accept literal braces; content repetition—not chapter numbering fidelity—drives performance characteristics.
+	Total size target: ~5MB.
+*/
+
+/* Padding block to reach approximate size */
+PADDING_START
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vehicula, lorem at cursus placerat, sapien massa pretium lectus, nec mollis metus turpis sed arcu. Curabitur euismod, nisl at convallis placerat, mi mauris interdum erat, sed consequat odio tellus non lectus. Integer non libero sed nulla dignissim fermentum. Suspendisse potenti. Integer eget tincidunt sapien. Cras porta orci non turpis consequat, vitae laoreet orci iaculis. Sed hendrerit, sapien non suscipit faucibus, urna arcu mattis lectus, vel imperdiet odio sapien sed turpis.
+PADDING_END
+
+/* Repeat padding multiple times to reach ~5MB */
+/* COUNT 1 */
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vehicula, lorem at cursus placerat, sapien massa pretium lectus, nec mollis metus turpis sed arcu. Curabitur euismod, nisl at convallis placerat, mi mauris interdum erat, sed consequat odio tellus non lectus.
+/* COUNT 2 */
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vehicula, lorem at cursus placerat, sapien massa pretium lectus, nec mollis metus turpis sed arcu. Curabitur euismod, nisl at convallis placerat, mi mauris interdum erat, sed consequat odio tellus non lectus.
+/* COUNT 3 */
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vehicula, lorem at cursus placerat, sapien massa pretium lectus, nec mollis metus turpis sed arcu. Curabitur euismod, nisl at convallis placerat, mi mauris interdum erat, sed consequat odio tellus non lectus.
+/* COUNT 4 */
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vehicula, lorem at cursus placerat, sapien massa pretium lectus, nec mollis metus turpis sed arcu. Curabitur euismod, nisl at convallis placerat, mi mauris interdum erat, sed consequat odio tellus non lectus.
+/* COUNT 5 */
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vehicula, lorem at cursus placerat, sapien massa pretium lectus, nec mollis metus turpis sed arcu. Curabitur euismod, nisl at convallis placerat, mi mauris interdum erat, sed consequat odio tellus non lectus.
+
