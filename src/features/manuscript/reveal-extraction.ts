@@ -26,7 +26,8 @@ export function extractCharacters(scene: Scene): string[] {
   // Examples matched: "Dr. Jane Doe", "Jane", "Jane Doe", "McArthur", "O'Hearn" (partial), "The President" (we may keep single-person roles?)
   // We'll keep sequences of 1-5 tokens each starting capital letter OR known title abbreviations.
   const TITLE = "(?:Dr|Mr|Mrs|Ms|Prof|Sir|Madam|Lady|Lord|St)\\.?";
-  const NAME_WORD = "(?:[A-Z][a-z]+(?:['’][A-Z][a-z]+)?)"; // basic capitalized word with optional O' prefix pattern
+  // NAME_WORD: capitalized word forms plus explicit allowance for O'Name pattern where leading part is a single 'O'
+  const NAME_WORD = "(?:Mc[A-Z][a-z]+|O['’][A-Z][a-z]+|[A-Z][a-z]+(?:['’][A-Z][a-z]+)?)"; // includes O'Hearn & McArthur
   const CONNECTOR = "(?:\\s+(?:of|the|van|von|de|da|del))?"; // allow small lowercase in middle (rare)
   const PATTERN = new RegExp(`((?:${TITLE}\\s+)?${NAME_WORD}(?:${CONNECTOR}\\s+${NAME_WORD}){0,4})`, 'g');
 
