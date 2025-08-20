@@ -1,7 +1,7 @@
 import type { Manuscript, Scene } from "./types.js";
 import type { Analysis } from "./analyzer.js";
 import type { Delta } from "./cache.js";
-import { extractCharacters, extractReveals } from "./reveal-extraction.js";
+import { extractReveals } from "./reveal-extraction.js";
 import { buildRevealGraph } from "./reveal-graph.js";
 
 export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?: Delta): string {
@@ -15,17 +15,54 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
     })
     .join("\n");
 
-  // Characters per Scene (omit if no characters at all)
-  const charactersSection = (() => {
-    let any = false;
-    const rows = scenes.map(s => {
-      const chars = extractCharacters(s);
-      if (chars.length === 0) return null;
-      any = true;
-      return `| ${s.id} | ${chars.join(", ")} |`;
-    }).filter(Boolean).join("\n");
-    if (!any) return "";
-    return `\n## Characters per Scene\n| Scene ID | Characters |\n|----------|-----------|\n${rows}`;
+  // Character frequency & co-occurrence (conditional)
+  const characterBlocks = (() => {
+    const totalChars = a.allCharacters.size;
+    if (totalChars === 0) return { summaryLine: "", freq: "", matrix: "" };
+
+    // Frequency by scene count
+    const freqMap: Map<string, number> = new Map();
+    for (const [, set] of a.charactersPerScene) {
+      for (const c of set) {
+        freqMap.set(c, (freqMap.get(c) || 0) + 1);
+      }
+    }
+    const freqArr = Array.from(freqMap.entries())
+      .map(([name, sc]) => ({ name, scenes: sc }))
+      .sort((a, b) => b.scenes - a.scenes || a.name.localeCompare(b.name));
+    const top10 = freqArr.slice(0, 10);
+    const freqTable = top10.map(f => `| ${escapePipes(f.name)} | ${f.scenes} |`).join("\n");
+    const freqBlock = top10.length ? `\n## Character Frequency (Top 10 by Scene Count)\n| Character | Scenes |\n|-----------|-------:|\n${freqTable}` : "";
+
+    // Co-occurrence matrix for same top10 ordering
+    const nameIndex = new Map<string, number>();
+    top10.forEach((f, i) => nameIndex.set(f.name, i));
+    const n = top10.length;
+    if (n === 0) return { summaryLine: `- Characters: ${totalChars} unique`, freq: freqBlock, matrix: "" };
+    const matrix: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
+    for (const [, set] of a.charactersPerScene) {
+      const chars: string[] = Array.from(set).filter(c => nameIndex.has(c));
+      for (let i = 0; i < chars.length; i++) {
+        const ii = nameIndex.get(chars[i] as string);
+        if (ii === undefined) continue;
+        for (let j = i; j < chars.length; j++) {
+          const jj = nameIndex.get(chars[j] as string);
+          if (jj === undefined) continue;
+          const row = matrix[ii];
+          const row2 = matrix[jj];
+          if (row && row2) {
+            row[jj] = (row[jj] ?? 0) + 1;
+            if (ii !== jj) row2[ii] = (row2[ii] ?? 0) + 1;
+          }
+        }
+      }
+    }
+    // Build ASCII grid: header indices 1..n, then rows with counts
+    const header = ['    '].concat(top10.map((_, i) => (i + 1).toString().padStart(3, ' '))).join(' ');
+    const rowsM = matrix.map((row, i) => (i + 1).toString().padStart(3, ' ') + ' ' + row.map(v => v.toString().padStart(3, ' ')).join(' ')).join("\n");
+    const legend = top10.map((f, i) => `${(i + 1).toString().padStart(2, ' ')}: ${f.name}`).join("\n");
+    const matrixBlock = `\n## Character Co-occurrence (Scene Count)\n${header}\n${rowsM}\n\nLegend:\n${legend}`;
+    return { summaryLine: `- Characters: ${totalChars} unique`, freq: freqBlock, matrix: matrixBlock };
   })();
 
   // Reveals per Scene (conditional like characters)
@@ -124,11 +161,13 @@ Checksum: ${ms.checksum.slice(0, 8)}
 - Scenes: ${scenes.length}
 - Words: ${ms.wordCount}
 - Avg Words/Scene: ${Math.round(a.avgWordsPerScene)}
-${charactersSection}
+${characterBlocks.summaryLine}
 ${revealsSection}
 ${deltaBlock}
 ${histogramBlock}
 ${topHooksBlock}
+${characterBlocks.freq}
+${characterBlocks.matrix}
 ${revealGraphSection}
 
 ## Scene Breakdown

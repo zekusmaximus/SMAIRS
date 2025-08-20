@@ -1,6 +1,6 @@
 {
   "manuscript_sha": "2e8d49a8e4fd27e89c88e0b5707c7cc2f5b2279c8dc28d46fdc53f56e692976a",
-  "generated_at": "2025-08-19T22:27:27.865Z",
+  "generated_at": "2025-08-20T14:46:24.960Z",
   "scenes": {
     "ch01_s01": {
       "id": "ch01_s01",
@@ -8,7 +8,12 @@
       "offset": 80,
       "len": 5994,
       "pre": "==\n\n[SCENE: CH01_S01 | POV: Sherry | Location: Retreat Center]\n\n",
-      "post": "[SCENE: CH01_S02 | POV: Sherry | Location: Retreat Center]\n\nThe "
+      "post": "[SCENE: CH01_S02 | POV: Sherry | Location: Retreat Center]\n\nThe ",
+      "rareShingles": [
+        "bright flares pulsed commanding her attention while softer",
+        "heat how do you feel he asked crouching",
+        "cool air brushed against her damp cheeks anchoring"
+      ]
     },
     "ch01_s02": {
       "id": "ch01_s02",
@@ -16,7 +21,12 @@
       "offset": 6134,
       "len": 4088,
       "pre": "…”\n\n[SCENE: CH01_S02 | POV: Sherry | Location: Retreat Center]\n\n",
-      "post": "[SCENE: CH01_S03 | POV: Sherry | Location: Retreat Center]\n\n“The"
+      "post": "[SCENE: CH01_S03 | POV: Sherry | Location: Retreat Center]\n\n“The",
+      "rareShingles": [
+        "charts default mode network showing unprecedented look at",
+        "last word tell me how many more michaels",
+        "dharma will find its way six simple words"
+      ]
     },
     "ch01_s03": {
       "id": "ch01_s03",
@@ -24,7 +34,12 @@
       "offset": 10282,
       "len": 3530,
       "pre": "t.\n\n[SCENE: CH01_S03 | POV: Sherry | Location: Retreat Center]\n\n",
-      "post": "=== CHAPTER 02 ===\n\n[SCENE: CH02_S01 | POV: Bud | Location: Hull"
+      "post": "=== CHAPTER 02 ===\n\n[SCENE: CH02_S01 | POV: Bud | Location: Hull",
+      "rareShingles": [
+        "figured it out sooner coded faster seen clearer",
+        "invitation needed no further explanation tim s breath",
+        "dharma will find its way sherry repeated her"
+      ]
     },
     "ch02_s01": {
       "id": "ch02_s01",
@@ -32,7 +47,12 @@
       "offset": 13885,
       "len": 3757,
       "pre": "ER 02 ===\n\n[SCENE: CH02_S01 | POV: Bud | Location: Hull's Bar]\n\n",
-      "post": "[SCENE: CH02_S02 | POV: Bud | Location: Hull's Bar]\n\n“Hey, what’"
+      "post": "[SCENE: CH02_S02 | POV: Bud | Location: Hull's Bar]\n\n“Hey, what’",
+      "rareShingles": [
+        "ve seen some interesting patent applications lately we",
+        "professionals brought clients for dinner or stopped by",
+        "world health organization is pushing for neural interface"
+      ]
     },
     "ch02_s02": {
       "id": "ch02_s02",
@@ -40,7 +60,12 @@
       "offset": 17695,
       "len": 1046,
       "pre": "of glass.\n\n[SCENE: CH02_S02 | POV: Bud | Location: Hull's Bar]\n\n",
-      "post": "[SCENE: CH02_S03 | POV: Bud | Location: Walk Home]\n\nAs Bud walke"
+      "post": "[SCENE: CH02_S03 | POV: Bud | Location: Walk Home]\n\nAs Bud walke",
+      "rareShingles": [
+        "dry humor during joint projects funding tech classes",
+        "drink your chairman just all but assigned me",
+        "voice dropping wouldn t be surprised one of"
+      ]
     },
     "ch02_s03": {
       "id": "ch02_s03",
@@ -48,7 +73,12 @@
       "offset": 18793,
       "len": 1181,
       "pre": "n his eye.\n\n[SCENE: CH02_S03 | POV: Bud | Location: Walk Home]\n\n",
-      "post": "[SCENE: CH02_S04 | POV: Bud | Location: Coffee Shop]\n\nThe next m"
+      "post": "[SCENE: CH02_S04 | POV: Bud | Location: Coffee Shop]\n\nThe next m",
+      "rareShingles": [
+        "skeptical when her doctor suggested meditation for stress",
+        "more centered since she started those mindfulness classes",
+        "future s coming whether we re ready or"
+      ]
     },
     "ch02_s04": {
       "id": "ch02_s04",
@@ -56,7 +86,12 @@
       "offset": 20028,
       "len": 1741,
       "pre": "t shake.\n\n[SCENE: CH02_S04 | POV: Bud | Location: Coffee Shop]\n\n",
-      "post": "[SCENE: CH02_S05 | POV: Bud | Location: Bud's House]\n\nThat night"
+      "post": "[SCENE: CH02_S05 | POV: Bud | Location: Bud's House]\n\nThat night",
+      "rareShingles": [
+        "our mid level execs was poking around asking",
+        "usual levity this executive is an ai expert",
+        "avoid walking through the crowded shop you ve"
+      ]
     },
     "ch02_s05": {
       "id": "ch02_s05",
@@ -64,7 +99,12 @@
       "offset": 21823,
       "len": 2385,
       "pre": "oodman.”\n\n[SCENE: CH02_S05 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "=== CHAPTER 03 ===\n\n[SCENE: CH03_S01 | POV: Tim | Location: Retr"
+      "post": "=== CHAPTER 03 ===\n\n[SCENE: CH03_S01 | POV: Tim | Location: Retr",
+      "rareShingles": [
+        "new ai virtual reality platform her brow furrowed",
+        "laugh that sounded less heavy than he anticipated",
+        "freshly cut grass mingled with the rich aroma"
+      ]
     },
     "ch03_s01": {
       "id": "ch03_s01",
@@ -72,7 +112,12 @@
       "offset": 24285,
       "len": 2826,
       "pre": "3 ===\n\n[SCENE: CH03_S01 | POV: Tim | Location: Retreat Center]\n\n",
-      "post": "[SCENE: CH03_S02 | POV: Tim | Location: Tim's Apartment]\n\nThat n"
+      "post": "[SCENE: CH03_S02 | POV: Tim | Location: Tim's Apartment]\n\nThat n",
+      "rareShingles": [
+        "arms crossed eyes scanning the disarray tension twisted",
+        "having stalled neither wanted to confront the fears",
+        "i ve lost people too friends colleagues some"
+      ]
     },
     "ch03_s02": {
       "id": "ch03_s02",
@@ -80,7 +125,12 @@
       "offset": 27169,
       "len": 10646,
       "pre": "ave.\n\n[SCENE: CH03_S02 | POV: Tim | Location: Tim's Apartment]\n\n",
-      "post": "[SCENE: CH03_S03 | POV: Tim | Location: Tim's Apartment]\n\nLater "
+      "post": "[SCENE: CH03_S03 | POV: Tim | Location: Tim's Apartment]\n\nLater ",
+      "rareShingles": [
+        "suffering users report reduced anxiety clearer decision making",
+        "books and research papers felt smaller than usual",
+        "furrowed again doubt crossing her face wait aren"
+      ]
     },
     "ch03_s03": {
       "id": "ch03_s03",
@@ -88,7 +138,12 @@
       "offset": 37873,
       "len": 4078,
       "pre": "all.\n\n[SCENE: CH03_S03 | POV: Tim | Location: Tim's Apartment]\n\n",
-      "post": "=== CHAPTER 04 ===\n\n[SCENE: CH04_S01 | POV: Georgia | Location: "
+      "post": "=== CHAPTER 04 ===\n\n[SCENE: CH04_S01 | POV: Georgia | Location: ",
+      "rareShingles": [
+        "six armed figure surrounded by flames dark blue",
+        "suffering until all sentient beings are free they",
+        "forsakes their own enlightenment until everyone else has"
+      ]
     },
     "ch04_s01": {
       "id": "ch04_s01",
@@ -96,7 +151,12 @@
       "offset": 42030,
       "len": 11798,
       "pre": "===\n\n[SCENE: CH04_S01 | POV: Georgia | Location: Jeta's Grove]\n\n",
-      "post": "[SCENE: CH04_S02 | POV: Ed | Location: Jeta's Grove]\n\nLater that"
+      "post": "[SCENE: CH04_S02 | POV: Ed | Location: Jeta's Grove]\n\nLater that",
+      "rareShingles": [
+        "worldly pleasures proper temple offerings can generate great",
+        "simple tool for stress management fifteen minutes squeezed",
+        "retreat center plus two workers who had joined"
+      ]
     },
     "ch04_s02": {
       "id": "ch04_s02",
@@ -104,7 +164,12 @@
       "offset": 53882,
       "len": 3161,
       "pre": "n doubt.\n\n[SCENE: CH04_S02 | POV: Ed | Location: Jeta's Grove]\n\n",
-      "post": "=== CHAPTER 05 ===\n\n[SCENE: CH05_S01 | POV: Zach | Location: Zac"
+      "post": "=== CHAPTER 05 ===\n\n[SCENE: CH05_S01 | POV: Zach | Location: Zac",
+      "rareShingles": [
+        "her face visible among the stars scattered across",
+        "all along wondering how many others would soon",
+        "chased moments like this believing enlightenment would feel"
+      ]
     },
     "ch05_s01": {
       "id": "ch05_s01",
@@ -112,7 +177,12 @@
       "offset": 57120,
       "len": 6526,
       "pre": "5 ===\n\n[SCENE: CH05_S01 | POV: Zach | Location: Zach's Office]\n\n",
-      "post": "[SCENE: CH05_S02 | POV: Zach | Location: Zach's Car]\n\nDriving fr"
+      "post": "[SCENE: CH05_S02 | POV: Zach | Location: Zach's Car]\n\nDriving fr",
+      "rareShingles": [
+        "then our product becomes like drugs were decades",
+        "quality knockoffs no law abiding citizen can bring",
+        "tasked with filling these damned slots and making"
+      ]
     },
     "ch05_s02": {
       "id": "ch05_s02",
@@ -120,7 +190,12 @@
       "offset": 63700,
       "len": 5458,
       "pre": "ed calm.\n\n[SCENE: CH05_S02 | POV: Zach | Location: Zach's Car]\n\n",
-      "post": "=== CHAPTER 06 ===\n\n[SCENE: CH06_S01 | POV: Zach | Location: Ret"
+      "post": "=== CHAPTER 06 ===\n\n[SCENE: CH06_S01 | POV: Zach | Location: Ret",
+      "rareShingles": [
+        "user experiences some describing vivid visuals others distinct",
+        "sounds and still others perceiving subtle energy shifts",
+        "imagined politicians corporations and news outlets panicking their"
+      ]
     },
     "ch06_s01": {
       "id": "ch06_s01",
@@ -128,7 +203,12 @@
       "offset": 69236,
       "len": 5706,
       "pre": " ===\n\n[SCENE: CH06_S01 | POV: Zach | Location: Retreat Center]\n\n",
-      "post": "[SCENE: CH06_S02 | POV: Zach | Location: Retreat Center]\n\nIn the"
+      "post": "[SCENE: CH06_S02 | POV: Zach | Location: Retreat Center]\n\nIn the",
+      "rareShingles": [
+        "slip during those early trials and recruitment phases",
+        "down might draw more attention than just going",
+        "surprising considering your field true he admitted shifting"
+      ]
     },
     "ch06_s02": {
       "id": "ch06_s02",
@@ -136,7 +216,12 @@
       "offset": 75000,
       "len": 6195,
       "pre": "dy.”\n\n[SCENE: CH06_S02 | POV: Zach | Location: Retreat Center]\n\n",
-      "post": "=== CHAPTER 07 ===\n\n[SCENE: CH07_S01 | POV: Georgia | Location: "
+      "post": "=== CHAPTER 07 ===\n\n[SCENE: CH07_S01 | POV: Georgia | Location: ",
+      "rareShingles": [
+        "debug neural feedback loops or calibrate quantum sensors",
+        "nearby wall clock its mechanical heartbeat underscoring their",
+        "shelf where the prototype headsets sat neatly arranged"
+      ]
     },
     "ch07_s01": {
       "id": "ch07_s01",
@@ -144,7 +229,12 @@
       "offset": 81275,
       "len": 3468,
       "pre": "==\n\n[SCENE: CH07_S01 | POV: Georgia | Location: Georgia's Car]\n\n",
-      "post": "[SCENE: CH07_S02 | POV: Georgia | Location: Georgia's Office]\n\n“"
+      "post": "[SCENE: CH07_S02 | POV: Georgia | Location: Georgia's Office]\n\n“",
+      "rareShingles": [
+        "permitted only candidates deemed ready those already detached",
+        "meaningfully alleviate suffering through charity ethical practices it",
+        "one purity seemed almost impossible generosity was part"
+      ]
     },
     "ch07_s02": {
       "id": "ch07_s02",
@@ -152,7 +242,12 @@
       "offset": 84806,
       "len": 5383,
       "pre": "\n[SCENE: CH07_S02 | POV: Georgia | Location: Georgia's Office]\n\n",
-      "post": "=== CHAPTER 08 ===\n\n[SCENE: CH08_S01 | POV: Bud | Location: Coff"
+      "post": "=== CHAPTER 08 ===\n\n[SCENE: CH08_S01 | POV: Bud | Location: Coff",
+      "rareShingles": [
+        "brow lifted slightly explain most neural tech forces",
+        "fear attachment decadence comfort ignorance he said trailing",
+        "encrypted including both hard and soft fail safes"
+      ]
     },
     "ch08_s01": {
       "id": "ch08_s01",
@@ -160,7 +255,12 @@
       "offset": 90263,
       "len": 3503,
       "pre": "R 08 ===\n\n[SCENE: CH08_S01 | POV: Bud | Location: Coffee Shop]\n\n",
-      "post": "[SCENE: CH08_S02 | POV: Bud | Location: Street]\n\n“How are things"
+      "post": "[SCENE: CH08_S02 | POV: Bud | Location: Street]\n\n“How are things",
+      "rareShingles": [
+        "unspoken understanding between them these meetings were rarely",
+        "even those odd online exercise classes like zoomba",
+        "mutual concern pretending they d bumped into each"
+      ]
     },
     "ch08_s02": {
       "id": "ch08_s02",
@@ -168,7 +268,12 @@
       "offset": 93815,
       "len": 3494,
       "pre": "er the years.\n\n[SCENE: CH08_S02 | POV: Bud | Location: Street]\n\n",
-      "post": "=== CHAPTER 09 ===\n\n[SCENE: CH09_S01 | POV: Zach | Location: Ret"
+      "post": "=== CHAPTER 09 ===\n\n[SCENE: CH09_S01 | POV: Zach | Location: Ret",
+      "rareShingles": [
+        "fit anything else since we last talked warmth",
+        "tone playful but edged with fatigue my staff",
+        "private sector all stuffed shirts and talking heads"
+      ]
     },
     "ch09_s01": {
       "id": "ch09_s01",
@@ -176,7 +281,12 @@
       "offset": 97387,
       "len": 7638,
       "pre": " ===\n\n[SCENE: CH09_S01 | POV: Zach | Location: Retreat Center]\n\n",
-      "post": "=== CHAPTER 10 ===\n\n[SCENE: CH10_S01 | POV: Bud | Location: Bud'"
+      "post": "=== CHAPTER 10 ===\n\n[SCENE: CH10_S01 | POV: Bud | Location: Bud'",
+      "rareShingles": [
+        "working beyond our wildest dreams one hundred percent",
+        "took a slow steady breath crisis averted this",
+        "really does no hint about the original source"
+      ]
     },
     "ch10_s01": {
       "id": "ch10_s01",
@@ -184,7 +294,12 @@
       "offset": 105100,
       "len": 6204,
       "pre": " 10 ===\n\n[SCENE: CH10_S01 | POV: Bud | Location: Bud's Office]\n\n",
-      "post": "[SCENE: CH10_S02 | POV: Bud | Location: Bud's House]\n\nAt home la"
+      "post": "[SCENE: CH10_S02 | POV: Bud | Location: Bud's House]\n\nAt home la",
+      "rareShingles": [
+        "phone momentarily taken aback before answered this may",
+        "flashy product or thinly veiled money making scheme",
+        "brow furrowed no automated greeting or formal introduction"
+      ]
     },
     "ch10_s02": {
       "id": "ch10_s02",
@@ -192,7 +307,12 @@
       "offset": 111358,
       "len": 7860,
       "pre": "ression.\n\n[SCENE: CH10_S02 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "=== CHAPTER 11 ===\n\n[SCENE: CH11_S01 | POV: Zach | Location: Con"
+      "post": "=== CHAPTER 11 ===\n\n[SCENE: CH11_S01 | POV: Zach | Location: Con",
+      "rareShingles": [
+        "door clicked shut behind her he exhaled slowly",
+        "attention gaming giant shutters mental health division amid",
+        "read vr meditation app raises privacy red flags"
+      ]
     },
     "ch11_s01": {
       "id": "ch11_s01",
@@ -200,7 +320,12 @@
       "offset": 119292,
       "len": 4995,
       "pre": "R 11 ===\n\n[SCENE: CH11_S01 | POV: Zach | Location: Conference]\n\n",
-      "post": "[SCENE: CH11_S02 | POV: Zach | Location: Conference]\n\nThe mornin"
+      "post": "[SCENE: CH11_S02 | POV: Zach | Location: Conference]\n\nThe mornin",
+      "rareShingles": [
+        "internet balanced notes on innovation versus oversight even",
+        "pick your brain on some stuff uh yes",
+        "overreaching or innovation discouraging regulation will only kill"
+      ]
     },
     "ch11_s02": {
       "id": "ch11_s02",
@@ -208,7 +333,12 @@
       "offset": 124341,
       "len": 13381,
       "pre": "morrow.”\n\n[SCENE: CH11_S02 | POV: Zach | Location: Conference]\n\n",
-      "post": "[SCENE: CH11_S03 | POV: Zach | Location: Conference]\n\nAt lunch, "
+      "post": "[SCENE: CH11_S03 | POV: Zach | Location: Conference]\n\nAt lunch, ",
+      "rareShingles": [
+        "heavyweight champion fighter architects can create stunning renderings",
+        "entertainment information advertising or social networking enlightened beings",
+        "possibly unattainable goal sells fewer seats for sure"
+      ]
     },
     "ch11_s03": {
       "id": "ch11_s03",
@@ -216,7 +346,12 @@
       "offset": 137776,
       "len": 6680,
       "pre": "is side.\n\n[SCENE: CH11_S03 | POV: Zach | Location: Conference]\n\n",
-      "post": "=== CHAPTER 12 ===\n\n[SCENE: CH12_S01 | POV: Bud | Location: Bud'"
+      "post": "=== CHAPTER 12 ===\n\n[SCENE: CH12_S01 | POV: Bud | Location: Bud'",
+      "rareShingles": [
+        "great job arguing against over regulation last night",
+        "simple scene ch11 s04 pov ed location jeta",
+        "project develops celeste added donations and goodwill might"
+      ]
     },
     "ch12_s01": {
       "id": "ch12_s01",
@@ -224,7 +359,12 @@
       "offset": 144531,
       "len": 5427,
       "pre": " 12 ===\n\n[SCENE: CH12_S01 | POV: Bud | Location: Bud's Office]\n\n",
-      "post": "[SCENE: CH12_S02 | POV: Bud | Location: Bud's Office]\n\nBud watch"
+      "post": "[SCENE: CH12_S02 | POV: Bud | Location: Bud's Office]\n\nBud watch",
+      "rareShingles": [
+        "brains this goes beyond wireless signals causing brain",
+        "dropped half an octave each word coming slower",
+        "coordination across multiple agencies fda fcc homeland security"
+      ]
     },
     "ch12_s02": {
       "id": "ch12_s02",
@@ -232,7 +372,12 @@
       "offset": 150013,
       "len": 2053,
       "pre": "d for.”\n\n[SCENE: CH12_S02 | POV: Bud | Location: Bud's Office]\n\n",
-      "post": "=== CHAPTER 13 ===\n\n[SCENE: CH13_S01 | POV: Carly | Location: Re"
+      "post": "=== CHAPTER 13 ===\n\n[SCENE: CH13_S01 | POV: Carly | Location: Re",
+      "rareShingles": [
+        "retreat center has never charged for its services",
+        "otherwise empty room whatever came next bud knew",
+        "pulled up constance s contact information fingers hesitating"
+      ]
     },
     "ch13_s01": {
       "id": "ch13_s01",
@@ -240,7 +385,12 @@
       "offset": 152145,
       "len": 1648,
       "pre": "===\n\n[SCENE: CH13_S01 | POV: Carly | Location: Retreat Center]\n\n",
-      "post": "[SCENE: CH13_S02 | POV: Carly | Location: Jetta's Grove]\n\nLater "
+      "post": "[SCENE: CH13_S02 | POV: Carly | Location: Jetta's Grove]\n\nLater ",
+      "rareShingles": [
+        "entrance carly observed how his calm commanding presence",
+        "contrast the long term residents betrayed subtle signs",
+        "keep operating like this she murmured leaning closer"
+      ]
     },
     "ch13_s02": {
       "id": "ch13_s02",
@@ -248,7 +398,12 @@
       "offset": 153851,
       "len": 3549,
       "pre": "en.”\n\n[SCENE: CH13_S02 | POV: Carly | Location: Jetta's Grove]\n\n",
-      "post": "[SCENE: CH13_S03 | POV: Arahant | Location: Jetta's Grove]\n\nA bi"
+      "post": "[SCENE: CH13_S03 | POV: Arahant | Location: Jetta's Grove]\n\nA bi",
+      "rareShingles": [
+        "might be a late arrival seeking solace or",
+        "looming unknown settled heavily over her yet beneath",
+        "simple profound belief paths to awakening still existed"
+      ]
     },
     "ch13_s03": {
       "id": "ch13_s03",
@@ -256,7 +411,12 @@
       "offset": 157460,
       "len": 2855,
       "pre": "y.\n\n[SCENE: CH13_S03 | POV: Arahant | Location: Jetta's Grove]\n\n",
-      "post": "=== CHAPTER 14 ===\n\n[SCENE: CH14_S01 | POV: Tim | Location: Ware"
+      "post": "=== CHAPTER 14 ===\n\n[SCENE: CH14_S01 | POV: Tim | Location: Ware",
+      "rareShingles": [
+        "fingers felt impossibly intricate each blade distinct yet",
+        "endless pattern no more or less important than",
+        "what they sought was already within them waiting"
+      ]
     },
     "ch14_s01": {
       "id": "ch14_s01",
@@ -264,7 +424,12 @@
       "offset": 160387,
       "len": 1922,
       "pre": "TER 14 ===\n\n[SCENE: CH14_S01 | POV: Tim | Location: Warehouse]\n\n",
-      "post": "[SCENE: CH14_S02 | POV: Tim | Location: Warehouse]\n\nTim turned t"
+      "post": "[SCENE: CH14_S02 | POV: Tim | Location: Warehouse]\n\nTim turned t",
+      "rareShingles": [
+        "making your target look worthless he reached into",
+        "vast space seemed to hold its breath waiting",
+        "grid patterns local development plans and traffic flows"
+      ]
     },
     "ch14_s02": {
       "id": "ch14_s02",
@@ -272,7 +437,12 @@
       "offset": 162361,
       "len": 2711,
       "pre": " here too.\n\n[SCENE: CH14_S02 | POV: Tim | Location: Warehouse]\n\n",
-      "post": "=== CHAPTER 15 ===\n\n[SCENE: CH15_S01 | POV: Sherry | Location: S"
+      "post": "=== CHAPTER 15 ===\n\n[SCENE: CH15_S01 | POV: Sherry | Location: S",
+      "rareShingles": [
+        "usually composed features i ll leave you boys",
+        "part finding this location hadn t been easy",
+        "larger companies someone s been quietly accumulating shares"
+      ]
     },
     "ch15_s01": {
       "id": "ch15_s01",
@@ -280,7 +450,12 @@
       "offset": 165150,
       "len": 5817,
       "pre": " ===\n\n[SCENE: CH15_S01 | POV: Sherry | Location: Soup Kitchen]\n\n",
-      "post": "[SCENE: CH15_S02 | POV: Sherry | Location: Homeland Security Off"
+      "post": "[SCENE: CH15_S02 | POV: Sherry | Location: Homeland Security Off",
+      "rareShingles": [
+        "cloth down gently i m agent fiona gile",
+        "mailing address no debts credit cards bank accounts",
+        "thoughtful brevity kept the interactions from feeling unsettling"
+      ]
     },
     "ch15_s02": {
       "id": "ch15_s02",
@@ -288,7 +463,12 @@
       "offset": 171037,
       "len": 3964,
       "pre": ": CH15_S02 | POV: Sherry | Location: Homeland Security Office]\n\n",
-      "post": "=== CHAPTER 16 ===\n\n[SCENE: CH16_S01 | POV: Bud | Location: Virt"
+      "post": "=== CHAPTER 16 ===\n\n[SCENE: CH16_S01 | POV: Bud | Location: Virt",
+      "rareShingles": [
+        "advent industries announces major market move with strategic",
+        "apology oh i m sure she ll stay",
+        "positioning himself for something bigger looks like georgia"
+      ]
     },
     "ch16_s01": {
       "id": "ch16_s01",
@@ -296,7 +476,12 @@
       "offset": 175081,
       "len": 9525,
       "pre": "==\n\n[SCENE: CH16_S01 | POV: Bud | Location: Virtual Boardroom]\n\n",
-      "post": "=== CHAPTER 17 ===\n\n[SCENE: CH17_S01 | POV: Zach | Location: Zac"
+      "post": "=== CHAPTER 17 ===\n\n[SCENE: CH17_S01 | POV: Zach | Location: Zac",
+      "rareShingles": [
+        "undermine faith in organized religion destabilize economic participation",
+        "development several of these entities share concerning overlaps",
+        "upstate vermont has functioning prototypes and preliminary reports"
+      ]
     },
     "ch17_s01": {
       "id": "ch17_s01",
@@ -304,7 +489,12 @@
       "offset": 184683,
       "len": 7483,
       "pre": "7 ===\n\n[SCENE: CH17_S01 | POV: Zach | Location: Zach's Office]\n\n",
-      "post": "[SCENE: CH17_S02 | POV: Zach | Location: Coffee Shop]\n\nA few day"
+      "post": "[SCENE: CH17_S02 | POV: Zach | Location: Coffee Shop]\n\nA few day",
+      "rareShingles": [
+        "immediate glances exchanged subtle nods an unspoken confirmation",
+        "find when joe bronski s email finally came",
+        "its carefully worded questions about neural network architecture"
+      ]
     },
     "ch17_s02": {
       "id": "ch17_s02",
@@ -312,7 +502,12 @@
       "offset": 192221,
       "len": 5622,
       "pre": "y from.\n\n[SCENE: CH17_S02 | POV: Zach | Location: Coffee Shop]\n\n",
-      "post": "[SCENE: CH17_S03 | POV: Zach | Location: Joe's Apartment]\n\nThe l"
+      "post": "[SCENE: CH17_S03 | POV: Zach | Location: Joe's Apartment]\n\nThe l",
+      "rareShingles": [
+        "government investigation gives him perfect cover any defensive",
+        "window where late afternoon sunlight cast fractured reflections",
+        "analyzing emotions takes up so much computing power"
+      ]
     },
     "ch17_s03": {
       "id": "ch17_s03",
@@ -320,7 +515,12 @@
       "offset": 197902,
       "len": 3113,
       "pre": "e.”\n\n[SCENE: CH17_S03 | POV: Zach | Location: Joe's Apartment]\n\n",
-      "post": "=== CHAPTER 18 ===\n\n[SCENE: CH18_S01 | POV: Tim | Location: Hote"
+      "post": "=== CHAPTER 18 ===\n\n[SCENE: CH18_S01 | POV: Tim | Location: Hote",
+      "rareShingles": [
+        "small smile all those hours defending his ideas",
+        "casting blue light across the cramped space research",
+        "stale coffee an untouched mug sitting forgotten on"
+      ]
     },
     "ch18_s01": {
       "id": "ch18_s01",
@@ -328,7 +528,12 @@
       "offset": 201088,
       "len": 6999,
       "pre": "ER 18 ===\n\n[SCENE: CH18_S01 | POV: Tim | Location: Hotel Room]\n\n",
-      "post": "=== CHAPTER 19 ===\n\n[SCENE: CH19_S01 | POV: Carly | Location: Je"
+      "post": "=== CHAPTER 19 ===\n\n[SCENE: CH19_S01 | POV: Carly | Location: Je",
+      "rareShingles": [
+        "listened brows knitting tighter with each passing second",
+        "imminent danger involving an untested virtual reality program",
+        "desk where two laptops sat programs running ceaselessly"
+      ]
     },
     "ch19_s01": {
       "id": "ch19_s01",
@@ -336,7 +541,12 @@
       "offset": 208164,
       "len": 2461,
       "pre": "9 ===\n\n[SCENE: CH19_S01 | POV: Carly | Location: Jeta's Grove]\n\n",
-      "post": "=== CHAPTER 20 ===\n\n[SCENE: CH20_S01 | POV: Bud | Location: Bud'"
+      "post": "=== CHAPTER 20 ===\n\n[SCENE: CH20_S01 | POV: Bud | Location: Bud'",
+      "rareShingles": [
+        "making his own decisions and looking after himself",
+        "grove that morning and immediately started asking questions",
+        "desist order i m on my way zach"
+      ]
     },
     "ch20_s01": {
       "id": "ch20_s01",
@@ -344,7 +554,12 @@
       "offset": 210699,
       "len": 6265,
       "pre": "R 20 ===\n\n[SCENE: CH20_S01 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "=== CHAPTER 21 ===\n\n[SCENE: CH21_S01 | POV: Zach | Location: Spa"
+      "post": "=== CHAPTER 21 ===\n\n[SCENE: CH21_S01 | POV: Zach | Location: Spa",
+      "rareShingles": [
+        "screen silently scrolled market alerts advent industries latest",
+        "careful possibly even better connected than i am",
+        "unusual microchip purchases your list of required goods"
+      ]
     },
     "ch21_s01": {
       "id": "ch21_s01",
@@ -352,7 +567,12 @@
       "offset": 217031,
       "len": 2439,
       "pre": " CHAPTER 21 ===\n\n[SCENE: CH21_S01 | POV: Zach | Location: Spa]\n\n",
-      "post": "[SCENE: CH21_S02 | POV: Zach | Location: Zach's Car]\n\nSeated in "
+      "post": "[SCENE: CH21_S02 | POV: Zach | Location: Zach's Car]\n\nSeated in ",
+      "rareShingles": [
+        "barred from any further work not just because",
+        "attendant added noticing his confusion ok well have",
+        "criminal trials there wasn t much else occupying"
+      ]
     },
     "ch21_s02": {
       "id": "ch21_s02",
@@ -360,7 +580,12 @@
       "offset": 219524,
       "len": 4317,
       "pre": "his car.\n\n[SCENE: CH21_S02 | POV: Zach | Location: Zach's Car]\n\n",
-      "post": "=== CHAPTER 22 ===\n\n[SCENE: CH22_S01 | POV: Fiona | Location: Bo"
+      "post": "=== CHAPTER 22 ===\n\n[SCENE: CH22_S01 | POV: Fiona | Location: Bo",
+      "rareShingles": [
+        "raised an eyebrow half expecting another wild twist",
+        "abundance of caution has paid off every step",
+        "portion apparently some of our enlightened friends have"
+      ]
     },
     "ch22_s01": {
       "id": "ch22_s01",
@@ -368,7 +593,12 @@
       "offset": 223915,
       "len": 3342,
       "pre": "R 22 ===\n\n[SCENE: CH22_S01 | POV: Fiona | Location: Boardroom]\n\n",
-      "post": "=== CHAPTER 23 ===\n\n[SCENE: CH23_S01 | POV: Zach | Location: War"
+      "post": "=== CHAPTER 23 ===\n\n[SCENE: CH23_S01 | POV: Zach | Location: War",
+      "rareShingles": [
+        "slow moving bureaucracy but doubted anything would change",
+        "even some religious factions were circling like vultures",
+        "slew of baseless theories rogue ai societal pacification"
+      ]
     },
     "ch23_s01": {
       "id": "ch23_s01",
@@ -376,7 +606,12 @@
       "offset": 227330,
       "len": 5621,
       "pre": "ER 23 ===\n\n[SCENE: CH23_S01 | POV: Zach | Location: Warehouse]\n\n",
-      "post": "[SCENE: CH23_S02 | POV: Zach | Location: Warehouse]\n\n“Come,” Tim"
+      "post": "[SCENE: CH23_S02 | POV: Zach | Location: Warehouse]\n\n“Come,” Tim",
+      "rareShingles": [
+        "monitors advent industries calls emergency shareholder meeting vote",
+        "precise calibration quantum sensors neural interface testing sub",
+        "unexpectedly refined touch considering their compressed timeline jesus"
+      ]
     },
     "ch23_s02": {
       "id": "ch23_s02",
@@ -384,7 +619,12 @@
       "offset": 233004,
       "len": 4438,
       "pre": "le hands.\n\n[SCENE: CH23_S02 | POV: Zach | Location: Warehouse]\n\n",
-      "post": "=== CHAPTER 24 ===\n\n[SCENE: CH24_S01 | POV: Fiona | Location: SU"
+      "post": "=== CHAPTER 24 ===\n\n[SCENE: CH24_S01 | POV: Fiona | Location: SU",
+      "rareShingles": [
+        "locked onto the screen showing several black vehicles",
+        "what our little band started calling themselves dharmapala",
+        "name resonated somewhere deep within him sparking an"
+      ]
     },
     "ch24_s01": {
       "id": "ch24_s01",
@@ -392,7 +632,12 @@
       "offset": 237510,
       "len": 1121,
       "pre": "CHAPTER 24 ===\n\n[SCENE: CH24_S01 | POV: Fiona | Location: SUV]\n\n",
-      "post": "[SCENE: CH24_S02 | POV: Fiona | Location: Tablet Factory]\n\nThe v"
+      "post": "[SCENE: CH24_S02 | POV: Fiona | Location: Tablet Factory]\n\nThe v",
+      "rareShingles": [
+        "gut something wasn t right any unusual traffic",
+        "asked keeping her tone even box truck went",
+        "thought recalling the nerve wracking chemical weapon bust"
+      ]
     },
     "ch24_s02": {
       "id": "ch24_s02",
@@ -400,7 +645,12 @@
       "offset": 238690,
       "len": 4565,
       "pre": "go.\n\n[SCENE: CH24_S02 | POV: Fiona | Location: Tablet Factory]\n\n",
-      "post": "[SCENE: CH24_S03 | POV: Fiona | Location: SUV]\n\n“This had to be "
+      "post": "[SCENE: CH24_S03 | POV: Fiona | Location: SUV]\n\n“This had to be ",
+      "rareShingles": [
+        "virtual reality headsets instead rows of bright colorful",
+        "quick glance confirmed he had stayed behind leaving",
+        "split off carrying evidence boxes and moving deeper"
+      ]
     },
     "ch24_s03": {
       "id": "ch24_s03",
@@ -408,7 +658,12 @@
       "offset": 243303,
       "len": 1765,
       "pre": "rmic protocol.\n\n[SCENE: CH24_S03 | POV: Fiona | Location: SUV]\n\n",
-      "post": "=== CHAPTER 25 ===\n\n[SCENE: CH25_S01 | POV: Tim | Location: Hote"
+      "post": "=== CHAPTER 25 ===\n\n[SCENE: CH25_S01 | POV: Tim | Location: Hote",
+      "rareShingles": [
+        "both their phones georgia sato announces emergency board",
+        "alerts during the raid advent industries started buying",
+        "moment before opening again with a sigh and"
+      ]
     },
     "ch25_s01": {
       "id": "ch25_s01",
@@ -416,7 +671,12 @@
       "offset": 245141,
       "len": 8837,
       "pre": "ER 25 ===\n\n[SCENE: CH25_S01 | POV: Tim | Location: Hotel Room]\n\n",
-      "post": "=== CHAPTER 26 ===\n\n[SCENE: CH26_S01 | POV: Bud | Location: Bud'"
+      "post": "=== CHAPTER 26 ===\n\n[SCENE: CH26_S01 | POV: Bud | Location: Bud'",
+      "rareShingles": [
+        "passing between them an extended exhale followed broken",
+        "report improved mental health emotional regulation and life",
+        "gone unnoticed and ended up doing real harm"
+      ]
     },
     "ch26_s01": {
       "id": "ch26_s01",
@@ -424,7 +684,12 @@
       "offset": 254053,
       "len": 1625,
       "pre": " 26 ===\n\n[SCENE: CH26_S01 | POV: Bud | Location: Bud's Office]\n\n",
-      "post": "[SCENE: CH26_S02 | POV: Lawrence | Location: Virtual Boardroom]\n"
+      "post": "[SCENE: CH26_S02 | POV: Lawrence | Location: Virtual Boardroom]\n",
+      "rareShingles": [
+        "they veered from reasonable caution into paranoid overreach",
+        "phone snapped him back probably o hearn eager",
+        "beaming as she showcased her new tablet right"
+      ]
     },
     "ch26_s02": {
       "id": "ch26_s02",
@@ -432,7 +697,12 @@
       "offset": 255743,
       "len": 7718,
       "pre": "SCENE: CH26_S02 | POV: Lawrence | Location: Virtual Boardroom]\n\n",
-      "post": "[SCENE: CH26_S03 | POV: Constance | Location: Constance's Office"
+      "post": "[SCENE: CH26_S03 | POV: Constance | Location: Constance's Office",
+      "rareShingles": [
+        "2026 administrative procedures act amendments require sixty days",
+        "maintaining social stability the harbridge simulations clearly show",
+        "fda still has jurisdiction over neural interface devices"
+      ]
     },
     "ch26_s03": {
       "id": "ch26_s03",
@@ -440,7 +710,12 @@
       "offset": 263528,
       "len": 2632,
       "pre": "ENE: CH26_S03 | POV: Constance | Location: Constance's Office]\n\n",
-      "post": "[SCENE: CH26_S04 | POV: Lawrence | Location: Lawrence's Office]\n"
+      "post": "[SCENE: CH26_S04 | POV: Lawrence | Location: Lawrence's Office]\n",
+      "rareShingles": [
+        "desist handling press calls brief key legislators but",
+        "reports had painted an unsettling picture mass consciousness",
+        "quiet warning settling between them like an unwelcome"
+      ]
     },
     "ch26_s04": {
       "id": "ch26_s04",
@@ -448,7 +723,12 @@
       "offset": 266225,
       "len": 2416,
       "pre": "SCENE: CH26_S04 | POV: Lawrence | Location: Lawrence's Office]\n\n",
-      "post": "[SCENE: CH26_S05 | POV: Arahant | Location: Courtyard]\n\nOutside,"
+      "post": "[SCENE: CH26_S05 | POV: Arahant | Location: Courtyard]\n\nOutside,",
+      "rareShingles": [
+        "security contact meeting confirmed will send secure details",
+        "carefully worded assurances about ongoing monitoring and future",
+        "something stronger unwavering conviction a silent unstoppable force"
+      ]
     },
     "ch26_s05": {
       "id": "ch26_s05",
@@ -456,7 +736,12 @@
       "offset": 268697,
       "len": 2487,
       "pre": "hield.\n\n[SCENE: CH26_S05 | POV: Arahant | Location: Courtyard]\n\n",
-      "post": "=== CHAPTER 27 ===\n\n[SCENE: CH27_S01 | POV: Georgia | Location: "
+      "post": "=== CHAPTER 27 ===\n\n[SCENE: CH27_S01 | POV: Georgia | Location: ",
+      "rareShingles": [
+        "newly enlightened from the center found himself seated",
+        "veins a memory surfaced unbidden but welcome before",
+        "someone passed by their silhouette cast briefly against"
+      ]
     },
     "ch27_s01": {
       "id": "ch27_s01",
@@ -464,7 +749,12 @@
       "offset": 271265,
       "len": 11046,
       "pre": "=\n\n[SCENE: CH27_S01 | POV: Georgia | Location: Reatreat House]\n\n",
-      "post": "=== CHAPTER 28 ===\n\n[SCENE: CH28_S01 | POV: Carly | Location: Je"
+      "post": "=== CHAPTER 28 ===\n\n[SCENE: CH28_S01 | POV: Carly | Location: Je",
+      "rareShingles": [
+        "private retreat house cast enough light to create",
+        "quantum encryption individualized neural patterns quantum fail safes",
+        "by anyone including whoever might end up controlling"
+      ]
     },
     "ch28_s01": {
       "id": "ch28_s01",
@@ -472,7 +762,12 @@
       "offset": 282388,
       "len": 5831,
       "pre": "8 ===\n\n[SCENE: CH28_S01 | POV: Carly | Location: Jeta's Grove]\n\n",
-      "post": "[SCENE: CH28_S02 | POV: Carly | Location: Jeta's Grove]\n\nSuddenl"
+      "post": "[SCENE: CH28_S02 | POV: Carly | Location: Jeta's Grove]\n\nSuddenl",
+      "rareShingles": [
+        "impossible especially without their notes or prototypes despite",
+        "learned not to chase away too hastily experience",
+        "homeland security office came back in startling clarity"
+      ]
     },
     "ch28_s02": {
       "id": "ch28_s02",
@@ -480,7 +775,12 @@
       "offset": 288276,
       "len": 4712,
       "pre": "neck.\n\n[SCENE: CH28_S02 | POV: Carly | Location: Jeta's Grove]\n\n",
-      "post": "=== CHAPTER 29 ===\n\n[SCENE: CH29_S01 | POV: Bud | Location: Coff"
+      "post": "=== CHAPTER 29 ===\n\n[SCENE: CH29_S01 | POV: Bud | Location: Coff",
+      "rareShingles": [
+        "single leaf spiraling down from above landing softly",
+        "neither hope nor regret will benefit us these",
+        "protocol doesn t grant powers or create miracles"
+      ]
     },
     "ch29_s01": {
       "id": "ch29_s01",
@@ -488,7 +788,12 @@
       "offset": 293062,
       "len": 6432,
       "pre": "R 29 ===\n\n[SCENE: CH29_S01 | POV: Bud | Location: Coffee Shop]\n\n",
-      "post": "[SCENE: CH29_S02 | POV: Bud | Location: Street]\n\nAs Bud made his"
+      "post": "[SCENE: CH29_S02 | POV: Bud | Location: Street]\n\nAs Bud made his",
+      "rareShingles": [
+        "time around people like joe newly promoted driven",
+        "sato factory raid surfaced leaving a bitter aftertaste",
+        "move tv shows concerts bud found himself enjoying"
+      ]
     },
     "ch29_s02": {
       "id": "ch29_s02",
@@ -496,7 +801,12 @@
       "offset": 299543,
       "len": 481,
       "pre": "orge for me.”\n\n[SCENE: CH29_S02 | POV: Bud | Location: Street]\n\n",
-      "post": "=== CHAPTER 30 ===\n\n[SCENE: CH30_S01 | POV: Zach | Location: War"
+      "post": "=== CHAPTER 30 ===\n\n[SCENE: CH30_S01 | POV: Zach | Location: War",
+      "rareShingles": [
+        "office a pang of disappointment settled over him",
+        "mind flickered to constance and how she had",
+        "protocol hadn t turned into the issue for"
+      ]
     },
     "ch30_s01": {
       "id": "ch30_s01",
@@ -504,7 +814,12 @@
       "offset": 300097,
       "len": 3108,
       "pre": "ER 30 ===\n\n[SCENE: CH30_S01 | POV: Zach | Location: Warehouse]\n\n",
-      "post": "[SCENE: CH30_S02 | POV: Zach | Location: Warehouse]\n\n“They’re st"
+      "post": "[SCENE: CH30_S02 | POV: Zach | Location: Warehouse]\n\n“They’re st",
+      "rareShingles": [
+        "operations show no irregular activity market analysts puzzle",
+        "secrecy amidst so many moving parts components were",
+        "worked tirelessly subsisting on takeout meals meditating when"
+      ]
     },
     "ch30_s02": {
       "id": "ch30_s02",
@@ -512,7 +827,12 @@
       "offset": 303258,
       "len": 2375,
       "pre": "elievers.\n\n[SCENE: CH30_S02 | POV: Zach | Location: Warehouse]\n\n",
-      "post": "[SCENE: CH30_S03 | POV: Zach | Location: Warehouse]\n\nThe sound o"
+      "post": "[SCENE: CH30_S03 | POV: Zach | Location: Warehouse]\n\nThe sound o",
+      "rareShingles": [
+        "tablet displaying security feeds third sweep this week",
+        "district manager i left behind is getting quite",
+        "replied appearing appropriately defeated in board meetings gracefully"
+      ]
     },
     "ch30_s03": {
       "id": "ch30_s03",
@@ -520,7 +840,12 @@
       "offset": 305686,
       "len": 6191,
       "pre": " in that.\n\n[SCENE: CH30_S03 | POV: Zach | Location: Warehouse]\n\n",
-      "post": "[SCENE: CH30_S04 | POV: Zach | Location: Second Warehouse]\n\nA fe"
+      "post": "[SCENE: CH30_S04 | POV: Zach | Location: Second Warehouse]\n\nA fe",
+      "rareShingles": [
+        "ardent student of buddhist scriptures far more committed",
+        "eyes bright yeah they can only run so",
+        "late night talks that always veered into philosophy"
+      ]
     },
     "ch30_s04": {
       "id": "ch30_s04",
@@ -528,7 +853,12 @@
       "offset": 311937,
       "len": 9446,
       "pre": "d.\n\n[SCENE: CH30_S04 | POV: Zach | Location: Second Warehouse]\n\n",
-      "post": "=== CHAPTER 31 ===\n\n[SCENE: CH31_S01 | POV: Bud | Location: Bud'"
+      "post": "=== CHAPTER 31 ===\n\n[SCENE: CH31_S01 | POV: Bud | Location: Bud'",
+      "rareShingles": [
+        "uses non invasive electroencephalography combined with precise temporal",
+        "dust coated old 3d printers and electronic components",
+        "micro saccadic eye movements and pupillary responses all"
+      ]
     },
     "ch31_s01": {
       "id": "ch31_s01",
@@ -536,7 +866,12 @@
       "offset": 321457,
       "len": 1113,
       "pre": "R 31 ===\n\n[SCENE: CH31_S01 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "[SCENE: CH31_S02 | POV: Bud | Location: Bud's House]\n\nOnce seate"
+      "post": "[SCENE: CH31_S02 | POV: Bud | Location: Bud's House]\n\nOnce seate",
+      "rareShingles": [
+        "hadn t expected anything arriving home early from",
+        "rare hour with george whose constant shifting between",
+        "his mind erasing any doubt without another word"
+      ]
     },
     "ch31_s02": {
       "id": "ch31_s02",
@@ -544,7 +879,12 @@
       "offset": 322624,
       "len": 1595,
       "pre": "ckening.\n\n[SCENE: CH31_S02 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "[SCENE: CH31_S03 | POV: Bud | Location: Bud's House]\n\n“Call Cons"
+      "post": "[SCENE: CH31_S03 | POV: Bud | Location: Bud's House]\n\n“Call Cons",
+      "rareShingles": [
+        "vague it offered no real warnings only cryptic",
+        "initials kp etched in an even darker shade",
+        "first thanks again for inviting me to speak"
+      ]
     },
     "ch31_s03": {
       "id": "ch31_s03",
@@ -552,7 +892,12 @@
       "offset": 324273,
       "len": 4154,
       "pre": "devices?\n\n[SCENE: CH31_S03 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "=== CHAPTER 32 ===\n\n[SCENE: CH32_S01 | POV: Zach | Location: Zac"
+      "post": "=== CHAPTER 32 ===\n\n[SCENE: CH32_S01 | POV: Zach | Location: Zac",
+      "rareShingles": [
+        "resigned sigh who knows perhaps spreading this karmic",
+        "printed instructions a longer pause settled between them",
+        "continued each word careful as if weighing their"
+      ]
     },
     "ch32_s01": {
       "id": "ch32_s01",
@@ -560,7 +905,12 @@
       "offset": 328503,
       "len": 6063,
       "pre": "32 ===\n\n[SCENE: CH32_S01 | POV: Zach | Location: Zach's House]\n\n",
-      "post": "=== CHAPTER 33 ===\n\n[SCENE: CH33_S01 | POV: Fiona | Location: FD"
+      "post": "=== CHAPTER 33 ===\n\n[SCENE: CH33_S01 | POV: Fiona | Location: FD",
+      "rareShingles": [
+        "interview requests and most importantly maintain complete silence",
+        "floating between video games and increasingly futile attempts",
+        "potential risks obstacles and delicate negotiations still they"
+      ]
     },
     "ch33_s01": {
       "id": "ch33_s01",
@@ -568,7 +918,12 @@
       "offset": 334641,
       "len": 2366,
       "pre": " 33 ===\n\n[SCENE: CH33_S01 | POV: Fiona | Location: FDA Office]\n\n",
-      "post": "[SCENE: CH33_S02 | POV: Fiona | Location: FDA Office]\n\nThe assem"
+      "post": "[SCENE: CH33_S02 | POV: Fiona | Location: FDA Office]\n\nThe assem",
+      "rareShingles": [
+        "mass production we have something you ll want",
+        "charged air each competing agenda jostling for dominance",
+        "own thoughts these declarations were mere noise distractions"
+      ]
     },
     "ch33_s02": {
       "id": "ch33_s02",
@@ -576,7 +931,12 @@
       "offset": 337062,
       "len": 6361,
       "pre": "epened.\n\n[SCENE: CH33_S02 | POV: Fiona | Location: FDA Office]\n\n",
-      "post": "[SCENE: CH33_S03 | POV: Fiona | Location: FDA Office]\n\nThrough t"
+      "post": "[SCENE: CH33_S03 | POV: Fiona | Location: FDA Office]\n\nThrough t",
+      "rareShingles": [
+        "good health united states citizen college educated former",
+        "scaled down mri apparatus eeg leads snaked across",
+        "rejecting basic social contracts leaving jobs ending relationships"
+      ]
     },
     "ch33_s03": {
       "id": "ch33_s03",
@@ -584,7 +944,12 @@
       "offset": 343478,
       "len": 1853,
       "pre": " back.”\n\n[SCENE: CH33_S03 | POV: Fiona | Location: FDA Office]\n\n",
-      "post": "=== CHAPTER 34 ===\n\n[SCENE: CH34_S01 | POV: Georgia | Location: "
+      "post": "=== CHAPTER 34 ===\n\n[SCENE: CH34_S01 | POV: Georgia | Location: ",
+      "rareShingles": [
+        "mind heavy with truth sometimes protection requires prevention",
+        "peaceful face a question took root who needed",
+        "needs this kind of transformation o hearn shot"
+      ]
     },
     "ch34_s01": {
       "id": "ch34_s01",
@@ -592,7 +957,12 @@
       "offset": 345414,
       "len": 3421,
       "pre": "\n[SCENE: CH34_S01 | POV: Georgia | Location: Georgia's Office]\n\n",
-      "post": "[SCENE: CH34_S02 | POV: Georgia | Location: Georgia's Office]\n\nL"
+      "post": "[SCENE: CH34_S02 | POV: Georgia | Location: Georgia's Office]\n\nL",
+      "rareShingles": [
+        "meticulous intent she couldn t help but feel",
+        "necessary papers signed the accounts balanced tim s",
+        "meditations even moments of whispered prayers surfaced unbidden"
+      ]
     },
     "ch34_s02": {
       "id": "ch34_s02",
@@ -600,7 +970,12 @@
       "offset": 348898,
       "len": 3285,
       "pre": "\n[SCENE: CH34_S02 | POV: Georgia | Location: Georgia's Office]\n\n",
-      "post": "=== CHAPTER 35 ===\n\n[SCENE: CH35_S01 | POV: Lawrence | Location:"
+      "post": "=== CHAPTER 35 ===\n\n[SCENE: CH35_S01 | POV: Lawrence | Location:",
+      "rareShingles": [
+        "spent there were no words no thoughts only",
+        "headset being breathing feeling the world what needed",
+        "stillness the doorknob turned metal components clicking softly"
+      ]
     },
     "ch35_s01": {
       "id": "ch35_s01",
@@ -608,7 +983,12 @@
       "offset": 352268,
       "len": 3154,
       "pre": "SCENE: CH35_S01 | POV: Lawrence | Location: Lawrence's Office]\n\n",
-      "post": "[SCENE: CH35_S02 | POV: Lawrence | Location: Lawrence's Office]\n"
+      "post": "[SCENE: CH35_S02 | POV: Lawrence | Location: Lawrence's Office]\n",
+      "rareShingles": [
+        "tightly orchestrated 48 hour window packages had reached",
+        "unlicensed medical device classification was useful enabling them",
+        "being hidden or used beyond their reach reports"
+      ]
     },
     "ch35_s02": {
       "id": "ch35_s02",
@@ -616,7 +996,12 @@
       "offset": 355487,
       "len": 3225,
       "pre": "SCENE: CH35_S02 | POV: Lawrence | Location: Lawrence's Office]\n\n",
-      "post": "=== CHAPTER 36 ===\n\n[SCENE: CH36_S01 | POV: Tim | Location: Dock"
+      "post": "=== CHAPTER 36 ===\n\n[SCENE: CH36_S01 | POV: Tim | Location: Dock",
+      "rareShingles": [
+        "neurogenesis heightened plasticity increased signaling entropy hypo connectivity",
+        "time their findings yielding mixed or inconclusive results",
+        "letting his gaze drop after holding eye contact"
+      ]
     },
     "ch36_s01": {
       "id": "ch36_s01",
@@ -624,7 +1009,12 @@
       "offset": 358780,
       "len": 3388,
       "pre": "CHAPTER 36 ===\n\n[SCENE: CH36_S01 | POV: Tim | Location: Docks]\n\n",
-      "post": "[SCENE: CH36_S02 | POV: Tim | Location: Blacksite]\n\nThe sudden r"
+      "post": "[SCENE: CH36_S02 | POV: Tim | Location: Blacksite]\n\nThe sudden r",
+      "rareShingles": [
+        "vast library at sakya monastery where they intended",
+        "instinct honed through years of work so close",
+        "method slow enough to avoid attention but safe"
+      ]
     },
     "ch36_s02": {
       "id": "ch36_s02",
@@ -632,7 +1022,12 @@
       "offset": 362220,
       "len": 6493,
       "pre": "He waited.\n\n[SCENE: CH36_S02 | POV: Tim | Location: Blacksite]\n\n",
-      "post": "=== CHAPTER 37 ===\n\n[SCENE: CH37_S01 | POV: Jessica | Location: "
+      "post": "=== CHAPTER 37 ===\n\n[SCENE: CH37_S01 | POV: Jessica | Location: ",
+      "rareShingles": [
+        "world health organization human rights groups and nearly",
+        "possibly irreversible changes to neural networks synapse control",
+        "revealing no hints about any other detainees listen"
+      ]
     },
     "ch37_s01": {
       "id": "ch37_s01",
@@ -640,7 +1035,12 @@
       "offset": 368793,
       "len": 2681,
       "pre": "==\n\n[SCENE: CH37_S01 | POV: Jessica | Location: Yost's Office]\n\n",
-      "post": "[SCENE: CH37_S02 | POV: Jessica | Location: Yost's Office]\n\nThe "
+      "post": "[SCENE: CH37_S02 | POV: Jessica | Location: Yost's Office]\n\nThe ",
+      "rareShingles": [
+        "overreach by homeland security or another shadowed agency",
+        "carefully orchestrated escape now every missed check in",
+        "federal information sharing feels more critical than ever"
+      ]
     },
     "ch37_s02": {
       "id": "ch37_s02",
@@ -648,7 +1048,12 @@
       "offset": 371534,
       "len": 2369,
       "pre": ".”\n\n[SCENE: CH37_S02 | POV: Jessica | Location: Yost's Office]\n\n",
-      "post": "=== CHAPTER 38 ===\n\n[SCENE: CH38_S01 | POV: Lawrence | Location:"
+      "post": "=== CHAPTER 38 ===\n\n[SCENE: CH38_S01 | POV: Lawrence | Location:",
+      "rareShingles": [
+        "stretch especially after being surrounded by federal agents",
+        "determined features who else at homeland security could",
+        "seeking an off the record insight something unofficial"
+      ]
     },
     "ch38_s01": {
       "id": "ch38_s01",
@@ -656,7 +1061,12 @@
       "offset": 373988,
       "len": 6642,
       "pre": "SCENE: CH38_S01 | POV: Lawrence | Location: Lawrence's Office]\n\n",
-      "post": "=== CHAPTER 39 ===\n\n[SCENE: CH39_S01 | POV: Fiona | Location: Fi"
+      "post": "=== CHAPTER 39 ===\n\n[SCENE: CH39_S01 | POV: Fiona | Location: Fi",
+      "rareShingles": [
+        "years countless sensitive documents had found temporary refuge",
+        "predictable his fellow bureaucrats kept citing history invoking",
+        "sleek black virtual reality headset its surface gleaming"
+      ]
     },
     "ch39_s01": {
       "id": "ch39_s01",
@@ -664,7 +1074,12 @@
       "offset": 380709,
       "len": 929,
       "pre": "===\n\n[SCENE: CH39_S01 | POV: Fiona | Location: Fiona's Office]\n\n",
-      "post": "[SCENE: CH39_S02 | POV: Fiona | Location: Fiona's Office]\n\nStand"
+      "post": "[SCENE: CH39_S02 | POV: Fiona | Location: Fiona's Office]\n\nStand",
+      "rareShingles": [
+        "vanished into thin air she stole another look",
+        "expectant eyes across the cluttered desk anything on",
+        "thing he responded he resumed typing his expression"
+      ]
     },
     "ch39_s02": {
       "id": "ch39_s02",
@@ -672,7 +1087,12 @@
       "offset": 381697,
       "len": 5285,
       "pre": "ng.\n\n[SCENE: CH39_S02 | POV: Fiona | Location: Fiona's Office]\n\n",
-      "post": "=== CHAPTER 40 ===\n\n[SCENE: CH40_S01 | POV: Tim | Location: Blac"
+      "post": "=== CHAPTER 40 ===\n\n[SCENE: CH40_S01 | POV: Tim | Location: Blac",
+      "rareShingles": [
+        "fatigue pressing into her words unless someone starts",
+        "soon they shared a brief humorless laugh before",
+        "above my pay grade gile replied knowing full"
+      ]
     },
     "ch40_s01": {
       "id": "ch40_s01",
@@ -680,7 +1100,12 @@
       "offset": 387054,
       "len": 2240,
       "pre": "TER 40 ===\n\n[SCENE: CH40_S01 | POV: Tim | Location: Blacksite]\n\n",
-      "post": "[SCENE: CH40_S02 | POV: Tim | Location: Blacksite]\n\nA sound inte"
+      "post": "[SCENE: CH40_S02 | POV: Tim | Location: Blacksite]\n\nA sound inte",
+      "rareShingles": [
+        "through witnessing how others navigated these challenges they",
+        "a favor countries are tearing themselves apart trying",
+        "could foresee something blooming a quiet enduring resolve"
+      ]
     },
     "ch40_s02": {
       "id": "ch40_s02",
@@ -688,7 +1113,12 @@
       "offset": 389346,
       "len": 3447,
       "pre": "awakening.\n\n[SCENE: CH40_S02 | POV: Tim | Location: Blacksite]\n\n",
-      "post": "[SCENE: CH40_S03 | POV: Tim | Location: Street]\n\nThe winter wind"
+      "post": "[SCENE: CH40_S03 | POV: Tim | Location: Street]\n\nThe winter wind",
+      "rareShingles": [
+        "have many answers probably none the good news",
+        "been moved states away the brightness ahead caught",
+        "with a small slip of paper suspicion prickled"
+      ]
     },
     "ch40_s03": {
       "id": "ch40_s03",
@@ -696,7 +1126,12 @@
       "offset": 392842,
       "len": 564,
       "pre": "r behind him.\n\n[SCENE: CH40_S03 | POV: Tim | Location: Street]\n\n",
-      "post": "=== CHAPTER 41 ===\n\n[SCENE: CH41_S01 | POV: Sherry | Location: F"
+      "post": "=== CHAPTER 41 ===\n\n[SCENE: CH41_S01 | POV: Sherry | Location: F",
+      "rareShingles": [
+        "winter wind bit into tim s thin jacket",
+        "conditions are subject to ceaseless change strive onwards",
+        "two months that had slipped away since his"
+      ]
     },
     "ch41_s01": {
       "id": "ch41_s01",
@@ -704,7 +1139,12 @@
       "offset": 393482,
       "len": 4093,
       "pre": "41 ===\n\n[SCENE: CH41_S01 | POV: Sherry | Location: FDA Office]\n\n",
-      "post": "=== CHAPTER 42 ===\n\n[SCENE: CH42_S01 | POV: Lawrence | Location:"
+      "post": "=== CHAPTER 42 ===\n\n[SCENE: CH42_S01 | POV: Lawrence | Location:",
+      "rareShingles": [
+        "data subtle but measurable changes enhanced neural plasticity",
+        "fever will break tonight she murmured softly without",
+        "brain were adapting on its own terms bending"
+      ]
     },
     "ch42_s01": {
       "id": "ch42_s01",
@@ -712,7 +1152,12 @@
       "offset": 397656,
       "len": 4996,
       "pre": "=\n\n[SCENE: CH42_S01 | POV: Lawrence | Location: House Chamber]\n\n",
-      "post": "[SCENE: CH42_S02 | POV: Lawrence | Location: House Chamber]\n\nCra"
+      "post": "[SCENE: CH42_S02 | POV: Lawrence | Location: House Chamber]\n\nCra",
+      "rareShingles": [
+        "immune pentagon reports detail units rendered unreliable after",
+        "societal stability traditional rewards career advancement monetary gain",
+        "fortune 500 ceos have recently redirected entire r"
+      ]
     },
     "ch42_s02": {
       "id": "ch42_s02",
@@ -720,7 +1165,12 @@
       "offset": 402713,
       "len": 1303,
       "pre": ".\n\n[SCENE: CH42_S02 | POV: Lawrence | Location: House Chamber]\n\n",
-      "post": "=== CHAPTER 43 ===\n\n[SCENE: CH43_S01 | POV: Zach | Location: Zac"
+      "post": "=== CHAPTER 43 ===\n\n[SCENE: CH43_S01 | POV: Zach | Location: Zac",
+      "rareShingles": [
+        "digital ministry director from first life church took",
+        "tool for dismantling divine order the words barely",
+        "real battle was taking place far beyond these"
+      ]
     },
     "ch43_s01": {
       "id": "ch43_s01",
@@ -728,7 +1178,12 @@
       "offset": 404092,
       "len": 6774,
       "pre": "43 ===\n\n[SCENE: CH43_S01 | POV: Zach | Location: Zach's House]\n\n",
-      "post": "=== CHAPTER 44 ===\n\n[SCENE: CH44_S01 | POV: Frank | Location: Ho"
+      "post": "=== CHAPTER 44 ===\n\n[SCENE: CH44_S01 | POV: Frank | Location: Ho",
+      "rareShingles": [
+        "silicon valley tech giant oracle faces internal upheaval",
+        "executive departures fbi reports growing several agents unfit",
+        "would latch onto such rhetoric representative miller leaned"
+      ]
     },
     "ch44_s01": {
       "id": "ch44_s01",
@@ -736,7 +1191,12 @@
       "offset": 410944,
       "len": 2516,
       "pre": " ===\n\n[SCENE: CH44_S01 | POV: Frank | Location: House Chamber]\n\n",
-      "post": "[SCENE: CH44_S02 | POV: Frank | Location: House Chamber]\n\n“The C"
+      "post": "[SCENE: CH44_S02 | POV: Frank | Location: House Chamber]\n\n“The C",
+      "rareShingles": [
+        "menace unraveling families businesses and social cohesion yet",
+        "slip by without impact my husband michael underwent",
+        "close three nights that week business still hasn"
+      ]
     },
     "ch44_s02": {
       "id": "ch44_s02",
@@ -744,7 +1204,12 @@
       "offset": 413518,
       "len": 7541,
       "pre": "ing.\n\n[SCENE: CH44_S02 | POV: Frank | Location: House Chamber]\n\n",
-      "post": "[SCENE: CH44_S03 | POV: Frank | Location: House Chamber]\n\nFrank "
+      "post": "[SCENE: CH44_S03 | POV: Frank | Location: House Chamber]\n\nFrank ",
+      "rareShingles": [
+        "alone three major employers have restructured after key",
+        "skeleton crew since half their traders simply walked",
+        "strengthened families improved relationships and enhanced communities mrs"
+      ]
     },
     "ch44_s03": {
       "id": "ch44_s03",
@@ -752,7 +1217,12 @@
       "offset": 421117,
       "len": 2781,
       "pre": "at?”\n\n[SCENE: CH44_S03 | POV: Frank | Location: House Chamber]\n\n",
-      "post": "=== CHAPTER 45 ===\n\n[SCENE: CH45_S01 | POV: Lawrence | Location:"
+      "post": "=== CHAPTER 45 ===\n\n[SCENE: CH45_S01 | POV: Lawrence | Location:",
+      "rareShingles": [
+        "surrounded by staffers offering quiet consolation and wilson",
+        "carefully built narrative unravel further senator yost s",
+        "pity that sting cut deeper than he expected"
+      ]
     },
     "ch45_s01": {
       "id": "ch45_s01",
@@ -760,7 +1230,12 @@
       "offset": 423983,
       "len": 3270,
       "pre": "SCENE: CH45_S01 | POV: Lawrence | Location: Lawrence's Office]\n\n",
-      "post": "[SCENE: CH45_S02 | POV: Lawrence | Location: Lawrence's Office]\n"
+      "post": "[SCENE: CH45_S02 | POV: Lawrence | Location: Lawrence's Office]\n",
+      "rareShingles": [
+        "cars inched forward like ants headlights barely cutting",
+        "long nights endless meetings and compromised more times",
+        "polished marble floor each tap seeming to underscore"
+      ]
     },
     "ch45_s02": {
       "id": "ch45_s02",
@@ -768,7 +1243,12 @@
       "offset": 427318,
       "len": 1049,
       "pre": "SCENE: CH45_S02 | POV: Lawrence | Location: Lawrence's Office]\n\n",
-      "post": "=== CHAPTER 46 ===\n\n[SCENE: CH46_S01 | POV: Zach | Location: Cou"
+      "post": "=== CHAPTER 46 ===\n\n[SCENE: CH46_S01 | POV: Zach | Location: Cou",
+      "rareShingles": [
+        "d become something different hardened colder he ended",
+        "voice buzzed through the speaker we re going",
+        "more half measures i want the protocol shut"
+      ]
     },
     "ch46_s01": {
       "id": "ch46_s01",
@@ -776,7 +1256,12 @@
       "offset": 428441,
       "len": 2207,
       "pre": "R 46 ===\n\n[SCENE: CH46_S01 | POV: Zach | Location: Courthouse]\n\n",
-      "post": "=== CHAPTER 47 ===\n\n[SCENE: CH47_S01 | POV: Guy | Location: Guy'"
+      "post": "=== CHAPTER 47 ===\n\n[SCENE: CH47_S01 | POV: Guy | Location: Guy'",
+      "rareShingles": [
+        "don t match server logs access records created",
+        "attorneys papers clutched tightly their whispers barely reaching",
+        "team well the civil suit will drag on"
+      ]
     },
     "ch47_s01": {
       "id": "ch47_s01",
@@ -784,7 +1269,12 @@
       "offset": 430720,
       "len": 1031,
       "pre": "TER 47 ===\n\n[SCENE: CH47_S01 | POV: Guy | Location: Guy's Car]\n\n",
-      "post": "[SCENE: CH47_S02 | POV: Guy | Location: School]\n\nFifteen minutes"
+      "post": "[SCENE: CH47_S02 | POV: Guy | Location: School]\n\nFifteen minutes",
+      "rareShingles": [
+        "former special forces decorated combat veteran yet none",
+        "couldn t quite shake a man stepped out",
+        "rundown inner city school six hours of surveillance"
+      ]
     },
     "ch47_s02": {
       "id": "ch47_s02",
@@ -792,7 +1282,12 @@
       "offset": 431800,
       "len": 3160,
       "pre": "f to breathe.\n\n[SCENE: CH47_S02 | POV: Guy | Location: School]\n\n",
-      "post": "[SCENE: CH47_S03 | POV: Marcus | Location: School]\n\nThe door cli"
+      "post": "[SCENE: CH47_S03 | POV: Marcus | Location: School]\n\nThe door cli",
+      "rareShingles": [
+        "reports fewer discipline issues better attendance grades are",
+        "expression remained infuriatingly calm the quiet reproach clear",
+        "sato or if another manufacturing facility had started"
+      ]
     },
     "ch47_s03": {
       "id": "ch47_s03",
@@ -800,7 +1295,12 @@
       "offset": 435012,
       "len": 2206,
       "pre": "tarted up.\n\n[SCENE: CH47_S03 | POV: Marcus | Location: School]\n\n",
-      "post": "=== CHAPTER 48 ===\n\n[SCENE: CH48_S01 | POV: Frank | Location: Fr"
+      "post": "=== CHAPTER 48 ===\n\n[SCENE: CH48_S01 | POV: Frank | Location: Fr",
+      "rareShingles": [
+        "own right its path shaped by imperceptible eddies",
+        "more persistent than his footsteps if everyone can",
+        "palms seemed alive not in any mystical sense"
+      ]
     },
     "ch48_s01": {
       "id": "ch48_s01",
@@ -808,7 +1308,12 @@
       "offset": 437297,
       "len": 3961,
       "pre": "===\n\n[SCENE: CH48_S01 | POV: Frank | Location: Frank's Office]\n\n",
-      "post": "[SCENE: CH48_S02 | POV: Frank | Location: Frank's Office]\n\nAlone"
+      "post": "[SCENE: CH48_S02 | POV: Frank | Location: Frank's Office]\n\nAlone",
+      "rareShingles": [
+        "if weighing its contents where do you want",
+        "what festers under rugs when garbage is swept",
+        "home playing video games of all things while"
+      ]
     },
     "ch48_s02": {
       "id": "ch48_s02",
@@ -816,7 +1321,12 @@
       "offset": 441317,
       "len": 2619,
       "pre": "ce.\n\n[SCENE: CH48_S02 | POV: Frank | Location: Frank's Office]\n\n",
-      "post": "=== CHAPTER 49 ===\n\n[SCENE: CH49_S01 | POV: Gwen | Location: Gwe"
+      "post": "=== CHAPTER 49 ===\n\n[SCENE: CH49_S01 | POV: Gwen | Location: Gwe",
+      "rareShingles": [
+        "simply meant finding another way forward frank squared",
+        "few allies left someone who understood what they",
+        "real action at homeland security a soft chime"
+      ]
     },
     "ch49_s01": {
       "id": "ch49_s01",
@@ -824,7 +1334,12 @@
       "offset": 444013,
       "len": 4903,
       "pre": "9 ===\n\n[SCENE: CH49_S01 | POV: Gwen | Location: Gwen's Office]\n\n",
-      "post": "[SCENE: CH49_S02 | POV: Gwen | Location: Gwen's Office]\n\nThe doo"
+      "post": "[SCENE: CH49_S02 | POV: Gwen | Location: Gwen's Office]\n\nThe doo",
+      "rareShingles": [
+        "dull ache from too many sleepless nights containment",
+        "regulatory net she d spent years constructing unraveling",
+        "neural pathways shimmered with clean precision each illuminated"
+      ]
     },
     "ch49_s02": {
       "id": "ch49_s02",
@@ -832,7 +1347,12 @@
       "offset": 448973,
       "len": 914,
       "pre": "able.\n\n[SCENE: CH49_S02 | POV: Gwen | Location: Gwen's Office]\n\n",
-      "post": "=== CHAPTER 50 ===\n\n[SCENE: CH50_S01 | POV: Constance | Location"
+      "post": "=== CHAPTER 50 ===\n\n[SCENE: CH50_S01 | POV: Constance | Location",
+      "rareShingles": [
+        "brain scans are undeniable admits dr sarah martinez",
+        "national institute of mental health we re seeing",
+        "newspaper its headline glaring up at her like"
+      ]
     },
     "ch50_s01": {
       "id": "ch50_s01",
@@ -840,7 +1360,12 @@
       "offset": 449974,
       "len": 1327,
       "pre": "ENE: CH50_S01 | POV: Constance | Location: Constance's Office]\n\n",
-      "post": "[SCENE: CH50_S02 | POV: Constance | Location: Constance's Office"
+      "post": "[SCENE: CH50_S02 | POV: Constance | Location: Constance's Office",
+      "rareShingles": [
+        "phone flashing an insistent demand another press inquiry",
+        "extended leave precincts were filing requests for de",
+        "teams re prioritized their efforts toward public access"
+      ]
     },
     "ch50_s02": {
       "id": "ch50_s02",
@@ -848,7 +1373,12 @@
       "offset": 451368,
       "len": 8471,
       "pre": "ENE: CH50_S02 | POV: Constance | Location: Constance's Office]\n\n",
-      "post": "=== CHAPTER 51 ===\n\n[SCENE: CH51_S01 | POV: Fiona | Location: Ch"
+      "post": "=== CHAPTER 51 ===\n\n[SCENE: CH51_S01 | POV: Fiona | Location: Ch",
+      "rareShingles": [
+        "treasury analysts aren t analyzing irs auditors won",
+        "probably unlike any he d seen subtle patient",
+        "half filled coffee mug sat beside a stack"
+      ]
     },
     "ch51_s01": {
       "id": "ch51_s01",
@@ -856,7 +1386,12 @@
       "offset": 459922,
       "len": 2421,
       "pre": "\n[SCENE: CH51_S01 | POV: Fiona | Location: Christine's Office]\n\n",
-      "post": "[SCENE: CH51_S02 | POV: Fiona | Location: Fiona's Car]\n\nIn the c"
+      "post": "[SCENE: CH51_S02 | POV: Fiona | Location: Fiona's Car]\n\nIn the c",
+      "rareShingles": [
+        "emotion eighty hour weeks two divorces addiction issues",
+        "helps them see solutions they were too blinded",
+        "expression softened a faint almost wistful smile appearing"
+      ]
     },
     "ch51_s02": {
       "id": "ch51_s02",
@@ -864,7 +1399,12 @@
       "offset": 462399,
       "len": 1446,
       "pre": "rres.”\n\n[SCENE: CH51_S02 | POV: Fiona | Location: Fiona's Car]\n\n",
-      "post": "[SCENE: CH51_S03 | POV: Elana | Location: Conference Room]\n\nAcro"
+      "post": "[SCENE: CH51_S03 | POV: Elana | Location: Conference Room]\n\nAcro",
+      "rareShingles": [
+        "tech sector say resources are better spent elsewhere",
+        "city blurred by an indifferent backdrop to their",
+        "words sharp and practiced no actionable intelligence a"
+      ]
     },
     "ch51_s03": {
       "id": "ch51_s03",
@@ -872,7 +1412,12 @@
       "offset": 463905,
       "len": 2778,
       "pre": "t.\n\n[SCENE: CH51_S03 | POV: Elana | Location: Conference Room]\n\n",
-      "post": "=== CHAPTER 52 ===\n\n[SCENE: CH52_S01 | POV: Tim | Location: Zach"
+      "post": "=== CHAPTER 52 ===\n\n[SCENE: CH52_S01 | POV: Tim | Location: Zach",
+      "rareShingles": [
+        "save for christine torres sister who sat alone",
+        "countless lives intertwining each decision rippling outward like",
+        "of connection neither more nor less important than"
+      ]
     },
     "ch52_s01": {
       "id": "ch52_s01",
@@ -880,7 +1425,12 @@
       "offset": 466758,
       "len": 4639,
       "pre": " 52 ===\n\n[SCENE: CH52_S01 | POV: Tim | Location: Zach's House]\n\n",
-      "post": "[SCENE: CH52_S02 | POV: Tim | Location: Jessica's Car]\n\nThat eve"
+      "post": "[SCENE: CH52_S02 | POV: Tim | Location: Jessica's Car]\n\nThat eve",
+      "rareShingles": [
+        "familiar couch its worn cushions barely soft enough",
+        "might have more allies than we ever expected",
+        "air thickening with shared tension our friends at"
+      ]
     },
     "ch52_s02": {
       "id": "ch52_s02",
@@ -888,7 +1438,12 @@
       "offset": 471453,
       "len": 11361,
       "pre": "poken.\n\n[SCENE: CH52_S02 | POV: Tim | Location: Jessica's Car]\n\n",
-      "post": "[SCENE: CH52_S03 | POV: Tim | Location: Hermitage]\n\n“How can I h"
+      "post": "[SCENE: CH52_S03 | POV: Tim | Location: Hermitage]\n\n“How can I h",
+      "rareShingles": [
+        "mid lesson pilots abandoning cockpits entire systems fraying",
+        "small sleek device signal jammer should give us",
+        "conflict thrumming beneath her composed exterior my whole"
+      ]
     },
     "ch52_s03": {
       "id": "ch52_s03",
@@ -896,7 +1451,12 @@
       "offset": 482866,
       "len": 6945,
       "pre": "y of them.\n\n[SCENE: CH52_S03 | POV: Tim | Location: Hermitage]\n\n",
-      "post": "=== CHAPTER 53 ===\n\n[SCENE: CH53_S01 | POV: Bud | Location: Robe"
+      "post": "=== CHAPTER 53 ===\n\n[SCENE: CH53_S01 | POV: Bud | Location: Robe",
+      "rareShingles": [
+        "upheaval awaited their choice markets had cratered families",
+        "potential could either stabilize the chaos or deliver",
+        "sun dipped below the tree line casting shadows"
+      ]
     },
     "ch53_s01": {
       "id": "ch53_s01",
@@ -904,7 +1464,12 @@
       "offset": 489889,
       "len": 6428,
       "pre": " ===\n\n[SCENE: CH53_S01 | POV: Bud | Location: Robert's Office]\n\n",
-      "post": "[SCENE: CH53_S02 | POV: Bud | Location: Robert's Office]\n\nAs the"
+      "post": "[SCENE: CH53_S02 | POV: Bud | Location: Robert's Office]\n\nAs the",
+      "rareShingles": [
+        "data shows unprecedented improvements in mental health outcomes",
+        "razor sharp doctors pilots truck drivers entire systems",
+        "vote would go against you anyway lawrence there"
+      ]
     },
     "ch53_s02": {
       "id": "ch53_s02",
@@ -912,7 +1477,12 @@
       "offset": 496375,
       "len": 725,
       "pre": "ing.\n\n[SCENE: CH53_S02 | POV: Bud | Location: Robert's Office]\n\n",
-      "post": "=== CHAPTER 54 ===\n\n[SCENE: CH54_S01 | POV: Tim | Location: Herm"
+      "post": "=== CHAPTER 54 ===\n\n[SCENE: CH54_S01 | POV: Tim | Location: Herm",
+      "rareShingles": [
+        "unseen forces that had already begun to move",
+        "unmistakable roberts may have called for study over",
+        "outside these walls society was already writing its"
+      ]
     },
     "ch54_s01": {
       "id": "ch54_s01",
@@ -920,7 +1490,12 @@
       "offset": 497172,
       "len": 6673,
       "pre": "TER 54 ===\n\n[SCENE: CH54_S01 | POV: Tim | Location: Hermitage]\n\n",
-      "post": "[SCENE: CH54_S02 | POV: Tim | Location: Hermitage]\n\nMinutes late"
+      "post": "[SCENE: CH54_S02 | POV: Tim | Location: Hermitage]\n\nMinutes late",
+      "rareShingles": [
+        "forty percent since the sato acquisition revealed nothing",
+        "carefully chosen every word calibrated to suggest authority",
+        "spoke his board called an emergency meeting yesterday"
+      ]
     },
     "ch54_s02": {
       "id": "ch54_s02",
@@ -928,7 +1503,12 @@
       "offset": 503897,
       "len": 4282,
       "pre": "r way up.”\n\n[SCENE: CH54_S02 | POV: Tim | Location: Hermitage]\n\n",
-      "post": "[SCENE: CH54_S03 | POV: Tim | Location: Hermitage]\n\nLater, alone"
+      "post": "[SCENE: CH54_S03 | POV: Tim | Location: Hermitage]\n\nLater, alone",
+      "rareShingles": [
+        "needs witnesses people who can stand apart observe",
+        "reliable allies are distancing themselves she glanced at",
+        "mobilize support is backfiring spectacularly more officials are"
+      ]
     },
     "ch54_s03": {
       "id": "ch54_s03",
@@ -936,7 +1516,12 @@
       "offset": 508231,
       "len": 2347,
       "pre": "he dharma.\n\n[SCENE: CH54_S03 | POV: Tim | Location: Hermitage]\n\n",
-      "post": "=== CHAPTER 55 ===\n\n[SCENE: CH55_S01 | POV: Bud | Location: Bud'"
+      "post": "=== CHAPTER 55 ===\n\n[SCENE: CH55_S01 | POV: Bud | Location: Bud'",
+      "rareShingles": [
+        "sat cross legged amidst code printouts and circuit",
+        "sill tilting its head in an almost comical",
+        "worn meditation beads the smooth wood familiar beneath"
+      ]
     },
     "ch55_s01": {
       "id": "ch55_s01",
@@ -944,7 +1529,12 @@
       "offset": 510652,
       "len": 11826,
       "pre": "R 55 ===\n\n[SCENE: CH55_S01 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "[SCENE: CH55_S02 | POV: Bud | Location: Bud's House]\n\nWhen she g"
+      "post": "[SCENE: CH55_S02 | POV: Bud | Location: Bud's House]\n\nWhen she g",
+      "rareShingles": [
+        "news articles fleeting glances during protocol working group",
+        "plastic which hinted at the intricate circuits nestled",
+        "food clothes shelter entertainment love each thought collided"
+      ]
     },
     "ch55_s02": {
       "id": "ch55_s02",
@@ -952,7 +1542,12 @@
       "offset": 522532,
       "len": 2997,
       "pre": " there?”\n\n[SCENE: CH55_S02 | POV: Bud | Location: Bud's House]\n\n",
-      "post": "[SCENE: CH55_S03 | POV: Bud | Location: Bud's House]\n\nLater that"
+      "post": "[SCENE: CH55_S03 | POV: Bud | Location: Bud's House]\n\nLater that",
+      "rareShingles": [
+        "been relieved when pregnancy became a convenient excuse",
+        "manage the garbage and dishes possibly even tackling",
+        "recalling how o hearn with his brash authoritarian"
+      ]
     },
     "ch55_s03": {
       "id": "ch55_s03",
@@ -960,7 +1555,12 @@
       "offset": 525583,
       "len": 2757,
       "pre": "it now.”\n\n[SCENE: CH55_S03 | POV: Bud | Location: Bud's House]\n\n",
-      "post": ""
+      "post": "",
+      "rareShingles": [
+        "thought tugged at him each implication rushing through",
+        "warmth of soft skin sweet dreams little man",
+        "awakening built in virtual reality by artificial intelligence"
+      ]
     }
   }
 }
