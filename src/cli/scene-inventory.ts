@@ -5,6 +5,37 @@ import { segmentScenes } from "../features/manuscript/segmentation.js";
 import { analyzeScenes } from "../features/manuscript/analyzer.js";
 import { generateReport } from "../features/manuscript/reports.js";
 import { computeSnapshot, readPrevCache, writeCache, diffCaches } from "../features/manuscript/cache.js";
+import type { CacheFile, Delta } from "../features/manuscript/cache.js";
+
+export interface RunSceneInventoryResult {
+  report: string;
+  cache: CacheFile;
+  deltas: Delta;
+}
+
+/**
+ * Pure in-memory runner for scene inventory. Does not touch FS.
+ * Timestamp determinism: provide opts.fixedTimestamp to override generated time.
+ */
+export async function runSceneInventory(text: string, opts?: { fixedTimestamp?: string }): Promise<RunSceneInventoryResult> {
+  const prevFixed = process.env.FIXED_TIMESTAMP;
+  if (opts?.fixedTimestamp) process.env.FIXED_TIMESTAMP = opts.fixedTimestamp;
+  try {
+    const manuscript = importManuscript(text);
+    const scenes = segmentScenes(manuscript);
+    const analysis = analyzeScenes(scenes);
+    // For deterministic pure run we intentionally do NOT read previous cache; treat as first run.
+    const prev: CacheFile | null = null;
+    const current = computeSnapshot(manuscript, scenes);
+    const delta = diffCaches(prev, current, manuscript.rawText);
+    const report = generateReport(manuscript, scenes, analysis, delta);
+    return { report, cache: current, deltas: delta };
+  } finally {
+    if (opts?.fixedTimestamp) {
+      if (prevFixed === undefined) delete process.env.FIXED_TIMESTAMP; else process.env.FIXED_TIMESTAMP = prevFixed;
+    }
+  }
+}
 
 async function main() {
   const inputPath = process.argv[2] || "data/manuscript.txt";
@@ -36,7 +67,10 @@ async function main() {
   console.log(`   Δ Added:${delta.added.length} Removed:${delta.removed.length} Modified:${delta.modified.length} Moved:${delta.moved.length} Unresolved:${delta.unresolved.length}`);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// Only execute if invoked directly (not when imported for tests)
+if (process.argv[1] && /scene-inventory\.ts$/.test(process.argv[1])) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
