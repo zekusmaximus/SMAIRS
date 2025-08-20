@@ -44,9 +44,9 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
         .map(u => {
           const prior = (typeof (u as { priorOffset?: number }).priorOffset === 'number') ? (u as { priorOffset: number }).priorOffset : undefined;
           const priorStr = typeof prior === 'number' ? prior.toString() : 'n/a';
-          // Placeholders for tier & confidence until plumbed from anchor attempt path.
-          const tierTried = 'n/a';
-          const conf = 'n/a';
+          const tierTried = (u as { tier?: number }).tier ?? 'n/a';
+          const confVal = (u as { confidence?: number }).confidence;
+          const conf = typeof confVal === 'number' ? confVal.toFixed(2) : 'n/a';
           return `- ${u.id} (prior ${priorStr}; last tier ${tierTried}; confidence ${conf})`;
         })
         .join("\n");

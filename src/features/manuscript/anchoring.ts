@@ -34,6 +34,13 @@ export interface AnchorMatch {
   position: number;   // start index in fullText
 }
 
+// Trace object capturing either a successful match or the last tier/confidence attempted.
+export interface AnchorTrace {
+  match: AnchorMatch | null;
+  lastTier?: AnchorTier;
+  lastConfidence?: number;
+}
+
 export interface ResolverOptions {
   corridor?: number;   // ± characters around prior offset (default 1500)
   contextMin?: number; // minimum usable pre/post length (default 8)
@@ -71,6 +78,41 @@ export function resolve(
   if (t4) return t4;
 
   return null;
+}
+
+/** Variant that reports the last tier attempted even if anchoring fails. */
+export function resolveTrace(
+  snap: SceneSnap,
+  fullText: string,
+  opts: ResolverOptions = {}
+): AnchorTrace {
+  const sceneLen = coalesceLen(snap);
+  if (!Number.isFinite(sceneLen) || sceneLen <= 0) {
+    return { match: null };
+  }
+
+  let lastTier: AnchorTier | undefined;
+  let lastConfidence: number | undefined;
+
+  const t1 = tier1_exact(snap, fullText, sceneLen);
+  if (t1) return { match: t1, lastTier: t1.tier, lastConfidence: t1.confidence };
+  lastTier = 1; lastConfidence = 0;
+
+  const corridor = opts.corridor ?? 1500;
+  const contextMin = opts.contextMin ?? 8;
+  const t2 = tier2_context(snap, fullText, corridor, contextMin, sceneLen);
+  if (t2) return { match: t2, lastTier: t2.tier, lastConfidence: t2.confidence };
+  lastTier = 2; lastConfidence = 0;
+
+  const t3 = tier3_fuzzy(snap, fullText, corridor, sceneLen);
+  if (t3) return { match: t3, lastTier: t3.tier, lastConfidence: t3.confidence };
+  lastTier = 3; lastConfidence = 0;
+
+  const t4 = tier4_rareShingles(snap, fullText, sceneLen);
+  if (t4) return { match: t4, lastTier: t4.tier, lastConfidence: t4.confidence };
+  lastTier = 4; lastConfidence = 0;
+
+  return { match: null, lastTier, lastConfidence };
 }
 
 function tier1_exact(snap: SceneSnap, text: string, sceneLen: number): AnchorMatch | null {

@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { createHash } from "crypto";
 import type { Manuscript, Scene, SceneCacheSnap } from "./types.js";
-import { resolve as resolveAnchor } from "./anchoring.js"; // keep .js suffix (ESM)
+import { resolveTrace as resolveAnchorTrace } from "./anchoring.js"; // keep .js suffix (ESM)
 
 export type SceneSnap = SceneCacheSnap; // re-export legacy name for anchoring.ts compatibility
 
@@ -14,7 +14,7 @@ export type CacheFile = {
 // Delta detail types
 export type MovedDelta = { id: string; from: number; to: number; tier: number; confidence: number };
 export type ModifiedDelta = { id: string; to: number; tier: number; confidence: number };
-export type UnresolvedDelta = { id: string; priorOffset: number; reason: string };
+export type UnresolvedDelta = { id: string; priorOffset: number; reason: string; tier?: number; confidence?: number };
 
 export type Delta = {
   added: string[];          // newly appeared scene ids
@@ -110,7 +110,9 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
         length: p.len,
         rareShingles: p.rareShingles && p.rareShingles.length ? p.rareShingles : undefined,
       };
-      const res = resolveAnchor(anchorInput, currentFullText);
+      // Use trace variant so we can surface tier/confidence for unresolved attempts
+      const trace = resolveAnchorTrace(anchorInput, currentFullText);
+      const res = trace.match;
       if (res) {
         if (sameSha) {
           moved.push({ id: p.id, from: p.offset, to: res.position, tier: res.tier, confidence: res.confidence });
@@ -118,7 +120,7 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
           modified.push({ id: p.id, to: res.position, tier: res.tier, confidence: res.confidence });
         }
       } else {
-        unresolved.push({ id: p.id, priorOffset: p.offset, reason: 'anchor-resolution-failed' });
+        unresolved.push({ id: p.id, priorOffset: p.offset, reason: 'anchor-resolution-failed', tier: trace.lastTier, confidence: trace.lastConfidence });
       }
     } catch {
       // Do not crash on malformed rows; categorize as unresolved silently (debug log could go here)
