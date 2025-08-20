@@ -36,13 +36,15 @@ describe('unresolved propagation: tier & confidence', () => {
     const snap2 = computeSnapshot(ms2, scenes2);
 
     // Diff with full text so anchoring tiers attempt.
-    const delta = diffCaches(snap1 as CacheFile, snap2, ms2.rawText);
-    expect(delta.unresolved.length).toBe(1); // unresolved since content changed drastically
-    const unresolved = delta.unresolved[0];
-    // Tier should be present (last attempted tier — expected 4 after exhausting strategies)
-    expect(unresolved.tier).toBeDefined();
-    expect(unresolved.tier).toBeGreaterThanOrEqual(1);
-    expect(unresolved.confidence).toBeDefined(); // currently 0 placeholder from trace when failing
+  const delta = diffCaches(snap1 as CacheFile, snap2, ms2.rawText);
+  expect(delta.unresolved.length).toBe(1); // unresolved since content changed drastically
+  const unresolved = delta.unresolved[0];
+  expect(unresolved, 'expected unresolved delta entry').toBeDefined();
+  if (!unresolved) return; // TS narrowing for strict noUncheckedIndexedAccess
+  // Tier should be present (last attempted tier — expected 4 after exhausting strategies)
+  expect(unresolved.tier).toBeDefined();
+  expect(unresolved.tier).toBeGreaterThanOrEqual(1);
+  expect(unresolved.confidence).toBeDefined(); // currently 0 placeholder from trace when failing
 
     // Ensure report surfaces the numeric tier instead of n/a
     const analysis = analyzeScenes(scenes2);
