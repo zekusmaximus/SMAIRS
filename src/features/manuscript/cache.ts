@@ -1,16 +1,9 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { createHash } from "crypto";
-import type { Manuscript, Scene } from "./types.js";
+import type { Manuscript, Scene, SceneCacheSnap } from "./types.js";
 import { resolve as resolveAnchor } from "./anchoring.js"; // keep .js suffix (ESM)
 
-export type SceneSnap = {
-  id: string;
-  sha: string;       // sha256 of scene text (normalized)
-  offset: number;    // startOffset
-  len: number;       // endOffset - startOffset
-  pre: string;       // 64 chars before start (bounded at 0)
-  post: string;      // 64 chars after end (bounded at text length)
-};
+export type SceneSnap = SceneCacheSnap; // re-export legacy name for anchoring.ts compatibility
 
 export type CacheFile = {
   manuscript_sha: string;
@@ -45,6 +38,8 @@ export function computeSnapshot(ms: Manuscript, scenes: Scene[]): CacheFile {
       len: s.endOffset - s.startOffset,
       pre: text.slice(preStart, s.startOffset),
       post: text.slice(s.endOffset, postEnd),
+      // Compute rare shingles once during snapshot; lazy if older cache missing.
+      rareShingles: computeRareShingles(s.text),
     };
   }
   return {
@@ -104,13 +99,16 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
 
     try {
       // Bridge prev snapshot to anchoring SceneSnap shape (naming per anchoring.ts)
-      const anchorInput = {
+      const anchorInput: {
+        id: string; sha: string; offset: number; preContext: string; postContext: string; length: number; rareShingles?: string[];
+      } = {
         id: p.id,
         sha: p.sha,
         offset: p.offset,
         preContext: p.pre,
         postContext: p.post,
         length: p.len,
+        rareShingles: p.rareShingles && p.rareShingles.length ? p.rareShingles : undefined,
       };
       const res = resolveAnchor(anchorInput, currentFullText);
       if (res) {
@@ -140,4 +138,41 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
 
 function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
+}
+
+// --- Rare Shingles Extraction (8-token shingles) ---
+// Strategy: tokenize to lowercase word tokens; compute frequency; build all 8-length shingles;
+// score each shingle by sum of inverse token frequency; pick top 2-3 distinct non-overlapping.
+function computeRareShingles(sceneText: string): string[] {
+  const tokens = sceneText
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map(t => t.toLowerCase());
+  if (tokens.length < 8) return [];
+
+  const freq: Record<string, number> = {};
+  for (const t of tokens) freq[t] = (freq[t] || 0) + 1;
+
+  type Sh = { text: string; start: number; score: number };
+  const shingles: Sh[] = [];
+  for (let i = 0; i <= tokens.length - 8; i++) {
+    let score = 0;
+    for (let j = 0; j < 8; j++) {
+      const tok = tokens[i + j];
+      if (!tok) continue; // safety
+      const f = freq[tok] ?? 1;
+      score += 1 / f; // inverse frequency
+    }
+    const text = tokens.slice(i, i + 8).join(" ");
+    shingles.push({ text, start: i, score });
+  }
+  shingles.sort((a, b) => b.score - a.score);
+
+  const picked: Sh[] = [];
+  for (const sh of shingles) {
+    if (picked.length >= 3) break;
+    if (picked.some(p => Math.abs(p.start - sh.start) < 8)) continue; // avoid overlapping/near duplicates
+    picked.push(sh);
+  }
+  return picked.map(p => p.text);
 }

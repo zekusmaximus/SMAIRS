@@ -22,6 +22,8 @@ export type SceneSnap = {
   post?: string;
   preContext?: string;
   postContext?: string;
+  // Cached rare shingles (8-token) persisted in cache.json (lowercased, space separated tokens)
+  rareShingles?: string[];
 };
 
 export type AnchorTier = 1 | 2 | 3 | 4;
@@ -189,49 +191,76 @@ function tier3_fuzzy(snap: SceneSnap, fullText: string, corridor: number, sceneL
 
 // Tier 4: Rare shingles global search (frequency-based token localization)
 function tier4_rareShingles(snap: SceneSnap, fullText: string, sceneLen: number): AnchorMatch | null {
-  if (!snap.text) return null;
-  const tokens = tokenize(norm(snap.text));
-  if (tokens.length === 0) return null;
+  // Prefer cached shingles if supplied; fallback to on-the-fly extraction from text.
+  let shingles: string[] | undefined = snap.rareShingles;
+  if ((!shingles || shingles.length === 0) && snap.text) {
+    shingles = extractRareShingles(snap.text).slice(0, 3);
+  }
+  if (!shingles || shingles.length === 0) return null;
 
-  const globalTokens = tokenize(norm(fullText));
-  if (globalTokens.length === 0) return null;
-
-  const freq: Record<string, number> = {};
-  for (const t of globalTokens) freq[t] = (freq[t] || 0) + 1;
-
-  const rare = tokens.filter(t => t.length > 4 && (freq[t] || 0) <= 2);
-  if (rare.length === 0) return null;
-
-  // For each rare token, find its text index and score cluster density
-  type Candidate = { pos: number; hits: number };
-  const candidates: Candidate[] = [];
-  for (const t of rare) {
+  const positions: { sh: string; pos: number }[] = [];
+  for (const sh of shingles) {
+    if (!sh) continue;
+    const firstToken = sh.split(/\s+/)[0];
+    if (!firstToken) continue;
     let idx = 0;
     while (true) {
-      idx = fullText.indexOf(t, idx);
+      idx = fullText.toLowerCase().indexOf(firstToken, idx);
       if (idx === -1) break;
-      // Count how many rare tokens fall within sceneLen window starting here
-      const windowEnd = idx + sceneLen;
-      let hits = 0;
-      for (const r of rare) {
-        const p = fullText.indexOf(r, idx);
-        if (p !== -1 && p < windowEnd) hits++;
-      }
-      candidates.push({ pos: idx, hits });
-      idx += t.length;
+      positions.push({ sh, pos: idx });
+      idx += firstToken.length;
     }
   }
-  if (candidates.length === 0) return null;
-  candidates.sort((a,b) => b.hits - a.hits);
-  const best = candidates[0];
-  if (best) {
-    const ratio = best.hits / Math.max(1, rare.length);
-    if (ratio >= 0.4) { // loose threshold
-      const conf = 0.55 + Math.min(0.4, ratio) * 0.5; // 0.55 .. ~0.75
-      return { tier: 4, confidence: parseFloat(conf.toFixed(3)), position: best.pos };
+  if (positions.length === 0) return null;
+
+  // Score windows by how many shingles fully appear inside sceneLen span.
+  type Cand = { pos: number; hits: number };
+  const cands: Cand[] = [];
+  for (const p of positions) {
+    const windowEnd = p.pos + sceneLen;
+    let hits = 0;
+    for (const sh of shingles) {
+      if (!sh) continue;
+      const idx = fullText.toLowerCase().indexOf(sh.split(/\s+/)[0] || '', p.pos);
+      if (idx !== -1 && idx < windowEnd) hits++;
     }
+    cands.push({ pos: p.pos, hits });
   }
-  return null;
+  cands.sort((a,b) => b.hits - a.hits);
+  const best = cands[0];
+  if (!best) return null;
+  const ratio = best.hits / Math.max(1, shingles.length);
+  if (ratio < 0.34) return null; // threshold slightly lower due to stronger signal from curated shingles
+  const conf = 0.6 + Math.min(0.4, ratio) * 0.4; // 0.6 .. 0.76
+  return { tier: 4, confidence: parseFloat(conf.toFixed(3)), position: best.pos };
+}
+
+// Lightweight extraction mirroring cache algorithm (8-token shingles, inverse frequency scoring)
+function extractRareShingles(text: string): string[] {
+  const tokens = tokenize(norm(text));
+  if (tokens.length < 8) return [];
+  const freq: Record<string, number> = {};
+  for (const t of tokens) freq[t] = (freq[t] || 0) + 1;
+  type Sh = { text: string; score: number; start: number };
+  const arr: Sh[] = [];
+  for (let i = 0; i <= tokens.length - 8; i++) {
+    let score = 0;
+    for (let j = 0; j < 8; j++) {
+      const tok = tokens[i + j];
+      if (!tok) continue;
+      const f = freq[tok] ?? 1;
+      score += 1 / f;
+    }
+    arr.push({ text: tokens.slice(i, i + 8).join(' '), score, start: i });
+  }
+  arr.sort((a,b) => b.score - a.score);
+  const picked: Sh[] = [];
+  for (const sh of arr) {
+    if (picked.length >= 3) break;
+    if (picked.some(p => Math.abs(p.start - sh.start) < 8)) continue;
+    picked.push(sh);
+  }
+  return picked.map(p => p.text);
 }
 
 // ----------------- Helpers -----------------

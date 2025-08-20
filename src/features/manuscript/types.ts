@@ -22,3 +22,15 @@ export interface Scene {
   wordCount: number;
   dialogueRatio: number; // 0..1
 }
+
+// Snapshot (cache) representation persisted to .smairs/cache.json
+// Kept separate from runtime Scene to avoid polluting core domain type with cache-only fields.
+export interface SceneCacheSnap {
+  id: string;
+  sha: string;       // sha256 of scene text (normalized)
+  offset: number;    // startOffset
+  len: number;       // endOffset - startOffset
+  pre: string;       // 64 chars before start (bounded at 0)
+  post: string;      // 64 chars after end (bounded at text length)
+  rareShingles?: string[]; // up to 3 rare 8-token shingles (lowercased) for Tier‑4 anchoring
+}
