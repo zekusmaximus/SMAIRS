@@ -1,6 +1,8 @@
 import type { Manuscript, Scene } from "./types.js";
 import type { Analysis } from "./analyzer.js";
 import type { Delta } from "./cache.js";
+import { extractCharacters } from "./reveal-extraction.js";
+import { buildRevealGraph } from "./reveal-graph.js";
 
 export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?: Delta): string {
   const timestamp = process.env.FIXED_TIMESTAMP || new Date().toISOString();
@@ -12,6 +14,19 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
       return `| ${s.id} | ${s.wordCount} | ${dlg} | ${hook} |`;
     })
     .join("\n");
+
+  // Characters per Scene (omit if no characters at all)
+  const charactersSection = (() => {
+    let any = false;
+    const rows = scenes.map(s => {
+      const chars = extractCharacters(s);
+      if (chars.length === 0) return null;
+      any = true;
+      return `| ${s.id} | ${chars.join(", ")} |`;
+    }).filter(Boolean).join("\n");
+    if (!any) return "";
+    return `\n## Characters per Scene\n| Scene ID | Characters |\n|----------|-----------|\n${rows}`;
+  })();
 
   const deltaBlock = (() => {
     if (!d) return "";
@@ -76,6 +91,17 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
     return `\n## Top 10 Hooks\n${top}`;
   })();
 
+  // Reveal Graph (after histogram + hooks)
+  const revealGraphSection = (() => {
+    const graph = buildRevealGraph(scenes);
+    if (!graph.reveals.length) return "";
+    const rows = graph.reveals.map(r => {
+      const prereqs = r.preReqs.length ? r.preReqs.join(", ") : "-";
+      return `| ${r.firstExposureSceneId} | ${escapePipes(r.description)} | ${prereqs} |`;
+    }).join("\n");
+    return `\n## Reveal Graph\n| First Scene | Description | Prerequisites |\n|-------------|------------|---------------|\n${rows}`;
+  })();
+
   return `# Scene Inventory Report
 Generated: ${timestamp}
 Checksum: ${ms.checksum.slice(0, 8)}
@@ -85,9 +111,11 @@ Checksum: ${ms.checksum.slice(0, 8)}
 - Scenes: ${scenes.length}
 - Words: ${ms.wordCount}
 - Avg Words/Scene: ${Math.round(a.avgWordsPerScene)}
+${charactersSection}
 ${deltaBlock}
 ${histogramBlock}
 ${topHooksBlock}
+${revealGraphSection}
 
 ## Scene Breakdown
 | ID | Words | Dialogue % | Hook Score |
@@ -100,4 +128,8 @@ function fmtList(list: string[], limit = 10): string {
   if (list.length === 0) return "";
   const head = list.slice(0, limit).join(", ");
   return list.length > limit ? `(${head}, …)` : `(${head})`;
+}
+
+function escapePipes(s: string): string {
+  return s.replace(/\|/g, "\\|");
 }
