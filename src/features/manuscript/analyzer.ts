@@ -4,6 +4,8 @@ export interface Analysis {
   totalScenes: number;
   avgWordsPerScene: number;
   hookScores: Map<string, number>;
+  charactersPerScene: Map<string, Set<string>>; // scene.id -> character set
+  allCharacters: Set<string>; // union of all characters
 }
 
 /** Normalize quotes for analysis only (does not mutate manuscript text). */
@@ -68,15 +70,108 @@ function computeHookScore(scene: Scene): number {
   return Number(final.toFixed(2));
 }
 
+/** Strip honorific / title prefixes from a candidate name. */
+function stripTitle(name: string): string {
+  const titles = /^(Mr|Mrs|Ms|Miss|Dr|Prof|Professor|Sir|Lady|Lord|Madam|Madame)\.?\s+/i;
+  return name.replace(titles, '').trim();
+}
+
+/**
+ * Extract character name candidates from a scene.
+ * Strategies (Phase 1 heuristic):
+ *  1. Dialogue attribution patterns ("Name said" | "said Name" etc.) using verbs: said|asked|replied|whispered|shouted
+ *  2. Proper noun sequences (Capitalized tokens) appearing in non‑initial positions of sentences.
+ * Titles (Mr./Mrs./Dr./etc) are stripped before insertion.
+ * Returns a Set of distinct canonical names (original casing minus stripped titles).
+ */
+export function extractCharacters(scene: Scene): Set<string> {
+  const text = scene.text || '';
+  const chars = new Set<string>();
+  if (!text) return chars;
+
+  // 1. Dialogue attribution patterns
+  const verbGroup = '(said|asked|replied|whispered|shouted)';
+  // Name (1-3 capitalized tokens) possibly preceded by title; capture the name portion separately to allow stripping.
+  const titleRegex = '(?:Mr|Mrs|Ms|Miss|Dr|Prof|Professor|Sir|Lady|Lord|Madam|Madame)\\.?';
+  const nameToken = '[A-Z][a-z]+'; // simple token (we keep heuristic light for Phase 1)
+  const nameSeq = `(?:${titleRegex}\\s+)?${nameToken}(?:\\s+${nameToken}){0,2}`;
+
+  // Pattern A: Name verb (John Smith said)
+  const pattA = new RegExp(`\\b(${nameSeq})\\s+${verbGroup}\\b`, 'g');
+  // Pattern B: verb Name (said John Smith)
+  const pattB = new RegExp(`\\b${verbGroup}\\s+(${nameSeq})\\b`, 'g');
+
+  let m: RegExpExecArray | null;
+  while ((m = pattA.exec(text)) !== null) {
+    const raw = m[1];
+    if (raw) {
+      const norm = stripTitle(raw);
+      if (norm && /[A-Z]/.test(norm)) chars.add(norm);
+    }
+  }
+  while ((m = pattB.exec(text)) !== null) {
+    const raw = m[2]; // group 2 holds name since group1 is verb
+    if (raw) {
+      const norm = stripTitle(raw);
+      if (norm && /[A-Z]/.test(norm)) chars.add(norm);
+    }
+  }
+
+  // 2. Proper noun sequences in non-initial sentence positions
+  // Simple sentence split (retain last segment):
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  for (const s of sentences) {
+    if (!s) continue;
+    // Tokenize, strip leading/trailing punctuation for each token.
+    const rawTokens = s.split(/\s+/).filter(Boolean);
+    if (rawTokens.length < 2) continue; // need at least one non-initial token
+    const clean = (tok: string | undefined) => tok ? tok.replace(/^[^A-Za-z]+/, '').replace(/[^A-Za-z]+$/, '') : '';
+    for (let i = 1; i < rawTokens.length; i++) {
+      const first = clean(rawTokens[i]);
+      if (!first || !/^[A-Z][a-z]+$/.test(first)) continue;
+      let j = i;
+      const seq: string[] = [first];
+      while (j + 1 < rawTokens.length) {
+        const nextRaw = clean(rawTokens[j + 1]);
+        if (!nextRaw) break;
+        if (/^(?:and|or|the|of|in|on|at|for)$/i.test(nextRaw)) {
+          const after = clean(rawTokens[j + 2]);
+            if (after && /^[A-Z][a-z]+$/.test(after)) {
+              seq.push(nextRaw.toLowerCase());
+              j += 2;
+              seq.push(after);
+              continue;
+            }
+            break;
+        }
+        if (/^[A-Z][a-z]+$/.test(nextRaw)) {
+          seq.push(nextRaw);
+          j++;
+        } else break;
+      }
+      i = j;
+      const candidate = stripTitle(seq.join(' ')).trim();
+      if (candidate) chars.add(candidate);
+    }
+  }
+
+  return chars;
+}
+
 export function analyzeScenes(scenes: Scene[]): Analysis {
   const totalScenes = scenes.length;
   const totalWords = scenes.reduce((a, s) => a + s.wordCount, 0);
   const avgWordsPerScene = totalScenes ? totalWords / totalScenes : 0;
 
   const hookScores = new Map<string, number>();
+  const charactersPerScene = new Map<string, Set<string>>();
+  const allCharacters = new Set<string>();
   for (const s of scenes) {
     hookScores.set(s.id, computeHookScore(s));
+    const chars = extractCharacters(s);
+    charactersPerScene.set(s.id, chars);
+    for (const c of chars) allCharacters.add(c);
   }
 
-  return { totalScenes, avgWordsPerScene, hookScores };
+  return { totalScenes, avgWordsPerScene, hookScores, charactersPerScene, allCharacters };
 }
