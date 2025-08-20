@@ -27,15 +27,53 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
       lines.push(`- Unresolved: ${unresolvedCount} (needs manual review)`);
       const list = unresolved
         .map(u => {
-          // Support older cache entries without priorOffset
-            const prior = (typeof (u as { priorOffset?: number }).priorOffset === 'number') ? (u as { priorOffset: number }).priorOffset : undefined;
+          const prior = (typeof (u as { priorOffset?: number }).priorOffset === 'number') ? (u as { priorOffset: number }).priorOffset : undefined;
           const priorStr = typeof prior === 'number' ? prior.toString() : 'n/a';
-          return `- ${u.id} (prior offset ${priorStr})`;
+          // Placeholders for tier & confidence until plumbed from anchor attempt path.
+          const tierTried = 'n/a';
+          const conf = 'n/a';
+          return `- ${u.id} (prior ${priorStr}; last tier ${tierTried}; confidence ${conf})`;
         })
         .join("\n");
       unresolvedSection = `\n\n### Unresolved Scenes\n${list}`;
     }
     return `\n## Changes Since Last Run\n${lines.join("\n")}${unresolvedSection}`;
+  })();
+
+  const histogramBlock = (() => {
+    if (scenes.length === 0) return "";
+    const bins = [
+      { label: "0–250", min: 0, max: 250, count: 0 },
+      { label: "251–500", min: 251, max: 500, count: 0 },
+      { label: "501–1000", min: 501, max: 1000, count: 0 },
+      { label: "1001–2000", min: 1001, max: 2000, count: 0 },
+      { label: "2001+", min: 2001, max: Number.POSITIVE_INFINITY, count: 0 },
+    ];
+    for (const s of scenes) {
+      const len = Math.max(0, s.endOffset - s.startOffset);
+      const bin = bins.find(b => len >= b.min && len <= b.max);
+      if (bin) bin.count++;
+    }
+    const maxCount = Math.max(1, ...bins.map(b => b.count));
+    const lines = bins.map(b => {
+      const barLen = Math.round((b.count / maxCount) * 10); // scale to max 10 hashes
+      const bar = '#'.repeat(barLen).padEnd(10, ' ');
+      const label = b.label.padEnd(8, ' ');
+      return `${label}| ${bar} (${b.count})`;
+    });
+    return `\n## Scene Length Histogram\n${lines.join("\n")}`;
+  })();
+
+  const topHooksBlock = (() => {
+    if (scenes.length === 0) return "";
+    const hookEntries: { id: string; score: number }[] = [];
+    for (const s of scenes) {
+      const score = a.hookScores.get(s.id) ?? 0;
+      hookEntries.push({ id: s.id, score });
+    }
+    hookEntries.sort((a, b) => b.score - a.score);
+    const top = hookEntries.slice(0, 10).map(h => `- ${h.id}: ${h.score.toFixed(2)}`).join("\n");
+    return `\n## Top 10 Hooks\n${top}`;
   })();
 
   return `# Scene Inventory Report
@@ -48,6 +86,8 @@ Checksum: ${ms.checksum.slice(0, 8)}
 - Words: ${ms.wordCount}
 - Avg Words/Scene: ${Math.round(a.avgWordsPerScene)}
 ${deltaBlock}
+${histogramBlock}
+${topHooksBlock}
 
 ## Scene Breakdown
 | ID | Words | Dialogue % | Hook Score |
