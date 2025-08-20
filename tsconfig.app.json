@@ -17,5 +17,9 @@
     }
   },
   "include": ["src", "tests"],
+  "files": [
+    "scripts/reports/reveal-id.ts",
+    "scripts/reports/transform-reveal-graph.ts"
+  ],
   "exclude": ["node_modules", "dist", "out", "src-tauri/**/target"]
 }

@@ -3,6 +3,9 @@ import type { Analysis } from "./analyzer.js";
 import type { Delta } from "./cache.js";
 import { extractReveals } from "./reveal-extraction.js";
 import { buildRevealGraph } from "./reveal-graph.js";
+// Enrichment helpers (report-layer only; internal graph remains hash-based)
+import { transformRevealGraph } from "../../../scripts/reports/transform-reveal-graph.js";
+import { htmlEscape } from "../../../scripts/reports/reveal-id.js";
 
 export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?: Delta): string {
   const timestamp = process.env.FIXED_TIMESTAMP || new Date().toISOString();
@@ -141,12 +144,17 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
     return `\n## Top 10 Hooks\n${top}`;
   })();
 
-  // Reveal Graph (after histogram + hooks)
+  // Reveal Graph (after histogram + hooks) with public IDs & labels
   const revealGraphSection = (() => {
-    const graph = buildRevealGraph(scenes);
-    if (!graph.reveals.length) return "";
-    const rows = graph.reveals.map(r => {
-      const prereqs = r.preReqs.length ? r.preReqs.join(", ") : "-";
+    const base = buildRevealGraph(scenes);
+    if (!base.reveals.length) return "";
+    // Build Raw graph shape expected by transformer
+    const rawNodes = base.reveals.map(r => ({ internal_id: r.id, scene_id: r.firstExposureSceneId, text: r.description }));
+    const rawEdges = base.reveals.flatMap(r => r.preReqs.map(pr => ({ from: pr, to: r.id })));
+    const enriched = transformRevealGraph({ nodes: rawNodes, edges: rawEdges });
+    const idMap = enriched.idMap;
+    const rows = base.reveals.map(r => {
+      const prereqs = r.preReqs.length ? renderPrereqList(r.preReqs, idMap) : "-";
       return `| ${r.firstExposureSceneId} | ${escapePipes(r.description)} | ${prereqs} |`;
     }).join("\n");
     return `\n## Reveal Graph\n| First Scene | Description | Prerequisites |\n|-------------|------------|---------------|\n${rows}`;
@@ -186,3 +194,28 @@ function fmtList(list: string[], limit = 10): string {
 function escapePipes(s: string): string {
   return s.replace(/\|/g, "\\|");
 }
+
+export interface RenderedIdMeta { public_id: string; label: string; tooltip: string }
+export interface IdMap { [hash: string]: RenderedIdMeta }
+
+/**
+ * Render a prerequisite hash list into enriched HTML spans with tooltips.
+ * Shows up to maxShown entries, then appends (+N more) if hidden.
+ */
+export function renderPrereqList(prereqHashes: string[], idMap: IdMap, maxShown = 3): string {
+  const parts: string[] = [];
+  for (let i = 0; i < prereqHashes.length && i < maxShown; i++) {
+  const h = prereqHashes[i] as string;
+  const meta = idMap[h as keyof typeof idMap];
+    if (!meta) {
+      parts.push(`<span title="(unknown reveal)"><code>(unknown)</code></span>`);
+      continue;
+    }
+    // meta.tooltip already escaped; label needs escaping
+    parts.push(`<span title="${meta.tooltip}"><code>${meta.public_id}</code> — “${htmlEscape(meta.label)}”</span>`);
+  }
+  const remaining = prereqHashes.length - maxShown;
+  if (remaining > 0) parts.push(`(+${remaining} more)`);
+  return parts.join('<br/>');
+}
+
