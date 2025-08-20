@@ -1,7 +1,7 @@
 import type { Manuscript, Scene } from "./types.js";
 import type { Analysis } from "./analyzer.js";
 import type { Delta } from "./cache.js";
-import { extractCharacters } from "./reveal-extraction.js";
+import { extractCharacters, extractReveals } from "./reveal-extraction.js";
 import { buildRevealGraph } from "./reveal-graph.js";
 
 export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?: Delta): string {
@@ -26,6 +26,19 @@ export function generateReport(ms: Manuscript, scenes: Scene[], a: Analysis, d?:
     }).filter(Boolean).join("\n");
     if (!any) return "";
     return `\n## Characters per Scene\n| Scene ID | Characters |\n|----------|-----------|\n${rows}`;
+  })();
+
+  // Reveals per Scene (conditional like characters)
+  const revealsSection = (() => {
+    let any = false;
+    const rows = scenes.map(s => {
+      const revs = extractReveals(s);
+      if (!revs.length) return null;
+      any = true;
+      return `| ${s.id} | ${revs.map(r => escapePipes(r.description)).join("; ")} |`;
+    }).filter(Boolean).join("\n");
+    if (!any) return "";
+    return `\n## Reveals per Scene\n| Scene ID | Reveals |\n|----------|---------|\n${rows}`;
   })();
 
   const deltaBlock = (() => {
@@ -112,6 +125,7 @@ Checksum: ${ms.checksum.slice(0, 8)}
 - Words: ${ms.wordCount}
 - Avg Words/Scene: ${Math.round(a.avgWordsPerScene)}
 ${charactersSection}
+${revealsSection}
 ${deltaBlock}
 ${histogramBlock}
 ${topHooksBlock}

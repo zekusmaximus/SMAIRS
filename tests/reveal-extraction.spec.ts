@@ -44,6 +44,14 @@ describe('extractCharacters', () => {
     expect(chars).toContain('McArthur');
     expect(chars).toContain('Mr. Smith');
   });
+
+  it('captures hyphenated names (Jean-Luc, Mary-Jane Smith-Jones) and filters generic sentence starters', () => {
+    const s = scene('Jean-Luc adjusted controls while Mary-Jane Smith-Jones monitored output. Tomorrow the system resets.');
+    const chars = extractCharacters(s);
+    expect(chars).toContain('Jean-Luc');
+    expect(chars).toContain('Mary-Jane Smith-Jones');
+    expect(chars).not.toContain('Tomorrow');
+  });
 });
 
 describe('extractReveals', () => {
@@ -64,11 +72,11 @@ describe('extractReveals', () => {
     expect(descs).not.toContain('device is faulty');
   });
 
-  it('includes character-based reveals and may include generic capitalized subject (current heuristic)', () => {
+  it('excludes filtered generic single-word sentence starters from reveals when not characters', () => {
     const s = scene('Tomorrow is quiet. Alice is ready.');
     const reveals = extractReveals(s);
     const descs = reveals.map(r => r.description);
-    // Ensure Alice pattern captured
     expect(descs).toContain('Alice is ready');
+    expect(descs).not.toContain('Tomorrow is quiet');
   });
 });

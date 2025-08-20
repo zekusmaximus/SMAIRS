@@ -27,7 +27,8 @@ export function extractCharacters(scene: Scene): string[] {
   // We'll keep sequences of 1-5 tokens each starting capital letter OR known title abbreviations.
   const TITLE = "(?:Dr|Mr|Mrs|Ms|Prof|Sir|Madam|Lady|Lord|St)\\.?";
   // NAME_WORD: capitalized word forms plus explicit allowance for O'Name pattern where leading part is a single 'O'
-  const NAME_WORD = "(?:Mc[A-Z][a-z]+|O['’][A-Z][a-z]+|[A-Z][a-z]+(?:['’][A-Z][a-z]+)?)"; // includes O'Hearn & McArthur
+  // NAME_WORD now supports hyphenated given names (Jean-Luc) and compound surnames (Smith-Jones)
+  const NAME_WORD = "(?:Mc[A-Z][a-z]+|O['’][A-Z][a-z]+|[A-Z][a-z]+(?:-[A-Z][a-z]+)?(?:['’][A-Z][a-z]+)?)";
   const CONNECTOR = "(?:\\s+(?:of|the|van|von|de|da|del))?"; // allow small lowercase in middle (rare)
   const PATTERN = new RegExp(`((?:${TITLE}\\s+)?${NAME_WORD}(?:${CONNECTOR}\\s+${NAME_WORD}){0,4})`, 'g');
 
@@ -48,8 +49,8 @@ export function extractCharacters(scene: Scene): string[] {
       const w0 = words[0];
       if (w0 && STOP.has(w0.toLowerCase())) continue;
     }
-    // Heuristic: ignore sentence-start capitalized common words (e.g., "The", "A") if alone
-    if (words.length === 1 && /^(The|A|And|But|For|Yet|So)$/.test(full)) continue;
+  // Heuristic: ignore single capitalized word at sentence start if followed by lowercase word and not later reoccurring as a multi-word name
+  if (words.length === 1 && /^(The|A|And|But|For|Yet|So|Tomorrow|Today|Meanwhile)$/i.test(full)) continue;
     if (!seen.has(full)) {
       seen.add(full);
       results.push(full);
