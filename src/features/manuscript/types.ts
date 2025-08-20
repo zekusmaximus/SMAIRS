@@ -34,3 +34,9 @@ export interface SceneCacheSnap {
   post: string;      // 64 chars after end (bounded at text length)
   rareShingles?: string[]; // up to 3 rare 8-token shingles (lowercased) for Tier‑4 anchoring
 }
+
+// Lightweight Reveal domain primitive (Phase 1 scope)
+export interface Reveal {
+  id: string;         // sha256(description)
+  description: string; // human-readable fact expression
+}

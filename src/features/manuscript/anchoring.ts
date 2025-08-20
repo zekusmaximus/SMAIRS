@@ -317,7 +317,7 @@ function norm(s: string): string {
 }
 
 /** Explicit return type so TS doesn't infer 'any'. */
-function sha256(s: string): string {
+export function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
 }
 
