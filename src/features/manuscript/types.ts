@@ -39,4 +39,16 @@ export interface SceneCacheSnap {
 export interface Reveal {
   id: string;         // sha256(description)
   description: string; // human-readable fact expression
+  type: 'character' | 'plot' | 'world' | 'temporal' | 'relationship' | 'state_change';
+  confidence: number; // 0..1 pattern strength heuristic
+  entities: string[]; // participating entities / nouns (normalized surface forms)
+  sceneId: string;    // first exposure scene id
+}
+
+// Dependency modeling (Phase 2)
+export interface RevealDependency {
+  revealId: string;
+  dependsOn: string[];       // direct dependencies (immediate prereqs)
+  transitiveDeps: Set<string>; // closure (computed)
+  depth: number;             // longest chain length to a leaf (0 = no deps)
 }

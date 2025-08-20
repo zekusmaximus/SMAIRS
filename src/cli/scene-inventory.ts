@@ -22,8 +22,21 @@ export async function runSceneInventory(text: string, opts?: { fixedTimestamp?: 
   const prevFixed = process.env.FIXED_TIMESTAMP;
   if (opts?.fixedTimestamp) process.env.FIXED_TIMESTAMP = opts.fixedTimestamp;
   try {
+    const debug = process.env.SMAIRS_PERF_DEBUG === '1';
+    const t0 = performance.now();
     const manuscript = importManuscript(text);
+    if (debug) console.log('[perf] importManuscript', (performance.now()-t0).toFixed(2),'ms');
+    const t1 = performance.now();
     const scenes = segmentScenes(manuscript);
+    if (debug) console.log('[perf] segmentScenes', (performance.now()-t1).toFixed(2),'ms');
+    if (process.env.SMAIRS_PERF_MODE === '1') {
+      const t2 = performance.now();
+      const cache = computeSnapshot(manuscript, scenes);
+      if (debug) console.log('[perf] computeSnapshot', (performance.now()-t2).toFixed(2),'ms');
+      const delta = diffCaches(null, cache, manuscript.rawText);
+      const report = `# Scene Inventory (FAST MODE)\nScenes: ${scenes.length}\nWords: ${manuscript.wordCount}`;
+      return { report, cache, deltas: delta };
+    }
     const analysis = analyzeScenes(scenes);
     try {
       await saveScenes(toSceneRecords(scenes));

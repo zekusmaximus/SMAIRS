@@ -57,16 +57,16 @@ describe('extractCharacters', () => {
 describe('extractReveals', () => {
   it('extracts "Name is X" pattern when name is recognized character', () => {
     const s = scene('Alice is the informant. Later, Bob is nervous about the plan.');
-    const reveals = extractReveals(s);
-    const descs = reveals.map(r => r.description);
+  const reveals = extractReveals(s);
+  const descs = reveals.map(r => r.description);
     expect(descs).toContain('Alice is the informant');
     expect(descs).toContain('Bob is nervous about the plan');
   });
 
   it('extracts engineered noun pattern (the <noun> is engineered)', () => {
     const s = scene('Rumors spread that the virus is engineered while the device is faulty.');
-    const reveals = extractReveals(s);
-    const descs = reveals.map(r => r.description);
+  const reveals = extractReveals(s);
+  const descs = reveals.map(r => r.description);
     expect(descs).toContain('virus is engineered');
     // Should not include unrelated phrase
     expect(descs).not.toContain('device is faulty');
@@ -74,8 +74,8 @@ describe('extractReveals', () => {
 
   it('excludes filtered generic single-word sentence starters from reveals when not characters', () => {
     const s = scene('Tomorrow is quiet. Alice is ready.');
-    const reveals = extractReveals(s);
-    const descs = reveals.map(r => r.description);
+  const reveals = extractReveals(s);
+  const descs = reveals.map(r => r.description);
     expect(descs).toContain('Alice is ready');
     expect(descs).not.toContain('Tomorrow is quiet');
   });

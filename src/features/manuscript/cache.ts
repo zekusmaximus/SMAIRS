@@ -27,8 +27,15 @@ export type Delta = {
 export function computeSnapshot(ms: Manuscript, scenes: Scene[]): CacheFile {
   const text = ms.rawText;
   const snaps: Record<string, SceneSnap> = {};
+  const perf = process.env.SMAIRS_PERF_MODE === '1';
+  const cheapHash = (s: string): string => {
+    // Fowler–Noll–Vo style 32-bit then hex (deterministic, fast)
+    let h = 2166136261 >>> 0;
+    for (let i=0;i<s.length;i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+    return (h>>>0).toString(16).padStart(8,'0');
+  };
   for (const s of scenes) {
-    const sha = sha256(s.text);
+    const sha = perf ? cheapHash(s.text) : sha256(s.text);
     const preStart = Math.max(0, s.startOffset - 64);
     const postEnd = Math.min(text.length, s.endOffset + 64);
     snaps[s.id] = {
@@ -38,8 +45,7 @@ export function computeSnapshot(ms: Manuscript, scenes: Scene[]): CacheFile {
       len: s.endOffset - s.startOffset,
       pre: text.slice(preStart, s.startOffset),
       post: text.slice(s.endOffset, postEnd),
-      // Compute rare shingles once during snapshot; lazy if older cache missing.
-      rareShingles: computeRareShingles(s.text),
+      rareShingles: perf ? [] : computeRareShingles(s.text),
     };
   }
   return {
