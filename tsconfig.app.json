@@ -16,7 +16,7 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src", "tests"],
+  "include": ["src", "tests", "types"],
   "files": [
     "scripts/reports/reveal-id.ts",
     "scripts/reports/transform-reveal-graph.ts",
