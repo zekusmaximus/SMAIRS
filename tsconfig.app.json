@@ -19,7 +19,8 @@
   "include": ["src", "tests"],
   "files": [
     "scripts/reports/reveal-id.ts",
-    "scripts/reports/transform-reveal-graph.ts"
+    "scripts/reports/transform-reveal-graph.ts",
+    "tooling.d.ts"
   ],
   "exclude": ["node_modules", "dist", "out", "src-tauri/**/target"]
 }

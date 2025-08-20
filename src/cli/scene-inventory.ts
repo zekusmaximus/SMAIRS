@@ -6,6 +6,7 @@ import { analyzeScenes } from "../features/manuscript/analyzer.js";
 import { generateReport } from "../features/manuscript/reports.js";
 import { computeSnapshot, readPrevCache, writeCache, diffCaches } from "../features/manuscript/cache.js";
 import type { CacheFile, Delta } from "../features/manuscript/cache.js";
+import { saveScenes, saveReveals, toSceneRecords, toRevealRecordsFromScenes } from "../lib/db.js";
 
 export interface RunSceneInventoryResult {
   report: string;
@@ -24,6 +25,13 @@ export async function runSceneInventory(text: string, opts?: { fixedTimestamp?: 
     const manuscript = importManuscript(text);
     const scenes = segmentScenes(manuscript);
     const analysis = analyzeScenes(scenes);
+    try {
+      await saveScenes(toSceneRecords(scenes));
+      const revealRecs = toRevealRecordsFromScenes(scenes);
+      await saveReveals(revealRecs);
+    } catch {
+      // persistence is best-effort in pure run
+    }
     // For deterministic pure run we intentionally do NOT read previous cache; treat as first run.
     const prev: CacheFile | null = null;
     const current = computeSnapshot(manuscript, scenes);
@@ -50,6 +58,13 @@ async function main() {
   const manuscript = importManuscript(rawText);
   const scenes = segmentScenes(manuscript);
   const analysis = analyzeScenes(scenes);
+  try {
+    await saveScenes(toSceneRecords(scenes));
+    const revealRecs = toRevealRecordsFromScenes(scenes);
+    await saveReveals(revealRecs);
+  } catch (e) {
+    console.warn("(warn) persistence failed:", (e as Error).message);
+  }
 
   // 🔹 change ledger
   const prev = readPrevCache();

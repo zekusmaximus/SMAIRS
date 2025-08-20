@@ -1,7 +1,16 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod db;
+use db::{save_reveals, save_scenes};
+
 fn main() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations(&db::db_url(), db::migrations())
+                .build(),
+        )
+        .invoke_handler(tauri::generate_handler![save_scenes, save_reveals])
         .setup(|app| {
             let window = tauri::WindowBuilder::new(
                 app,
