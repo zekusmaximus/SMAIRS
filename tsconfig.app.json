@@ -20,7 +20,16 @@
   "files": [
     "scripts/reports/reveal-id.ts",
     "scripts/reports/transform-reveal-graph.ts",
-    "tooling.d.ts"
+    "tooling.d.ts",
+    "types/burden-types.ts",
+    "types/spoiler-types.ts",
+    "src/features/manuscript/edit-consolidation.ts",
+    "src/features/manuscript/time-estimation.ts",
+    "src/features/manuscript/edit-burden.ts",
+    "src/features/manuscript/opening-report.ts",
+    "src/features/manuscript/report-visualizations.ts",
+    "src/features/manuscript/pdf-generator.ts",
+    "src/features/manuscript/report-renderer.ts"
   ],
   "exclude": ["node_modules", "dist", "out", "src-tauri/**/target"]
 }
