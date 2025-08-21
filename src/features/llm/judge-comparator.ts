@@ -1,4 +1,4 @@
-import { resolveProfile } from './providers.js';
+import { globalProviderAdapter } from './provider-adapter.js';
 import { PROMPTS } from './prompt-templates.js';
 import { z } from 'zod';
 
@@ -18,10 +18,9 @@ const Schema = z.object({
 });
 
 export async function judgeCandidates(req: JudgeScoringRequest): Promise<JudgeScoringResponse> {
-  const caller = resolveProfile('JUDGE_SCORER');
   const { system, template, temperature } = PROMPTS.JUDGE;
   const prompt = template(req);
-  const result = await caller.callWithRetry({ system, prompt, temperature, profile: 'JUDGE_SCORER' }, 2);
+  const result = await globalProviderAdapter.executeWithFallback('JUDGE_SCORER', { system, prompt, temperature, profile: 'JUDGE_SCORER' });
   const json = (result.json || safeExtractJSON(result.text));
   const parsed = Schema.safeParse(json);
   if (!parsed.success) {

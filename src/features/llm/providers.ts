@@ -55,7 +55,7 @@ function getModelId(profile: Profile): string {
 }
 
 // Simple deterministic mock for offline mode
-class MockCaller implements LLMCaller {
+export class MockCaller implements LLMCaller {
   profile: Profile;
   modelId: string;
   private static maxConcurrent = 2; // global provider rate limit

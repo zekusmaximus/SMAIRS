@@ -1,4 +1,4 @@
-import { resolveProfile } from './providers.js';
+import { globalProviderAdapter } from './provider-adapter.js';
 import { PROMPTS } from './prompt-templates.js';
 import type { OpeningCandidate } from '../manuscript/opening-candidates.js';
 import { z } from 'zod';
@@ -16,12 +16,7 @@ const ResponseSchema = z.object({
   reasoning: z.string().optional(),
 });
 
-const CONCURRENCY_LIMIT = 5;
-let active = 0;
-const queue: (() => void)[] = [];
-
-function acquire(): Promise<void> { return new Promise(res => { if (active < CONCURRENCY_LIMIT) { active++; res(); } else queue.push(res); }); }
-function release() { active--; const n = queue.shift(); if (n) { active++; n(); } }
+// Concurrency now handled by ProviderAdapter queue
 
 export async function scoreCandidate(req: FastScoringRequest): Promise<FastScoringResponse> {
   const cacheKey = globalLLMCache.generateCacheKey('FAST_ITERATE', { id: req.candidate.id, metrics: req.focusMetrics });
@@ -29,12 +24,10 @@ export async function scoreCandidate(req: FastScoringRequest): Promise<FastScori
 }
 
 async function computeScore(req: FastScoringRequest): Promise<FastScoringResponse> {
-  await acquire();
   try {
-    const caller = resolveProfile('FAST_ITERATE');
     const { system, template, temperature } = PROMPTS.SCORING;
     const prompt = template(req);
-    const result = await caller.callWithRetry({ system, prompt, temperature, profile: 'FAST_ITERATE' }, 3);
+    const result = await globalProviderAdapter.executeWithFallback('FAST_ITERATE', { system, prompt, temperature, profile: 'FAST_ITERATE' });
     const json = (result.json || safeExtractJSON(result.text));
     const parsed = ResponseSchema.safeParse(json);
     if (parsed.success) {
@@ -43,7 +36,7 @@ async function computeScore(req: FastScoringRequest): Promise<FastScoringRespons
     }
     // fallback minimal stats from candidate itself
     return { hookScore: req.candidate.hookScore, actionDensity: req.candidate.actionDensity, mysteryQuotient: req.candidate.mysteryQuotient, characterIntros: req.candidate.characterIntros, confidence: 0.5 };
-  } finally { release(); }
+  } finally { /* adapter handles concurrency */ }
 }
 
 function safeExtractJSON(text: string): unknown { try { const s = text.indexOf('{'); const e = text.lastIndexOf('}'); if (s>=0 && e>s) return JSON.parse(text.slice(s,e+1)); } catch { /* ignore */ } return {}; }

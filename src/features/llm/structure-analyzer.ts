@@ -1,4 +1,4 @@
-import { resolveProfile } from './providers.js';
+import { globalProviderAdapter } from './provider-adapter.js';
 import { PROMPTS } from './prompt-templates.js';
 import { globalLLMCache } from './cache-manager.js';
 import type { Scene, Reveal } from '../manuscript/types.js';
@@ -31,10 +31,10 @@ function readEnv(name: string): string | undefined {
 }
 
 async function computeStructure(req: StructuralAnalysisRequest): Promise<StructuralAnalysisResponse> {
-  const caller = resolveProfile('STRUCTURE_LONGCTX');
+  // Use orchestration layer for fallback + metrics
   const { system, template, temperature } = PROMPTS.STRUCTURE;
   const prompt = template(req);
-  const result = await caller.call({ system, prompt, temperature, profile: 'STRUCTURE_LONGCTX' });
+  const result = await globalProviderAdapter.executeWithFallback('STRUCTURE_LONGCTX', { system, prompt, temperature, profile: 'STRUCTURE_LONGCTX' });
   // In mock mode json already shaped; in real provider we'd parse JSON.
   const jsonUnknown = (result.json || safeExtractJSON(result.text));
   // Loose structural typing – provider guarantee or mock structure
