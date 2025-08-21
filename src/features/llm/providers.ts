@@ -43,6 +43,13 @@ const DEFAULT_MODELS: Record<Profile, string> = {
   JUDGE_SCORER: 'google:gemini-2.5-pro',
 };
 
+// Default fallback models (can be overridden via LLM_FALLBACK__* env variables)
+export const FALLBACK_MODELS: Record<Profile, string> = {
+  STRUCTURE_LONGCTX: 'openai:gpt-5',
+  FAST_ITERATE: 'anthropic:claude-4-sonnet',
+  JUDGE_SCORER: 'openai:gpt-5-mini',
+};
+
 function readEnv(name: string): string | undefined {
   // In browser/tauri front-end process, import.meta.env is used; fallback to process.env
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +59,11 @@ function readEnv(name: string): string | undefined {
 
 function getModelId(profile: Profile): string {
   return readEnv(ENV_MAP[profile]) || DEFAULT_MODELS[profile];
+}
+
+export function getFallbackModelId(profile: Profile): string {
+  const envName = `LLM_FALLBACK__${profile === 'STRUCTURE_LONGCTX' ? 'STRUCTURE' : profile === 'FAST_ITERATE' ? 'FAST' : 'JUDGE'}`;
+  return readEnv(envName) || FALLBACK_MODELS[profile];
 }
 
 // Simple deterministic mock for offline mode
