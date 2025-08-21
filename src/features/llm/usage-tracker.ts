@@ -88,4 +88,6 @@ export class UsageTracker {
     const cost = this.getCostSummary();
     return { ...cost, latency: { p50: pct(0.5), p95: pct(0.95), p99: pct(0.99) }, reliabilityByProvider };
   }
+
+  getHourlyCost(): number { return this.getCostSummary().totalCost; }
 }
