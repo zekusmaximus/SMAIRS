@@ -14,16 +14,12 @@
     "format": "prettier -w .",
     "test": "vitest run",
     "test:watch": "vitest",
-
     "manuscript:validate": "tsx scripts/manuscript-validate.ts",
     "manuscript:fix": "tsx scripts/manuscript-fix.ts",
-
     "cli": "tsx src/cli/scene-inventory.ts",
-
     "cli:test:win": "set FIXED_TIMESTAMP=2024-01-01T00:00:00Z&& set LLM_OFFLINE=1&& npm run cli -- data/manuscript.txt out/test-report.md",
     "cli:test:nix": "FIXED_TIMESTAMP=2024-01-01T00:00:00Z LLM_OFFLINE=1 npm run cli -- data/manuscript.txt out/test-report.md",
-  "cache:clear": "node -e \"require('fs').rmSync('.smairs', { recursive: true, force: true })\"",
-
+    "cache:clear": "node -e \"require('fs').rmSync('.smairs', { recursive: true, force: true })\"",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
@@ -35,20 +31,20 @@
     "@codemirror/search": "^6.5.0",
     "@codemirror/state": "^6.3.0",
     "@codemirror/view": "^6.27.0",
-  "@tauri-apps/api": "^2.0.0",
     "@tanstack/react-query": "^5.0.0",
+    "@tauri-apps/api": "^2.0.0",
     "diff-match-patch": "^1.0.5",
+    "fastest-levenshtein": "^1.0.16",
     "immer": "^10.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "sql.js": "^1.13.0",
     "zod": "^3.23.8",
-    "zustand": "^4.5.2",
-
-  "fastest-levenshtein": "^1.0.16",
-  "sql.js": "^1.11.0"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@tauri-apps/cli": "^2.0.0",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^14.0.0",
     "@types/node": "^20.19.11",
@@ -58,19 +54,17 @@
     "@typescript-eslint/parser": "^8.39.1",
     "@vitejs/plugin-react": "^4.0.0",
     "@vitest/coverage-v8": "^1.0.0",
-    "@tauri-apps/cli": "^2.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^26.1.0",
     "prettier": "^3.2.0",
+    "tsx": "^4.15.0",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.39.1",
     "vite": "^5.0.0",
-    "vitest": "^1.0.0",
-
-    "tsx": "^4.15.0"
+    "vitest": "^1.0.0"
   },
   "packageManager": "npm@10.0.0"
 }

@@ -7,6 +7,13 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
+    // Inline sql.js so its ESM build & wasm loader resolve under Vitest.
+    // (Prevents Failed to resolve import "sql.js" errors in persistence tests.)
+    server: {
+      deps: {
+        inline: ['sql.js']
+      }
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
@@ -17,6 +24,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@tauri-apps/api': path.resolve(__dirname, 'tests', '__mocks__', 'tauri-api.ts'),
     },
   },
 });

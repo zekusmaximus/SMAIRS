@@ -1,4 +1,5 @@
 import { runSceneInventory } from "../src/cli/scene-inventory.js";
+import { __forcePersistForTests } from "../src/lib/db.js";
 import { importManuscript } from "../src/features/manuscript/importer.js";
 import { segmentScenes } from "../src/features/manuscript/segmentation.js";
 import { buildRevealGraph } from "../src/features/manuscript/reveal-graph.js";
@@ -19,12 +20,22 @@ describe("SQLite persistence", () => {
   it("persists scenes and reveals counts", async () => {
     const text = readFileSync("data/manuscript.txt", "utf-8");
     await runSceneInventory(text, { fixedTimestamp: "2024-01-01T00:00:00Z" });
-    const ms = importManuscript(text);
+  const ms = importManuscript(text);
     const scenes = segmentScenes(ms);
     const graph = buildRevealGraph(scenes);
-  // Open with sql.js
-  const SQL = await initSqlJs({});
-  const buf = readFileSync(tmpPath);
+    // Wait for persistence file (fallback path) to be written (best-effort)
+  // Force flush (some environments may delay persistence until microtasks complete)
+  await __forcePersistForTests();
+  const start = Date.now();
+    while (true) {
+      try { readFileSync(tmpPath); break; } catch {
+        if (Date.now() - start > 500) throw new Error('Timed out waiting for db file');
+        await new Promise(r => setTimeout(r, 20));
+      }
+    }
+    // Open with sql.js
+    const SQL = await initSqlJs({});
+    const buf = readFileSync(tmpPath);
   const db = new SQL.Database(new Uint8Array(buf));
     const scRows = db.exec("SELECT COUNT(*) as c FROM scenes");
     const revRows = db.exec("SELECT COUNT(*) as c FROM reveals");

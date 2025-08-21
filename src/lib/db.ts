@@ -24,6 +24,8 @@ function dbPath(): string { return process.env.SMAIRS_DB_PATH || ".smairs/app.db
 
 // Lightweight invoke wrapper; returns false if tauri runtime unavailable.
 async function tryInvoke(command: string, payload: Record<string, unknown>): Promise<boolean> {
+  // In Vitest environment always skip tauri invoke so that sql.js fallback is exercised deterministically.
+  if (typeof process !== 'undefined' && (process.env.VITEST || process.env.JEST_WORKER_ID)) return false;
   try {
   // Dynamic import (optional dependency inside Node tests)
   const mod = await import("@tauri-apps/api").then(m => m as unknown as { invoke?: (cmd: string, args: Record<string, unknown>) => Promise<unknown> });
@@ -90,6 +92,8 @@ export async function saveScenes(records: SceneRecord[]): Promise<void> {
   if (!records.length) return;
   if (await tryInvoke("save_scenes", { scenes: records })) return;
   const db = await ensureSqlJsDb();
+  // debug: indicate fallback path used
+  if (process.env.DEBUG_DB === '1') console.log('[db] saveScenes fallback inserting', records.length);
   db.run('BEGIN');
   const stmt = db.prepare(`INSERT OR REPLACE INTO scenes (id, chapter_id, start_offset, end_offset, word_count, dialogue_ratio) VALUES (?, ?, ?, ?, ?, ?)`);
   try {
@@ -109,6 +113,7 @@ export async function saveReveals(records: RevealRecord[]): Promise<void> {
   if (!records.length) return;
   if (await tryInvoke("save_reveals", { reveals: records })) return;
   const db = await ensureSqlJsDb();
+  if (process.env.DEBUG_DB === '1') console.log('[db] saveReveals fallback inserting', records.length);
   db.run('BEGIN');
   const stmt = db.prepare(`INSERT OR REPLACE INTO reveals (id, description, first_scene_id, prereqs) VALUES (?, ?, ?, ?)`);
   try {
@@ -130,4 +135,11 @@ export function toSceneRecords(scenes: Scene[]): SceneRecord[] {
 export function toRevealRecordsFromScenes(scenes: Scene[]): RevealRecord[] {
   const graph = buildRevealGraph(scenes);
   return graph.reveals.map(r => ({ id: r.id, description: r.description, first_scene_id: r.firstExposureSceneId, prereqs: JSON.stringify(r.preReqs) }));
+}
+
+// Test-only helper (not used in production) to force initialization & flush.
+export async function __forcePersistForTests(): Promise<void> {
+  const db = await ensureSqlJsDb();
+  // no-op usage to avoid unused variable fold
+  if (db) persistSqlJsDb();
 }
