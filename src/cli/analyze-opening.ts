@@ -4,6 +4,7 @@ import { existsSync } from 'fs';
 import { importManuscript } from '../features/manuscript/importer.js';
 import { segmentScenes } from '../features/manuscript/segmentation.js';
 import { generateCandidates } from '../features/manuscript/opening-candidates.js';
+import { analyzeScenes } from '../features/manuscript/analyzer.js';
 import { buildRevealGraph, RevealGraph } from '../features/manuscript/reveal-graph.js';
 import { detectSpoilers } from '../features/manuscript/spoiler-detector.js';
 import { analyzeCandidateContext } from '../features/manuscript/context-analyzer.js';
@@ -12,6 +13,7 @@ import { OpeningLabOrchestrator } from '../features/manuscript/opening-lab-orche
 import type { Manuscript, Scene } from '../features/manuscript/types.js';
 import { DiffExporter } from '../features/manuscript/diff-exporter.js';
 import { DiffEngine } from '../features/manuscript/diff-engine.js';
+import type { CandidateGenerationOptions } from '../features/manuscript/opening-candidates.js';
 
 async function main() {
   console.log('📚 Opening Lab Analysis Tool\n');
@@ -41,8 +43,68 @@ async function main() {
     const scenes = segmentScenes(manuscript);
     console.log(`   ✓ ${scenes.length} scenes identified\n`);
 
+    // Optional diagnostics
+    const diagnose = process.argv.includes('--diagnose');
+    if (diagnose) {
+      console.log('📊 Diagnostic Mode');
+      const analysis = analyzeScenes(scenes);
+      const hooks = analysis.hookScores;
+      let sum = 0;
+      let maxHook = 0;
+      let dlgScenes = 0;
+      let lowHook = 0;
+      let noDialogue = 0;
+      let tooShort = 0;
+      const minHook = 0.6; // align with legacy candidate threshold
+      const minWords = 500;
+      for (const s of scenes) {
+        const h = hooks.get(s.id) ?? 0;
+        sum += h;
+        if (h > maxHook) maxHook = h;
+        if ((s.dialogueRatio ?? 0) > 0) dlgScenes++;
+        if (h < minHook) lowHook++;
+        if ((s.dialogueRatio ?? 0) === 0) noDialogue++;
+        if ((s.wordCount ?? 0) < minWords) tooShort++;
+      }
+      const avg = scenes.length ? sum / scenes.length : 0;
+      console.log(`   - Average hook score: ${avg.toFixed(3)}`);
+      console.log(`   - Max hook score: ${maxHook.toFixed(3)}`);
+      console.log(`   - Scenes with dialogue: ${dlgScenes} / ${scenes.length}`);
+      console.log('   - Filter reasons:');
+      console.log(`       low_hook: ${lowHook}`);
+      console.log(`       no_dialogue: ${noDialogue}`);
+      console.log(`       too_short: ${tooShort}\n`);
+    }
+
     console.log('🎯 Generating opening candidates...');
-    const candidates = generateCandidates(scenes);
+    // Parse optional CLI thresholds
+    const args = process.argv.slice(2);
+    const htIdx = args.indexOf('--hook-threshold');
+    let options: CandidateGenerationOptions | undefined;
+    let useOptionsMode = false;
+    if (htIdx !== -1 && htIdx + 1 < args.length) {
+      const val = Number(args[htIdx + 1]);
+      if (Number.isFinite(val)) {
+        options = { minHookScore: val, maxCandidates: 5, requireDialogue: false };
+        useOptionsMode = true;
+      }
+    }
+
+    let candidates = useOptionsMode ? generateCandidates(scenes, options) : generateCandidates(scenes);
+
+    // Ensure at least 3 candidates when using options mode, by relaxing thresholds if needed
+    if (useOptionsMode && candidates.length < 3) {
+      console.warn('[warn] Fewer than 3 candidates with provided thresholds; relaxing to fill set.');
+      const relaxed: CandidateGenerationOptions = {
+        minHookScore: 0,
+        minWordCount: options?.minWordCount ?? 500,
+        maxCandidates: Math.max(3, options?.maxCandidates ?? 5),
+        requireDialogue: false,
+        minDialogueRatio: 0,
+      };
+      const more = generateCandidates(scenes, relaxed);
+      candidates = more.slice(0, Math.max(3, Math.min(5, more.length)));
+    }
     console.log(`   ✓ ${candidates.length} viable candidates found`);
 
     console.log('\n📊 Candidate Summary:');

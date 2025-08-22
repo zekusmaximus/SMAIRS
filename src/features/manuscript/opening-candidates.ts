@@ -23,6 +23,14 @@ export interface OpeningCandidate {
   pattern?: string;
 }
 
+export interface CandidateGenerationOptions {
+  minHookScore?: number;
+  minDialogueRatio?: number;
+  minWordCount?: number;
+  maxCandidates?: number;
+  requireDialogue?: boolean;
+}
+
 // --- Scoring helpers ------------------------------------------------------
 
 const ACTION_VERBS = /\b(ran|run|jumped|leaped|grabbed|shot|kicked|threw|smashed|burst|fled|struck|charged|slammed|fired|stabbed|chased|swung|dived|dove|lunged)\b/gi;
@@ -98,7 +106,7 @@ function dominantCharacter(charSet: Set<string>): string | null {
 
 // --- Public generation ----------------------------------------------------
 
-export function generateCandidates(scenes: Scene[]): OpeningCandidate[] {
+export function generateCandidates(scenes: Scene[], options?: CandidateGenerationOptions): OpeningCandidate[] {
   if (!scenes.length) return [];
 
   // Analyze first for hook scores + character extraction map.
@@ -208,17 +216,34 @@ export function generateCandidates(scenes: Scene[]): OpeningCandidate[] {
   }
   let deduped = Array.from(byId.values());
 
-  // Filter by hook strength threshold
-  deduped = deduped.filter(c => c.hookScore >= 0.6);
+  // Determine thresholds (legacy behavior when options is undefined)
+  const legacyMode = options === undefined;
+  const minHookScore = legacyMode ? 0.6 : (options?.minHookScore ?? 0.4);
+  const minDialogueRatio = legacyMode ? 0 : (options?.minDialogueRatio ?? 0);
+  const minWordCount = legacyMode ? 500 : (options?.minWordCount ?? 500);
+  const maxCandidates = legacyMode ? 5 : (options?.maxCandidates ?? 5);
+  const requireDialogue = legacyMode ? true : (options?.requireDialogue ?? false);
 
-  // Filter: minimum words 500
-  deduped = deduped.filter(c => c.totalWords >= 500);
+  // Filters
+  deduped = deduped.filter(c => c.hookScore >= minHookScore);
+  deduped = deduped.filter(c => c.totalWords >= minWordCount);
+  if (requireDialogue) {
+    if (legacyMode) {
+      // Preserve strict > 0 legacy semantics
+      deduped = deduped.filter(c => c.dialogueRatio > 0);
+    } else {
+      deduped = deduped.filter(c => c.dialogueRatio >= minDialogueRatio);
+    }
+  }
 
-  // Require dialogue presence for engagement
-  deduped = deduped.filter(c => c.dialogueRatio > 0);
-
-  // Log filtered count
-  console.log(`Filtered to ${deduped.length} candidates (hook >= 0.6, has dialogue)`);
+  // Log filtered count with context
+  if (legacyMode) {
+    console.log(`Filtered to ${deduped.length} candidates (hook >= 0.6, has dialogue)`);
+  } else {
+    const parts = [`hook >= ${minHookScore}`, `minWords >= ${minWordCount}`];
+    if (requireDialogue) parts.push(`dialogue >= ${minDialogueRatio}`);
+    console.log(`Filtered to ${deduped.length} candidates (${parts.join(', ')})`);
+  }
 
   // Ranking: primarily hookScore, then actionDensity, then mysteryQuotient
   deduped.sort((a, b) => {
@@ -227,8 +252,18 @@ export function generateCandidates(scenes: Scene[]): OpeningCandidate[] {
     return b.mysteryQuotient - a.mysteryQuotient;
   });
 
-  // Limit top 5
-  return deduped.slice(0, 5);
+  // If none survived and not in legacy mode, fall back to top-N by hook score
+  if (!legacyMode && deduped.length === 0) {
+    console.warn('[warn] No candidates met the thresholds; selecting top by hook score.');
+    const fallback = Array.from(byId.values())
+      .filter(c => c.totalWords >= minWordCount)
+      .sort((a, b) => b.hookScore - a.hookScore)
+      .slice(0, maxCandidates);
+    return fallback;
+  }
+
+  // Limit to max candidates
+  return deduped.slice(0, maxCandidates);
 }
 
 export default generateCandidates;

@@ -15,59 +15,78 @@ function normalizeQuotesForAnalysis(text: string): string {
     .replace(/[‘’]/g, "'");
 }
 
-/** Rough dialogue ratio: count content inside quotes after normalization. */
-function calcDialogueRatio(text: string): number {
-  const t = normalizeQuotesForAnalysis(text);
+// (Note) Dialogue ratio calculation lives in segmentation.ts for scenes.
 
-  // Count double-quoted spans (skip single-line mega-spans via newline guard)
-  const dq = t.match(/"[^"\n]{2,}"/g) || [];
-  let dlgLen = dq.reduce((acc, s) => acc + s.length, 0);
+/**
+ * Calculate a hook score based on early text signals.
+ * - Scans first 500 chars (lowercased, quotes normalized).
+ * - Weighted categories (each capped at 3 matches, scaled to full weight):
+ *   high-impact (0.3), action (0.2), mystery/tension (0.15), emotional (0.1), dialogue start (0.2)
+ * - Bonuses: opening line is dialogue with ! or ? (+0.1), first sentence < 50 chars (+0.05)
+ * - Deterministic and lightweight; clamped to [0,1].
+ */
+function calculateHookScore(text: string): number {
+  const norm = normalizeQuotesForAnalysis(text || "");
+  const head = norm.slice(0, 500).toLowerCase();
 
-  // Optionally count single-quoted spans but avoid contractions (min 4 chars)
-  const sq = t.match(/'[^'\n]{4,}'/g) || [];
-  dlgLen += sq.reduce((acc, s) => acc + s.length, 0);
+  // helper: count non-overlapping matches
+  const count = (re: RegExp): number => {
+    let c = 0;
+    const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    while (r.exec(head) !== null) c++;
+    return c;
+  };
 
-  const denom = t.length || 1;
-  return Math.max(0, Math.min(1, dlgLen / denom));
+  // Category patterns (keep concise for performance)
+  const highImpactTokens = /\b(sudden(?:ly)?|bang|crash|scream|blood|gunshot|explode(?:d|s|r)?|blast|siren|alarm|panic)\b/g;
+  const actionTokens = /\b(run|ran|sprint|chase|flee|bolt|grab|shove|kick|punch|fight|shot|shoot|stab|attack|escape|dash|rush|slam|strike|charge|lunge)\b/g;
+  const mysteryTokens = /\b(why|how|who|where|secret|myster(?:y|ious)|hidden|unknown|missing|vanish(?:ed|es)?|threat|danger|risk|conspiracy|cover[- ]?up|blackmail)\b/g;
+  const emotionalTokens = /\b(love|hate|fear|afraid|terrified|nervous|anxious|panic|desperate|heart\s+raced|cry|cried|sob|tears?|grief|angry|furious|relief)\b/g;
+
+  const highImpactCount = Math.min(3, count(highImpactTokens));
+  const actionCount = Math.min(3, count(actionTokens));
+  // Include question marks as tension signals as well
+  const qMarks = Math.min(3, (head.match(/\?/g) || []).length);
+  const mysteryCount = Math.min(3, count(mysteryTokens) + qMarks);
+  const emotionalCount = Math.min(3, count(emotionalTokens));
+
+  // Dialogue start: if first non-space is a quote, grant full weight; else count early quoted spans
+  const firstNonWs = head.match(/\S/);
+  const beginsWithQuote = firstNonWs ? /["']/.test(firstNonWs[0]!) : false;
+  let dialogueCount = 0;
+  if (beginsWithQuote) dialogueCount = 3;
+  else {
+    const early = head.slice(0, 200);
+    const spans = (early.match(/"[^"\n]{2,}"/g) || []).length + (early.match(/'[^'\n]{2,}'/g) || []).length;
+    dialogueCount = Math.min(3, spans);
+  }
+
+  // Convert capped counts to weighted contributions
+  const contrib = (weight: number, cappedCount: number) => weight * (cappedCount / 3);
+  let score = 0;
+  score += contrib(0.3, highImpactCount);
+  score += contrib(0.2, actionCount);
+  score += contrib(0.15, mysteryCount);
+  score += contrib(0.1, emotionalCount);
+  score += contrib(0.2, dialogueCount);
+
+  // Bonuses
+  const firstLine = head.split(/\n/)[0] || "";
+  if (/^[\s]*["']/.test(firstLine) && /[!?]/.test(firstLine)) {
+    score += 0.1;
+  }
+  const sentenceEnd = head.search(/[.!?]/);
+  if (sentenceEnd > 0 && sentenceEnd < 50) {
+    score += 0.05;
+  }
+
+  const final = Math.max(0, Math.min(1, score));
+  return Number(final.toFixed(2));
 }
 
-/** Lightweight "hook" heuristic that isn't only dialogue-dependent. */
+/** Lightweight wrapper to compute scene hook score using early-text heuristics. */
 function computeHookScore(scene: Scene): number {
-  // 1) Dialogue weight (after quote normalization)
-  const dlg = calcDialogueRatio(scene.text); // 0..1
-
-  // 2) Early tension markers in first ~250 chars
-  const head = scene.text.slice(0, 250).toLowerCase();
-  const exclam = (head.match(/!/g) || []).length;
-  const quest  = (head.match(/\?/g) || []).length;
-
-  // conflict tokens (keep small, domain-agnostic)
-  const TOKENS = [
-    "but", "however", "until", "suddenly", "alarm", "blood", "dead", "risk",
-    "danger", "threat", "gun", "siren", "audit", "knock", "chase", "leak", "broke"
-  ];
-  let tokenHits = 0;
-  for (const t of TOKENS) {
-    if (head.includes(t)) tokenHits++;
-  }
-  const tokenScore = Math.min(1, tokenHits / 4); // saturate after a few hits
-
-  // 3) Sentence length variance (short + long mix reads "pacey")
-  const sentences = head.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
-  let varianceScore = 0;
-  if (sentences.length >= 2) {
-    const lens = sentences.map(s => s.split(/\s+/).filter(Boolean).length);
-    const avg = lens.reduce((a, b) => a + b, 0) / lens.length;
-    const dev = Math.sqrt(lens.reduce((a, l) => a + Math.pow(l - avg, 2), 0) / lens.length);
-    varianceScore = Math.max(0, Math.min(1, dev / 6)); // heuristic normalization
-  }
-
-  // Blend (weights sum to 1). Keep deterministic & lightweight.
-  const score = 0.4 * dlg + 0.4 * tokenScore + 0.2 * (exclam + quest > 0 ? 0.5 : 0);
-  // Nudge with variance a bit
-  const final = Math.max(0, Math.min(1, score + 0.1 * varianceScore));
-
-  return Number(final.toFixed(2));
+  return calculateHookScore(scene.text);
 }
 
 /** Strip honorific / title prefixes from a candidate name. */

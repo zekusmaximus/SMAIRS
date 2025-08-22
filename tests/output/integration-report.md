@@ -1,5 +1,5 @@
 # Opening Lab Analysis Report
-Generated: 2025-08-22T16:28:00.873Z
+Generated: 2025-08-22T20:41:17.265Z
 Analyzing 3 opening options
 
 ## Executive Summary
@@ -16,8 +16,8 @@ Recommended opening: Current Opening (score 100 confidence).
 
 | Metric | Current Opening | Alt 1 | Alt 2 |
 |---|---|---|---|
-| Overall Score | **83/100** | 83/100 | 83/100 |
-| Hook Strength | **60/100** | 60/100 | 60/100 |
+| Overall Score | **86/100** | 86/100 | 86/100 |
+| Hook Strength | **70/100** | 70/100 | 70/100 |
 | Context Clarity | **100/100** | 100/100 | 100/100 |
 | Spoiler Freedom | **100/100** | 100/100 | 100/100 |
 | Edit Feasibility | **100/100** | 100/100 | 100/100 |
@@ -28,22 +28,22 @@ Recommended opening: Current Opening (score 100 confidence).
 ## Opening-by-Opening Analysis
 
 ### Current Opening
-Score: 83/100 (confidence 100%)
-- Strengths: Clean of major spoilers; Low edit burden
+Score: 86/100 (confidence 100%)
+- Strengths: Strong initial hook; Clean of major spoilers; Low edit burden
 - Weaknesses: —
 - Risks: —
 - Opportunities: —
 
 ### Alt 1
-Score: 83/100 (confidence 100%)
-- Strengths: Clean of major spoilers; Low edit burden
+Score: 86/100 (confidence 100%)
+- Strengths: Strong initial hook; Clean of major spoilers; Low edit burden
 - Weaknesses: —
 - Risks: —
 - Opportunities: —
 
 ### Alt 2
-Score: 83/100 (confidence 100%)
-- Strengths: Clean of major spoilers; Low edit burden
+Score: 86/100 (confidence 100%)
+- Strengths: Strong initial hook; Clean of major spoilers; Low edit burden
 - Weaknesses: —
 - Risks: —
 - Opportunities: —
@@ -73,7 +73,7 @@ Edits             :            |            |
 
 | Component | Current Opening | Alt 1 | Alt 2 |
 |----------|----------|----------|
-| Hook Strength | 60 | 60 | 60 |
+| Hook Strength | 70 | 70 | 70 |
 | Context Clarity | 100 | 100 | 100 |
 | Spoiler Freedom | 100 | 100 | 100 |
 | Edit Feasibility | 100 | 100 | 100 |
