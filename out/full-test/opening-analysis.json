@@ -1,0 +1,68 @@
+{
+  "metadata": {
+    "generatedAt": "2025-08-22T17:26:58.601Z",
+    "manuscriptId": "2e8d49a8",
+    "totalScenes": 0,
+    "candidateCount": 0,
+    "analysisVersion": "1"
+  },
+  "candidates": [],
+  "comparison": {
+    "matrix": {
+      "headers": [],
+      "rows": [],
+      "bestPerMetric": {}
+    },
+    "rankings": {
+      "entries": []
+    },
+    "recommendations": [
+      {
+        "priority": 0,
+        "title": "WARNING: No Strong Alternatives",
+        "description": "All alternative openings have significant issues. Consider keeping current opening or seeking additional scenes.",
+        "impact": "Critical",
+        "effort": "N/A",
+        "risk": "High"
+      }
+    ],
+    "winnerAnalysis": {
+      "id": "n/a",
+      "label": "N/A",
+      "confidence": 0,
+      "keyAdvantage": "None",
+      "timeEstimate": "N/A"
+    }
+  },
+  "visualizations": {
+    "spoilerHeatmap": "## Spoiler Heatmap\n\n```\nScenes →\n        S01 S02 S03 S04 S05 S06 S07 S08 S09 S10 \n\nLegend: █ Critical  ▒ Moderate  ░ Minor  ⎕ None\n```\n",
+    "editBurdenChart": {
+      "labels": [
+        "Change %",
+        "Added Words",
+        "Edits"
+      ],
+      "series": []
+    },
+    "scoreRadar": {
+      "axes": [
+        "Hook Strength",
+        "Context Clarity",
+        "Spoiler Freedom",
+        "Edit Feasibility",
+        "Market Appeal"
+      ],
+      "series": []
+    },
+    "decisionTree": {
+      "root": {
+        "name": "Opening Decision",
+        "children": []
+      }
+    }
+  },
+  "exportFormats": {
+    "markdown": "# Opening Lab Analysis Report\nGenerated: 2025-08-22T17:26:58.601Z\nAnalyzing 0 opening options\n\n## Executive Summary\n\nRecommended opening: N/A (score 0 confidence).\n## 🎯 Quick Decision\n\n**Recommended Opening:** N/A\n**Confidence:** 0%\n**Key Advantage:** None\n**Implementation Time:** N/A\n\n## Detailed Comparison\n\n\n## Opening-by-Opening Analysis\n\n## Visualizations\n\n## Spoiler Heatmap\n\n```\nScenes →\n        S01 S02 S03 S04 S05 S06 S07 S08 S09 S10 \n\nLegend: █ Critical  ▒ Moderate  ░ Minor  ⎕ None\n```\n\n### Edit Burden Chart\n```\nChange %          : \nAdded Words       : \nEdits             : \n```\n\n### Score Components Radar\n\n| Component |  |\n||\n| Hook Strength |  |\n| Context Clarity |  |\n| Spoiler Freedom |  |\n| Edit Feasibility |  |\n| Market Appeal |  |\n\n## Recommendations\n\n### 0. WARNING: No Strong Alternatives\nAll alternative openings have significant issues. Consider keeping current opening or seeking additional scenes.\n- **Impact:** Critical\n- **Effort:** N/A\n- **Risk:** High\n\n## Appendix: Required Edits\n",
+    "html": "<pre># Opening Lab Analysis Report\nGenerated: 2025-08-22T17:26:58.601Z\nAnalyzing 0 opening options\n\n## Executive Summary\n\nRecommended opening: N/A (score 0 confidence).\n## 🎯 Quick Decision\n\n**Recommended Opening:** N/A\n**Confidence:** 0%\n**Key Advantage:** None\n**Implementation Time:** N/A\n\n## Detailed Comparison\n\n\n## Opening-by-Opening Analysis\n\n## Visualizations\n\n## Spoiler Heatmap\n\n```\nScenes →\n        S01 S02 S03 S04 S05 S06 S07 S08 S09 S10 \n\nLegend: █ Critical  ▒ Moderate  ░ Minor  ⎕ None\n```\n\n### Edit Burden Chart\n```\nChange %          : \nAdded Words       : \nEdits             : \n```\n\n### Score Components Radar\n\n| Component |  |\n||\n| Hook Strength |  |\n| Context Clarity |  |\n| Spoiler Freedom |  |\n| Edit Feasibility |  |\n| Market Appeal |  |\n\n## Recommendations\n\n### 0. WARNING: No Strong Alternatives\nAll alternative openings have significant issues. Consider keeping current opening or seeking additional scenes.\n- **Impact:** Critical\n- **Effort:** N/A\n- **Risk:** High\n\n## Appendix: Required Edits\n</pre>"
+  }
+}
