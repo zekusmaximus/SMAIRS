@@ -52,3 +52,22 @@ export interface RevealDependency {
   transitiveDeps: Set<string>; // closure (computed)
   depth: number;             // longest chain length to a leaf (0 = no deps)
 }
+
+// --- Priority 3: OpeningAnalysis shape ---------------------------------
+import type { OpeningScoringResult } from '../llm/opening-scorer.js';
+import type { SpoilerAnalysis } from '../../../types/spoiler-types.js';
+import type { ContextAnalysis } from './context-analyzer.js';
+import type { EditBurden } from '../../../types/burden-types.js';
+
+export interface TensionPoint { position: number; tension: number; type: 'action' | 'revelation' | 'emotional' | 'dialogue' }
+
+export interface OpeningAnalysis {
+  candidateId: string;
+  scores: OpeningScoringResult;
+  spoilerAnalysis: SpoilerAnalysis;
+  contextGaps: ContextAnalysis;
+  editBurden: EditBurden;
+  tensionCurve: TensionPoint[];
+  recommendation: 'strong' | 'moderate' | 'weak';
+  confidence: number;
+}

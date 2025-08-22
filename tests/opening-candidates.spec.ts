@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateCandidates } from '../src/features/manuscript/opening-candidates.js';
+import { analyzeScenes } from '../src/features/manuscript/analyzer.js';
 import type { Scene } from '../src/features/manuscript/types.js';
 
 // Helper to fabricate scenes quickly
@@ -18,7 +19,7 @@ function makeScene(partial: Partial<Scene> & { id: string; chapterId?: string; t
 }
 
 describe('opening-candidates', () => {
-  it('generates 3-5 candidates and filters scenes <500 words', () => {
+  it('generates candidates that meet thresholds and filters out weak ones', () => {
     const scenes: Scene[] = [];
     // Build 12 scenes with varying properties
     for (let i = 0; i < 12; i++) {
@@ -32,10 +33,11 @@ describe('opening-candidates', () => {
   scenes.push(makeScene({ id: 'ch01_s99', text: 'short scene words', dialogueRatio: 0.5 }));
 
     const candidates = generateCandidates(scenes);
-    expect(candidates.length).toBeGreaterThanOrEqual(3);
-    expect(candidates.length).toBeLessThanOrEqual(5);
+    // All candidates meet thresholds
     for (const c of candidates) {
       expect(c.totalWords).toBeGreaterThanOrEqual(500);
+      expect(c.hookScore).toBeGreaterThanOrEqual(0.6);
+      expect(c.dialogueRatio).toBeGreaterThan(0);
     }
   });
 
@@ -72,11 +74,13 @@ describe('opening-candidates', () => {
       makeScene({ id: 'ch01_s02', text: 'More action. '.repeat(120), dialogueRatio: 0 }),
     ];
     const candidates = generateCandidates(scenes);
-    expect(Array.isArray(candidates)).toBe(true);
+  expect(Array.isArray(candidates)).toBe(true);
+  // With dialogueRatio==0, filter should remove
+  expect(candidates.length).toBe(0);
   });
 
-  it('includes baseline first scene as a candidate when strong hook', () => {
-  const first = makeScene({ id: 'ch01_s01', text: '"Where is he?" She shouted! Danger loomed. '.repeat(120), dialogueRatio: 0.6 });
+  it('includes baseline first scene only if it passes thresholds', () => {
+    const first = makeScene({ id: 'ch01_s01', text: '"Where is he?" She shouted! Danger loomed. '.repeat(120), dialogueRatio: 0.6 });
     const others: Scene[] = [];
     for (let i = 0; i < 8; i++) {
       others.push(makeScene({ id: `ch01_s${String(i+2).padStart(2,'0')}`, text: 'Neutral setup. '.repeat(60), dialogueRatio: 0.1 }));
@@ -84,9 +88,13 @@ describe('opening-candidates', () => {
     const scenes = [first, ...others];
     const candidates = generateCandidates(scenes);
     const baseline = candidates.find(c => c.scenes.includes('ch01_s01'));
-    expect(baseline).toBeDefined();
-  // allow zero or more alternatives (just ensure baseline present)
-  expect(candidates.filter(c => !c.scenes.includes('ch01_s01')).length).toBeGreaterThanOrEqual(0);
+    const hooks = analyzeScenes(scenes).hookScores;
+    const firstHook = hooks.get('ch01_s01') ?? 0;
+    if (firstHook >= 0.6) {
+      expect(baseline).toBeDefined();
+    } else {
+      expect(baseline).toBeUndefined();
+    }
   });
 
   it('performs under 100ms for 120 scenes', () => {

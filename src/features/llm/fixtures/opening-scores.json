@@ -1,0 +1,16 @@
+{
+  "default": {
+    "scores": {
+      "hookStrength": 0.75,
+      "marketAppeal": 0.68,
+      "agentReadability": 0.82,
+      "clarityScore": 0.90,
+      "voiceDistinction": 0.71
+    },
+    "analysis": {
+      "strengths": ["Strong opening line", "Clear POV", "Immediate tension"],
+      "weaknesses": ["Slightly generic setting"],
+      "suggestions": ["Consider more specific sensory details"]
+    }
+  }
+}

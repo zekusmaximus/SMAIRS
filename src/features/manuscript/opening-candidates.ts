@@ -208,8 +208,17 @@ export function generateCandidates(scenes: Scene[]): OpeningCandidate[] {
   }
   let deduped = Array.from(byId.values());
 
+  // Filter by hook strength threshold
+  deduped = deduped.filter(c => c.hookScore >= 0.6);
+
   // Filter: minimum words 500
   deduped = deduped.filter(c => c.totalWords >= 500);
+
+  // Require dialogue presence for engagement
+  deduped = deduped.filter(c => c.dialogueRatio > 0);
+
+  // Log filtered count
+  console.log(`Filtered to ${deduped.length} candidates (hook >= 0.6, has dialogue)`);
 
   // Ranking: primarily hookScore, then actionDensity, then mysteryQuotient
   deduped.sort((a, b) => {

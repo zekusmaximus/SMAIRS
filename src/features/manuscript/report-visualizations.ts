@@ -135,3 +135,31 @@ export function buildDecisionTreeData(candidates: CandidateReportLike[]): TreeDa
 }
 
 export default { generateSpoilerHeatmap, renderEditBurdenChart, renderScoreRadar, buildRadarData, buildEditBurdenChartData, buildDecisionTreeData };
+
+// --- Priority 3 additions ---------------------------------------------
+import type { OpeningCandidate } from './opening-candidates.js';
+
+export interface TensionPoint { position: number; tension: number; type: 'action' | 'revelation' | 'emotional' | 'dialogue' }
+
+export function generateTensionCurve(candidate: OpeningCandidate): string {
+  // Simple ASCII curve using candidate heuristics
+  const points: TensionPoint[] = [];
+  const steps = 20;
+  for (let i = 0; i <= steps; i++) {
+    const pos = i / steps;
+    const base = candidate.hookScore * 0.5 + candidate.actionDensity * 0.3 + candidate.mysteryQuotient * 0.2;
+    const wave = 0.1 * Math.sin(i / 2);
+    const tension = Math.max(0, Math.min(1, base + wave));
+    const type: TensionPoint['type'] = i % 5 === 0 ? 'revelation' : (candidate.actionDensity > 0.3 ? 'action' : (candidate.dialogueRatio > 0.5 ? 'dialogue' : 'emotional'));
+    points.push({ position: pos, tension, type });
+  }
+  const lines: string[] = [];
+  lines.push('```');
+  for (const p of points) {
+    const bars = '▁▂▃▄▅▆▇█';
+    const idx = Math.max(0, Math.min(bars.length - 1, Math.round(p.tension * (bars.length - 1))));
+    lines.push(`${Math.round(p.position * 100).toString().padStart(3, ' ')}% ${bars[idx]}`);
+  }
+  lines.push('```');
+  return lines.join('\n');
+}
