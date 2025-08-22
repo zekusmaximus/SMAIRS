@@ -10,6 +10,8 @@ import { analyzeCandidateContext } from '../features/manuscript/context-analyzer
 import { calculateEditBurden } from '../features/manuscript/edit-burden.js';
 import { OpeningLabOrchestrator } from '../features/manuscript/opening-lab-orchestrator.js';
 import type { Manuscript, Scene } from '../features/manuscript/types.js';
+import { DiffExporter } from '../features/manuscript/diff-exporter.js';
+import { DiffEngine } from '../features/manuscript/diff-engine.js';
 
 async function main() {
   console.log('📚 Opening Lab Analysis Tool\n');
@@ -101,6 +103,25 @@ async function main() {
     console.log(`   Confidence: ${report.comparison.winnerAnalysis.confidence}%`);
     if (report.comparison.winnerAnalysis.recommendation) {
       console.log(`   Rationale: ${report.comparison.winnerAnalysis.recommendation}`);
+    }
+
+    // Optional: export revision diffs
+    if (process.argv.includes('--export-diffs')) {
+      console.log('\n📝 Generating revision diffs...');
+      const exporter = new DiffExporter();
+      const engine = new DiffEngine();
+      // naive original opening text = first candidate scenes concatenated
+      for (const cand of candidates) {
+        const firstSceneId = cand.scenes[0]!;
+        const startIndex = scenes.findIndex(s => s.id === firstSceneId);
+        const originalOpeningText = scenes.slice(startIndex, Math.min(scenes.length, startIndex + 3)).map(s => s.text).join('\n\n');
+        const spoilers = detectSpoilers(cand, scenes, revealGraph);
+        const candidateScenes: Scene[] = cand.scenes.map(id => scenes.find(s => s.id === id)!).filter(Boolean);
+        const context = analyzeCandidateContext(cand.id, candidateScenes, scenes, Math.max(0, startIndex));
+        const diff = engine.generateDiff(originalOpeningText, spoilers.violations, context.gaps);
+        await exporter.exportDiff(diff, outputDir, cand.id);
+      }
+      console.log('   ✓ Diffs exported for all candidates');
     }
 
     console.log('\n✅ Analysis complete!');

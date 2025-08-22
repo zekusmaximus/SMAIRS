@@ -71,3 +71,20 @@ export interface OpeningAnalysis {
   recommendation: 'strong' | 'moderate' | 'weak';
   confidence: number;
 }
+
+// --- Anchored edit primitives used by diff/patch generation (Phase 3) ---
+import type { TextAnchor } from '../../../types/spoiler-types.js';
+
+export type EditSource = 'spoiler' | 'context' | 'continuity' | 'enhancement';
+
+export interface AnchoredEdit {
+  id: string;
+  type: 'insert' | 'delete' | 'replace';
+  anchor: TextAnchor; // relative to the scene where the edit applies
+  originalText?: string; // expected original text for safety (delete/replace)
+  newText?: string; // new content (insert/replace)
+  priority?: number; // higher wins when merging conflicts
+  reason?: string;
+  source?: EditSource;
+}
+

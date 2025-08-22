@@ -5,6 +5,10 @@ import type { OpeningCandidate } from './opening-candidates.js';
 import type { SpoilerAnalysis } from '../../../types/spoiler-types.js';
 import type { ContextAnalysis } from './context-analyzer.js';
 import type { EditBurden } from '../../../types/burden-types.js';
+import { DiffEngine, type DiffResult } from './diff-engine.js';
+import { DiffVisualizer } from './diff-visualizer.js';
+import { DiffMarkdownGenerator } from './diff-markdown.js';
+import type { Scene } from './types.js';
 import { generateSpoilerHeatmap, buildRadarData, buildEditBurdenChartData, buildDecisionTreeData, renderEditBurdenChart, renderScoreRadar } from './report-visualizations.js';
 
 // ---- Public Interfaces --------------------------------------------------
@@ -47,6 +51,12 @@ export interface CandidateReport {
     weaknesses: string[];
     risks: string[];
     opportunities: string[];
+  };
+  revisionDiff?: {
+    html: string;
+    markdown: string;
+    unified: string;
+    stats: DiffResult['stats'];
   };
 }
 
@@ -285,6 +295,26 @@ export function buildComparativeReport(params: { manuscriptId: string; candidate
   const escaped = markdown.replace(/[&<>]/g, ch => ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch);
   temp.exportFormats.html = `<pre>${escaped}</pre>`;
   return temp;
+}
+
+// Helper: generate diffs for a candidate given original opening scenes and analyses
+export function generateCandidateDiffs(
+  candidate: OpeningCandidate,
+  originalOpening: Scene[],
+  spoilers: SpoilerAnalysis,
+  context: ContextAnalysis
+): CandidateReport['revisionDiff'] {
+  const engine = new DiffEngine();
+  const visualizer = new DiffVisualizer();
+  const markdownGen = new DiffMarkdownGenerator();
+  const originalText = originalOpening.map(s => s.text).join('\n\n');
+  const diff = engine.generateDiff(originalText, spoilers.violations, context.gaps);
+  return {
+    html: visualizer.generateSideBySideHTML(diff, { format: 'side-by-side', showLineNumbers: true, showReasons: true, contextLines: 3, highlightStyle: 'github' }),
+    markdown: markdownGen.generateMarkdown(diff),
+    unified: visualizer.generateUnifiedDiff(diff),
+    stats: diff.stats,
+  };
 }
 
 export default { buildComparativeReport };
