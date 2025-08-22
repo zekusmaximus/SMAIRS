@@ -8,9 +8,11 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
+  "skipLibCheck": true,
+  "noEmit": true,
+  "declaration": false,
     "types": ["vite/client", "vitest/globals"],
-    "composite": true,
+  "composite": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
@@ -27,7 +29,6 @@
     "src/features/manuscript/time-estimation.ts",
     "src/features/manuscript/edit-burden.ts",
     "src/features/manuscript/opening-report.ts",
-    "src/features/manuscript/report-visualizations.ts",
     "src/features/manuscript/pdf-generator.ts",
     "src/features/manuscript/report-renderer.ts"
   ],

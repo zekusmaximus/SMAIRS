@@ -1,0 +1,416 @@
+{
+  "metadata": {
+    "generatedAt": "2025-08-22T10:45:33.502Z",
+    "manuscriptId": "8e25f7bf",
+    "totalScenes": 0,
+    "candidateCount": 3,
+    "analysisVersion": "1"
+  },
+  "candidates": [
+    {
+      "id": "single:ch01_s02",
+      "summary": {
+        "label": "Current Opening",
+        "scenes": [
+          "ch01_s02"
+        ],
+        "wordCount": 1165,
+        "openingLine": "single:ch01_s02",
+        "genre": "mixed"
+      },
+      "scores": {
+        "overall": 83,
+        "components": {
+          "hookStrength": 60,
+          "contextClarity": 100,
+          "spoilerFreedom": 100,
+          "editFeasibility": 100,
+          "marketAppeal": 50
+        },
+        "confidence": 1
+      },
+      "problems": {
+        "criticalSpoilers": 0,
+        "moderateSpoilers": 0,
+        "contextGaps": 0,
+        "totalIssues": 0
+      },
+      "effort": {
+        "editBurden": "minimal",
+        "timeEstimate": "under 1 hour",
+        "wordChanges": 0,
+        "confidence": "high"
+      },
+      "analysis": {
+        "strengths": [
+          "Clean of major spoilers",
+          "Low edit burden"
+        ],
+        "weaknesses": [],
+        "risks": [],
+        "opportunities": []
+      }
+    },
+    {
+      "id": "single:ch01_s04",
+      "summary": {
+        "label": "Alt 1",
+        "scenes": [
+          "ch01_s04"
+        ],
+        "wordCount": 1165,
+        "openingLine": "single:ch01_s04",
+        "genre": "mixed"
+      },
+      "scores": {
+        "overall": 83,
+        "components": {
+          "hookStrength": 60,
+          "contextClarity": 100,
+          "spoilerFreedom": 100,
+          "editFeasibility": 100,
+          "marketAppeal": 50
+        },
+        "confidence": 1
+      },
+      "problems": {
+        "criticalSpoilers": 0,
+        "moderateSpoilers": 0,
+        "contextGaps": 0,
+        "totalIssues": 0
+      },
+      "effort": {
+        "editBurden": "minimal",
+        "timeEstimate": "under 1 hour",
+        "wordChanges": 0,
+        "confidence": "high"
+      },
+      "analysis": {
+        "strengths": [
+          "Clean of major spoilers",
+          "Low edit burden"
+        ],
+        "weaknesses": [],
+        "risks": [],
+        "opportunities": []
+      }
+    },
+    {
+      "id": "single:ch02_s02",
+      "summary": {
+        "label": "Alt 2",
+        "scenes": [
+          "ch02_s02"
+        ],
+        "wordCount": 1165,
+        "openingLine": "single:ch02_s02",
+        "genre": "mixed"
+      },
+      "scores": {
+        "overall": 83,
+        "components": {
+          "hookStrength": 60,
+          "contextClarity": 100,
+          "spoilerFreedom": 100,
+          "editFeasibility": 100,
+          "marketAppeal": 50
+        },
+        "confidence": 1
+      },
+      "problems": {
+        "criticalSpoilers": 0,
+        "moderateSpoilers": 0,
+        "contextGaps": 0,
+        "totalIssues": 0
+      },
+      "effort": {
+        "editBurden": "minimal",
+        "timeEstimate": "under 1 hour",
+        "wordChanges": 0,
+        "confidence": "high"
+      },
+      "analysis": {
+        "strengths": [
+          "Clean of major spoilers",
+          "Low edit burden"
+        ],
+        "weaknesses": [],
+        "risks": [],
+        "opportunities": []
+      }
+    }
+  ],
+  "comparison": {
+    "matrix": {
+      "headers": [
+        "Metric",
+        "Current Opening",
+        "Alt 1",
+        "Alt 2"
+      ],
+      "rows": [
+        {
+          "metric": "Overall Score",
+          "values": [
+            "83/100",
+            "83/100",
+            "83/100"
+          ],
+          "highlight": true,
+          "winner": 0
+        },
+        {
+          "metric": "Hook Strength",
+          "values": [
+            "60/100",
+            "60/100",
+            "60/100"
+          ],
+          "highlight": false,
+          "winner": 0
+        },
+        {
+          "metric": "Context Clarity",
+          "values": [
+            "100/100",
+            "100/100",
+            "100/100"
+          ],
+          "highlight": false,
+          "winner": 0
+        },
+        {
+          "metric": "Spoiler Freedom",
+          "values": [
+            "100/100",
+            "100/100",
+            "100/100"
+          ],
+          "highlight": false,
+          "winner": 0
+        },
+        {
+          "metric": "Edit Feasibility",
+          "values": [
+            "100/100",
+            "100/100",
+            "100/100"
+          ],
+          "highlight": false,
+          "winner": 0
+        },
+        {
+          "metric": "Market Appeal",
+          "values": [
+            "50/100",
+            "50/100",
+            "50/100"
+          ],
+          "highlight": false,
+          "winner": 0
+        },
+        {
+          "metric": "Critical Issues",
+          "values": [
+            0,
+            0,
+            0
+          ],
+          "highlight": true,
+          "winner": 0
+        },
+        {
+          "metric": "Context Gaps",
+          "values": [
+            0,
+            0,
+            0
+          ],
+          "highlight": false,
+          "winner": 0
+        },
+        {
+          "metric": "Word Changes",
+          "values": [
+            "0",
+            "0",
+            "0"
+          ],
+          "highlight": false,
+          "winner": 0
+        }
+      ],
+      "bestPerMetric": {}
+    },
+    "rankings": {
+      "entries": [
+        {
+          "id": "single:ch01_s02",
+          "label": "Current Opening",
+          "score": 83
+        },
+        {
+          "id": "single:ch01_s04",
+          "label": "Alt 1",
+          "score": 83
+        },
+        {
+          "id": "single:ch02_s02",
+          "label": "Alt 2",
+          "score": 83
+        }
+      ]
+    },
+    "recommendations": [
+      {
+        "priority": 1,
+        "title": "Adopt Current Opening",
+        "description": "Select this opening for production edits.",
+        "impact": "High",
+        "effort": "minimal",
+        "risk": "Low"
+      }
+    ],
+    "winnerAnalysis": {
+      "id": "single:ch01_s02",
+      "label": "Current Opening",
+      "confidence": 100,
+      "keyAdvantage": "Lower edit workload tie-break",
+      "timeEstimate": "under 1 hour",
+      "recommendation": "Keep current opening. No alternatives provide sufficient improvement to justify changes."
+    }
+  },
+  "visualizations": {
+    "spoilerHeatmap": "## Spoiler Heatmap\n\n```\nScenes →\n        S01 S02 S03 S04 S05 S06 S07 S08 S09 S10 \nCurrent  ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \nAlt 1    ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \nAlt 2    ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \n\nLegend: █ Critical  ▒ Moderate  ░ Minor  ⎕ None\n```\n",
+    "editBurdenChart": {
+      "labels": [
+        "Change %",
+        "Added Words",
+        "Edits"
+      ],
+      "series": [
+        {
+          "name": "Current Opening",
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Alt 1",
+          "values": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Alt 2",
+          "values": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "scoreRadar": {
+      "axes": [
+        "Hook Strength",
+        "Context Clarity",
+        "Spoiler Freedom",
+        "Edit Feasibility",
+        "Market Appeal"
+      ],
+      "series": [
+        {
+          "name": "Current Opening",
+          "values": [
+            60,
+            100,
+            100,
+            100,
+            50
+          ]
+        },
+        {
+          "name": "Alt 1",
+          "values": [
+            60,
+            100,
+            100,
+            100,
+            50
+          ]
+        },
+        {
+          "name": "Alt 2",
+          "values": [
+            60,
+            100,
+            100,
+            100,
+            50
+          ]
+        }
+      ]
+    },
+    "decisionTree": {
+      "root": {
+        "name": "Opening Decision",
+        "children": [
+          {
+            "name": "Current Opening (83) *",
+            "value": 83,
+            "children": [
+              {
+                "name": "Spoilers: 0/0"
+              },
+              {
+                "name": "Burden: minimal"
+              },
+              {
+                "name": "Hook: 60"
+              }
+            ]
+          },
+          {
+            "name": "Alt 1 (83)",
+            "value": 83,
+            "children": [
+              {
+                "name": "Spoilers: 0/0"
+              },
+              {
+                "name": "Burden: minimal"
+              },
+              {
+                "name": "Hook: 60"
+              }
+            ]
+          },
+          {
+            "name": "Alt 2 (83)",
+            "value": 83,
+            "children": [
+              {
+                "name": "Spoilers: 0/0"
+              },
+              {
+                "name": "Burden: minimal"
+              },
+              {
+                "name": "Hook: 60"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "exportFormats": {
+    "markdown": "# Opening Lab Analysis Report\nGenerated: 2025-08-22T10:45:33.502Z\nAnalyzing 3 opening options\n\n## Executive Summary\n\nRecommended opening: Current Opening (score 100 confidence).\n## 🎯 Quick Decision\n\n**Recommended Opening:** Current Opening\n**Confidence:** 100%\n**Key Advantage:** Lower edit workload tie-break\n**Implementation Time:** under 1 hour\n\n## Detailed Comparison\n\n| Metric | Current Opening | Alt 1 | Alt 2 |\n|---|---|---|---|\n| Overall Score | **83/100** | 83/100 | 83/100 |\n| Hook Strength | **60/100** | 60/100 | 60/100 |\n| Context Clarity | **100/100** | 100/100 | 100/100 |\n| Spoiler Freedom | **100/100** | 100/100 | 100/100 |\n| Edit Feasibility | **100/100** | 100/100 | 100/100 |\n| Market Appeal | **50/100** | 50/100 | 50/100 |\n| Critical Issues | **0** | 0 | 0 |\n| Context Gaps | **0** | 0 | 0 |\n| Word Changes | **0** | 0 | 0 |\n## Opening-by-Opening Analysis\n\n### Current Opening\nScore: 83/100 (confidence 100%)\n- Strengths: Clean of major spoilers; Low edit burden\n- Weaknesses: —\n- Risks: —\n- Opportunities: —\n\n### Alt 1\nScore: 83/100 (confidence 100%)\n- Strengths: Clean of major spoilers; Low edit burden\n- Weaknesses: —\n- Risks: —\n- Opportunities: —\n\n### Alt 2\nScore: 83/100 (confidence 100%)\n- Strengths: Clean of major spoilers; Low edit burden\n- Weaknesses: —\n- Risks: —\n- Opportunities: —\n\n## Visualizations\n\n## Spoiler Heatmap\n\n```\nScenes →\n        S01 S02 S03 S04 S05 S06 S07 S08 S09 S10 \nCurrent  ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \nAlt 1    ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \nAlt 2    ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \n\nLegend: █ Critical  ▒ Moderate  ░ Minor  ⎕ None\n```\n\n### Edit Burden Chart\n```\nChange %          :            |            |           \nAdded Words       :            |            |           \nEdits             :            |            |           \n```\n\n### Score Components Radar\n\n| Component | Current Opening | Alt 1 | Alt 2 |\n|----------|----------|----------|\n| Hook Strength | 60 | 60 | 60 |\n| Context Clarity | 100 | 100 | 100 |\n| Spoiler Freedom | 100 | 100 | 100 |\n| Edit Feasibility | 100 | 100 | 100 |\n| Market Appeal | 50 | 50 | 50 |\n\n## Recommendations\n\n### 1. Adopt Current Opening\nSelect this opening for production edits.\n- **Impact:** High\n- **Effort:** minimal\n- **Risk:** Low\n\n## Appendix: Required Edits\n\n### Current Opening\n- (edit list placeholder)\n### Alt 1\n- (edit list placeholder)\n### Alt 2\n- (edit list placeholder)",
+    "html": "<pre># Opening Lab Analysis Report\nGenerated: 2025-08-22T10:45:33.502Z\nAnalyzing 3 opening options\n\n## Executive Summary\n\nRecommended opening: Current Opening (score 100 confidence).\n## 🎯 Quick Decision\n\n**Recommended Opening:** Current Opening\n**Confidence:** 100%\n**Key Advantage:** Lower edit workload tie-break\n**Implementation Time:** under 1 hour\n\n## Detailed Comparison\n\n| Metric | Current Opening | Alt 1 | Alt 2 |\n|---|---|---|---|\n| Overall Score | **83/100** | 83/100 | 83/100 |\n| Hook Strength | **60/100** | 60/100 | 60/100 |\n| Context Clarity | **100/100** | 100/100 | 100/100 |\n| Spoiler Freedom | **100/100** | 100/100 | 100/100 |\n| Edit Feasibility | **100/100** | 100/100 | 100/100 |\n| Market Appeal | **50/100** | 50/100 | 50/100 |\n| Critical Issues | **0** | 0 | 0 |\n| Context Gaps | **0** | 0 | 0 |\n| Word Changes | **0** | 0 | 0 |\n## Opening-by-Opening Analysis\n\n### Current Opening\nScore: 83/100 (confidence 100%)\n- Strengths: Clean of major spoilers; Low edit burden\n- Weaknesses: —\n- Risks: —\n- Opportunities: —\n\n### Alt 1\nScore: 83/100 (confidence 100%)\n- Strengths: Clean of major spoilers; Low edit burden\n- Weaknesses: —\n- Risks: —\n- Opportunities: —\n\n### Alt 2\nScore: 83/100 (confidence 100%)\n- Strengths: Clean of major spoilers; Low edit burden\n- Weaknesses: —\n- Risks: —\n- Opportunities: —\n\n## Visualizations\n\n## Spoiler Heatmap\n\n```\nScenes →\n        S01 S02 S03 S04 S05 S06 S07 S08 S09 S10 \nCurrent  ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \nAlt 1    ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \nAlt 2    ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕   ⎕ \n\nLegend: █ Critical  ▒ Moderate  ░ Minor  ⎕ None\n```\n\n### Edit Burden Chart\n```\nChange %          :            |            |           \nAdded Words       :            |            |           \nEdits             :            |            |           \n```\n\n### Score Components Radar\n\n| Component | Current Opening | Alt 1 | Alt 2 |\n|----------|----------|----------|\n| Hook Strength | 60 | 60 | 60 |\n| Context Clarity | 100 | 100 | 100 |\n| Spoiler Freedom | 100 | 100 | 100 |\n| Edit Feasibility | 100 | 100 | 100 |\n| Market Appeal | 50 | 50 | 50 |\n\n## Recommendations\n\n### 1. Adopt Current Opening\nSelect this opening for production edits.\n- **Impact:** High\n- **Effort:** minimal\n- **Risk:** Low\n\n## Appendix: Required Edits\n\n### Current Opening\n- (edit list placeholder)\n### Alt 1\n- (edit list placeholder)\n### Alt 2\n- (edit list placeholder)</pre>"
+  }
+}
