@@ -37,6 +37,9 @@ export class OpenAIProvider implements LLMCaller {
   private maxOutputTokens = Number(readEnv('OPENAI_MAX_TOKENS') || 4096);
   private contextWindow = 128_000; // 128k
   private costPer1M = { input: Number(readEnv('OPENAI_COST_INPUT_PER1M') || ProviderFactory.getMetadata('openai:*').costPer1M.input), output: Number(readEnv('OPENAI_COST_OUTPUT_PER1M') || ProviderFactory.getMetadata('openai:*').costPer1M.output) };
+  private modelOverride?: string;
+
+  constructor(modelId?: string) { if (modelId) { const parts = modelId.split(':'); this.modelOverride = parts.length > 1 ? parts[1] : modelId; } }
 
   estimateCost(tokens: { input: number; output: number }): number { const inCost = (Math.max(0, tokens.input || 0) / 1_000_000) * this.costPer1M.input; const outCost = (Math.max(0, tokens.output || 0) / 1_000_000) * this.costPer1M.output; return Number((inCost + outCost).toFixed(6)); }
 
@@ -114,6 +117,7 @@ export class OpenAIProvider implements LLMCaller {
   }
 
   private resolveModel(profile?: Profile): string {
+    if (this.modelOverride) return this.modelOverride;
     if (readEnv('OPENAI_MODEL')) return readEnv('OPENAI_MODEL')!;
     if (profile === 'FAST_ITERATE') return this.fastModel;
     return this.fullModel || this.defaultModel;

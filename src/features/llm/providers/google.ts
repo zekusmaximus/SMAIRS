@@ -30,6 +30,7 @@ export class GeminiProvider implements LLMCaller {
   private regionFallback = readEnv('GOOGLE_API_REGION_FALLBACK'); // e.g., us-east1
   private maxOutputTokens = Number(readEnv('GOOGLE_MAX_TOKENS') || 4096);
   private costPer1M = { input: Number(readEnv('GOOGLE_COST_INPUT_PER1M') || ProviderFactory.getMetadata('google:*').costPer1M.input), output: Number(readEnv('GOOGLE_COST_OUTPUT_PER1M') || ProviderFactory.getMetadata('google:*').costPer1M.output) };
+  constructor(modelId?: string) { if (modelId) { const parts = modelId.split(':'); const m = parts.length > 1 ? parts[1] : modelId; if (m && !m.startsWith('models/')) this.model = `models/${m}`; else if (m) this.model = m; } }
 
   estimateCost(tokens: { input: number; output: number }): number { const inCost = (Math.max(0, tokens.input || 0) / 1_000_000) * this.costPer1M.input; const outCost = (Math.max(0, tokens.output || 0) / 1_000_000) * this.costPer1M.output; return Number((inCost + outCost).toFixed(6)); }
 
@@ -44,7 +45,7 @@ export class GeminiProvider implements LLMCaller {
       const data = (await res.json()) as GenerateResponse;
       const { text, blocked } = this.extractText(data);
       const usage = this.toUsage(data.usageMetadata);
-      const json = this.maybeParseJSON<T>(text, request);
+  const json = this.maybeParseJSON<T>(text);
       if (blocked) logDebug('safety:blocked', { reason: data.promptFeedback?.blockReason });
       const result: LLMResult<T> = { text: blocked ? '' : text, json: blocked ? undefined : (json ?? undefined), usage, raw: data };
       logDebug('call:success', { model: this.model, ms: Date.now() - start, usage, blocked });
@@ -166,7 +167,7 @@ export class GeminiProvider implements LLMCaller {
 
   private toUsage(u?: UsageMetadata): { in: number; out: number } { return { in: Math.max(0, u?.promptTokenCount || 0), out: Math.max(0, u?.candidatesTokenCount || 0) }; }
 
-  private maybeParseJSON<T>(text: string, _request: Record<string, unknown>): T | null {
+  private maybeParseJSON<T>(text: string): T | null {
     // If responseMimeType is json, model generally returns valid JSON; best-effort parse
     try { return JSON.parse(text) as T; } catch { return null; }
   }

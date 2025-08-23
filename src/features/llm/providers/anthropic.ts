@@ -62,11 +62,16 @@ export class AnthropicProvider implements LLMCaller {
     output: Number(readEnv('ANTHROPIC_COST_OUTPUT_PER1M') || ProviderFactory.getMetadata('anthropic:*').costPer1M.output),
   };
   private maxTokens = Number(readEnv('ANTHROPIC_MAX_TOKENS') || 4096);
+  private modelOverride?: string;
 
-  constructor() {
+  constructor(modelId?: string) {
     if (!this.apiKey) {
       // Don't throw immediately to allow offline tests; throw on first call
       logDebug('warn:no_api_key', { message: 'ANTHROPIC_API_KEY not set' });
+    }
+    if (modelId) {
+      const parts = modelId.split(':');
+      this.modelOverride = parts.length > 1 ? parts[1] : modelId;
     }
   }
 
@@ -202,7 +207,7 @@ export class AnthropicProvider implements LLMCaller {
   }
 
   private resolveModel(_profile: Profile | undefined, useLong: boolean): string {
-    // If the env provides a full model name, prefer it.
+    if (this.modelOverride) return this.modelOverride;
     const override = readEnv('ANTHROPIC_MODEL');
     if (override) return override;
     return useLong ? this.longCtxModel : this.defaultModel;
