@@ -4,6 +4,8 @@ import { analyzeStructure, type StructuralAnalysisResponse, type HotSpot } from 
 import { analyzeScenes, extractCharacters } from '../manuscript/analyzer.js';
 import { SpoilerDetector } from './spoiler-detector.js';
 import { BridgeGenerator, type BridgeDraft } from './bridge-generator.js';
+import { EditBurdenCalculator, type EditBurdenReport } from './edit-burden-calculator.js';
+import type { SpoilerViolation as SpoilerTypesViolation } from '../../../types/spoiler-types.js';
 
 // Lightweight domain shapes local to the orchestrator (Phase 2 scope)
 export interface KnowledgeState {
@@ -251,6 +253,20 @@ export class RevisionOrchestrator {
     const before = manuscript.slice(Math.max(0, req.insertPoint.offset - 200), req.insertPoint.offset);
     const after = manuscript.slice(req.insertPoint.offset + req.insertPoint.length, req.insertPoint.offset + req.insertPoint.length + 200);
     return { before, after };
+  }
+
+  // --- Edit Burden ----------------------------------------------------
+  /**
+   * Calculate overall edit burden using LLM-informed bridges and spoiler violations.
+   */
+  async calculateEditBurden(
+    context: { manuscript: string },
+    editPoints: EditPoint[],
+    bridges: BridgeDraft[],
+    violations: SpoilerTypesViolation[]
+  ): Promise<EditBurdenReport> {
+    const calculator = new EditBurdenCalculator();
+    return calculator.calculateBurden(editPoints, bridges, violations, context.manuscript);
   }
 }
 
