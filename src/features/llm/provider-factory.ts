@@ -1,4 +1,7 @@
 import { MockCaller } from './providers.js';
+import { AnthropicProvider } from './providers/anthropic.js';
+import { OpenAIProvider } from './providers/openai.js';
+import { GeminiProvider } from './providers/google.js';
 import type { LLMCaller } from './providers.js';
 
 export interface ProviderMetadata {
@@ -62,6 +65,6 @@ function readEnv(name: string): string | undefined {
 ProviderFactory.register('mock:*', () => new MockCaller('FAST_ITERATE', 'mock:generic'), { maxContext: 128_000, costPer1M: { input: 2, output: 2 } });
 
 // Stub registrations for future real providers
-ProviderFactory.register('anthropic:*', () => new MockCaller('STRUCTURE_LONGCTX', 'anthropic:claude-4-sonnet'), { maxContext: 200_000, costPer1M: { input: 15, output: 75 } });
-ProviderFactory.register('openai:*', () => new MockCaller('FAST_ITERATE', 'openai:gpt-5-mini'), { maxContext: 128_000, costPer1M: { input: 10, output: 30 } });
-ProviderFactory.register('google:*', () => new MockCaller('JUDGE_SCORER', 'google:gemini-2.5-pro'), { maxContext: 200_000, costPer1M: { input: 10, output: 40 } });
+ProviderFactory.register('anthropic:*', () => new AnthropicProvider(), { maxContext: 1_000_000, costPer1M: { input: 15, output: 75 } });
+ProviderFactory.register('openai:*', () => new OpenAIProvider(), { maxContext: 128_000, costPer1M: { input: 10, output: 30 } });
+ProviderFactory.register('google:*', () => new GeminiProvider(), { maxContext: 1_000_000, costPer1M: { input: 10, output: 40 } });
