@@ -3,6 +3,7 @@ import type { TextAnchor } from '../../../types/spoiler-types.js';
 import { analyzeStructure, type StructuralAnalysisResponse, type HotSpot } from './structure-analyzer.js';
 import { analyzeScenes, extractCharacters } from '../manuscript/analyzer.js';
 import { SpoilerDetector } from './spoiler-detector.js';
+import { BridgeGenerator, type BridgeDraft } from './bridge-generator.js';
 
 // Lightweight domain shapes local to the orchestrator (Phase 2 scope)
 export interface KnowledgeState {
@@ -224,6 +225,32 @@ export class RevisionOrchestrator {
     // Highest priority first
     items.sort((a, b) => b.priorityScore - a.priorityScore);
     return items;
+  }
+
+  // --- Bridge Generation (LLM) ----------------------------------------
+  /**
+   * Generate bridge drafts for the given requirements. Style is computed once and reused.
+   */
+  async generateBridges(
+    requirements: BridgeRequirement[],
+    manuscript: string
+  ): Promise<BridgeDraft[]> {
+    const generator = new BridgeGenerator();
+    const style = await generator.analyzeStyle(manuscript);
+    const drafts = await Promise.all(
+      requirements.map(async (req) => {
+        const ctx = this.extractContext(manuscript, req);
+        return generator.generateBridge(req, ctx, style);
+      })
+    );
+    return drafts;
+  }
+
+  private extractContext(manuscript: string, req: BridgeRequirement): { before: string; after: string } {
+    // Minimal heuristic: treat anchor offset as index into manuscript if available; otherwise slice surrounding text conservatively.
+    const before = manuscript.slice(Math.max(0, req.insertPoint.offset - 200), req.insertPoint.offset);
+    const after = manuscript.slice(req.insertPoint.offset + req.insertPoint.length, req.insertPoint.offset + req.insertPoint.length + 200);
+    return { before, after };
   }
 }
 
