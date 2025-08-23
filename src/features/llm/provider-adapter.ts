@@ -6,6 +6,7 @@ import { CostOptimizer } from './cost-optimizer.js';
 import { PerformanceManager } from './performance-manager.js';
 import { ProviderFactory } from './provider-factory.js';
 import { globalLLMCache } from './cache-manager.js';
+import { globalLLMMonitor } from './monitor.js';
 
 export interface ProviderConfig { primary: string; fallback?: string; maxRetries: number; timeout: number; }
 export interface ExecutionOptions { priority?: number; dedupeKey?: string; }
@@ -52,6 +53,8 @@ export class ProviderAdapter {
   }
 
   async executeWithFallback<T>(profile: Profile, request: CallArgs, options?: ExecutionOptions): Promise<LLMResult<T>> {
+  const mon = globalLLMMonitor;
+  const span = mon.startSpan('executeWithFallback', { profile });
     const key = options?.dedupeKey || this.hashArgs(profile, request);
     if (this.inFlight.has(key)) return this.inFlight.get(key)! as Promise<LLMResult<T>>;
     const prom = new Promise<LLMResult<T>>((resolve, reject) => {
@@ -61,7 +64,21 @@ export class ProviderAdapter {
       this.processQueue();
     });
     this.inFlight.set(key, prom as Promise<LLMResult<unknown>>);
-    prom.finally(() => this.inFlight.delete(key));
+    prom
+      .then((result) => {
+        // We don't have provider id here; use profile as key for metrics in this layer
+        mon.recordRequest(profile, true, (result as unknown as { raw?: { baseline?: boolean }; fromCache?: boolean }).fromCache || false);
+        mon.recordTokens(String(profile), result.usage.in, result.usage.out);
+        // cost tracked in handleItem using provider estimates; this is a fallback
+      })
+      .catch((err: Error) => {
+        mon.recordRequest(profile, false, false);
+        mon.recordError(err.name || 'Error', err.message, String(profile));
+      })
+      .finally(() => {
+        this.inFlight.delete(key);
+        span.end({ profile });
+      });
     return prom;
   }
 
@@ -94,6 +111,8 @@ export class ProviderAdapter {
   private async handleItem<T>(item: QueuedRequest<T>): Promise<void> {
     const cfg = this.configs.get(item.profile)!;
   const provider = ProviderFactory.create(cfg.primary);
+  const mon = globalLLMMonitor;
+  const span = mon.startSpan('providerCall', { provider: provider.constructor.name, profile: item.profile });
     const start = performance.now();
     let attempt = 0; let lastError: Error | undefined; let result: LLMResult<T> | undefined; let success = false;
     // Apply degraded mode optimizations up-front
@@ -103,10 +122,12 @@ export class ProviderAdapter {
     if (!this.usageTracker.isWithinBudget(item.profile, estCost)) {
       logDebug('budget:violation', { profile: item.profile, estimatedCost: estCost });
       item.resolve(this.baseline(item.profile, item.args) as LLMResult<T>);
+      mon.recordCost(provider.constructor.name, 0);
+      span.end({ baseline: true });
       return;
     }
   while (attempt <= cfg.maxRetries) {
-      try {
+  try {
     logDebug('request:attempt', { profile: item.profile, attempt, model: cfg.primary });
     result = await this.runWithTimeout<T>(cfg.timeout, () => this.performance.monitorExecution(item.profile, () => provider.call<T>({ ...adjustedArgs, profile: item.profile })));
         success = true; break;
@@ -129,7 +150,14 @@ export class ProviderAdapter {
   const perfStatus = this.performance.checkBudget(item.profile);
   if (!perfStatus.within) logDebug('perf:latency_violation', { profile: item.profile, latency: perfStatus.latency, target: perfStatus.target, degraded: perfStatus.degradedMode });
   if (!success) logDebug('budget:violation', { profile: item.profile, error: lastError?.message });
-  this.usageTracker.track({ profile: item.profile, provider: success ? cfg.primary : 'baseline', tokens: { input: inputTokens, output: result!.usage.out }, cost: provider.estimateCost({ input: result!.usage.in, output: result!.usage.out }), duration, success, error: lastError?.message });
+  const trackedCost = provider.estimateCost({ input: result!.usage.in, output: result!.usage.out });
+  this.usageTracker.track({ profile: item.profile, provider: success ? cfg.primary : 'baseline', tokens: { input: inputTokens, output: result!.usage.out }, cost: trackedCost, duration, success, error: lastError?.message });
+  // Monitor metrics
+  mon.recordTokens(provider.constructor.name, result!.usage.in, result!.usage.out);
+  mon.recordCost(provider.constructor.name, trackedCost);
+  mon.recordRequest(item.profile, success, Boolean((result as unknown as { raw?: { baseline?: boolean }; fromCache?: boolean }).fromCache));
+  if (!success && lastError) mon.recordError(lastError.name || 'Error', lastError.message, provider.constructor.name);
+  span.end({ provider: provider.constructor.name, success });
   // Update degraded mode state after each request cycle
   this.performance.checkAndUpdateDegradedMode();
     item.resolve(result!);
