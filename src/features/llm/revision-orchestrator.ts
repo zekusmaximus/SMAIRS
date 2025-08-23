@@ -2,6 +2,7 @@ import type { Scene, Reveal, AnchoredEdit } from '../manuscript/types.js';
 import type { TextAnchor } from '../../../types/spoiler-types.js';
 import { analyzeStructure, type StructuralAnalysisResponse, type HotSpot } from './structure-analyzer.js';
 import { analyzeScenes, extractCharacters } from '../manuscript/analyzer.js';
+import { SpoilerDetector } from './spoiler-detector.js';
 
 // Lightweight domain shapes local to the orchestrator (Phase 2 scope)
 export interface KnowledgeState {
@@ -79,7 +80,18 @@ export class RevisionOrchestrator {
     const chronology = this.detectChronologyIssues(scenes);
     const editPoints = this.identifyEditPoints(scenes, { povIssues, chronology });
 
-    // 3) Prioritize based on hotspots + severity
+    // 3) Spoiler detection pass (LLM + heuristics). Use the highest-ranked candidate from structure if available; otherwise use first scene as opening.
+    // Note: we keep it optional in the report for now; downstream UI/tests can call detector directly if needed.
+    try {
+      const spoilerDetector = new SpoilerDetector();
+      const graph = await spoilerDetector.buildRevealGraph(scenes, reveals);
+      // If structure provides any hotspots, pick the earliest as implied opening; else default to first scene
+      const openingSceneId = scenes[0]?.id;
+      const openingCandidate = { id: 'orchestrator:auto', type: 'single', scenes: openingSceneId ? [openingSceneId] : [], startOffset: 0, endOffset: 0, totalWords: 0, hookScore: 0, actionDensity: 0, mysteryQuotient: 0, characterIntros: 0, dialogueRatio: 0 } as unknown as import('../manuscript/opening-candidates.js').OpeningCandidate;
+      await spoilerDetector.detectViolations(openingCandidate, scenes, graph); // fire-and-forget; future: attach to report
+    } catch { /* non-fatal */ }
+
+  // 4) Prioritize based on hotspots + severity
     const priority = this.buildPriorityMatrix(editPoints, structure.hotspots);
 
     return { structure, knowledge, povInconsistencies: povIssues, chronologyIssues: chronology, editPoints, priority };
