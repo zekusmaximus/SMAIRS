@@ -14,6 +14,7 @@ export type ManuscriptStoreState = Selected & {
   loadManuscript: (path: string) => Promise<void>;
   selectScene: (id?: string) => void;
   getSceneById: (id: string) => ManuscriptScene | undefined;
+  clearAll?: () => void;
 };
 
 async function readText(path: string): Promise<string> {
@@ -46,6 +47,9 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   getSceneById(id: string) {
     const { scenes } = get();
     return scenes.find((s) => s.id === id);
+  },
+  clearAll() {
+    set({ manuscript: undefined, scenes: [], reveals: [], selectedSceneId: undefined });
   },
 }));
 

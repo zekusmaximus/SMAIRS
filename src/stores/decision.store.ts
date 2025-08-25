@@ -41,6 +41,7 @@ export type DecisionStoreState = {
   setDecision: (candidateId: string, decision: Decision) => void;
   getDecision: (candidateId: string) => Decision | undefined;
   clearDecision: (candidateId: string) => void;
+  clearAll: () => void;
 };
 
 export const useDecisionStore = create<DecisionStoreState>((set, get) => {
@@ -64,6 +65,10 @@ export const useDecisionStore = create<DecisionStoreState>((set, get) => {
         persist({ version: STORAGE_VERSION, decisions });
         return { decisions };
       });
+    },
+    clearAll() {
+      persist({ version: STORAGE_VERSION, decisions: {} });
+      set({ decisions: {} });
     },
   };
 });

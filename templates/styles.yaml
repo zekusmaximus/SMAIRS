@@ -1,0 +1,3 @@
+from: markdown
+standalone: true
+number-sections: false

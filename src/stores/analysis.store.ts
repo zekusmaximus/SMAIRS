@@ -17,6 +17,7 @@ export type AnalysisStoreState = {
   getAnalysis: (candidateId: string) => OpeningAnalysis | undefined;
   getAllAnalyses: () => OpeningAnalysis[];
   selectCandidate: (id?: string) => void;
+  clearAll: () => void;
 };
 
 export const useAnalysisStore = create<AnalysisStoreState>((set, get) => ({
@@ -44,5 +45,8 @@ export const useAnalysisStore = create<AnalysisStoreState>((set, get) => ({
   },
   selectCandidate(id) {
     set({ selectedCandidateId: id });
+  },
+  clearAll() {
+    set({ candidates: {}, analyses: {}, selectedCandidateId: undefined, comparisonIds: [] });
   },
 }));
