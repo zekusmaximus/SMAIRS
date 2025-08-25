@@ -27,14 +27,14 @@ export default function JobLogModal({ open, onClose, logs, filterJobId, onClearC
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-labelledby="job-log-title" id="job-log-modal" onClick={onClose}>
       <div className="bg-white dark:bg-neutral-900 w-full md:w-[800px] max-h-[80vh] rounded-t md:rounded shadow-xl" onClick={(e)=> e.stopPropagation()}>
         <header className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
-          <div className="font-semibold">Job Logs {filterJobId ? `(Job ${filterJobId})` : ''}</div>
+          <div id="job-log-title" className="font-semibold">Job Logs {filterJobId ? `(Job ${filterJobId})` : ''}</div>
           <div className="flex items-center gap-2">
             <button className="text-sm text-blue-600" onClick={copy}>Copy</button>
             {onClearCompleted ? (<button className="text-sm text-amber-600" onClick={onClearCompleted}>Clear Completed</button>) : null}
-            <button className="text-sm" onClick={onClose}>Close</button>
+            <button className="text-sm" onClick={onClose} aria-label="Close job log dialog">Close</button>
           </div>
         </header>
         <div ref={areaRef} className="p-3 overflow-auto max-h-[70vh] text-sm font-mono whitespace-pre-wrap">

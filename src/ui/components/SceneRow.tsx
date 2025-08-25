@@ -44,7 +44,7 @@ function highlightText(text: string, query?: string) {
   );
 }
 
-export default function SceneRow({ data, index, isActive, onClick, highlight }: SceneRowProps) {
+function SceneRowImpl({ data, index, isActive, onClick, highlight }: SceneRowProps) {
   const [open, setOpen] = useState(false);
   const vio = data.violations || [];
   const hasCritical = vio.some(v => v.level === "critical");
@@ -59,6 +59,11 @@ export default function SceneRow({ data, index, isActive, onClick, highlight }: 
       }
       role="listitem"
       aria-selected={isActive}
+      aria-label={`Scene ${data.name}`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(data.id); }
+      }}
       onClick={() => onClick?.(data.id)}
     >
       <div className="flex items-center gap-2">
@@ -88,6 +93,8 @@ export default function SceneRow({ data, index, isActive, onClick, highlight }: 
       {data.excerpt ? (
         <button
           className="mt-1 text-xs text-blue-600 hover:underline"
+          aria-expanded={open}
+          aria-controls={`scene-excerpt-${data.id}`}
           onClick={(e) => {
             e.stopPropagation();
             setOpen((o) => !o);
@@ -97,10 +104,21 @@ export default function SceneRow({ data, index, isActive, onClick, highlight }: 
         </button>
       ) : null}
       {open && data.excerpt ? (
-        <div className="mt-1 text-xs text-neutral-700 dark:text-neutral-300 line-clamp-6 whitespace-pre-wrap">
+        <div id={`scene-excerpt-${data.id}`} className="mt-1 text-xs text-neutral-700 dark:text-neutral-300 line-clamp-6 whitespace-pre-wrap">
           {data.excerpt}
         </div>
       ) : null}
     </div>
   );
 }
+
+const SceneRow = React.memo(SceneRowImpl, (prev, next) => {
+  return (
+    prev.isActive === next.isActive &&
+    prev.highlight === next.highlight &&
+    prev.index === next.index &&
+    prev.data === next.data
+  );
+});
+
+export default SceneRow;

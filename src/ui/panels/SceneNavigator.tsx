@@ -8,25 +8,51 @@ import RevealMiniList, { type RevealItem } from "@/ui/components/RevealMiniList"
 import { useVirtualList } from "@/hooks/useVirtualList";
 import { analyzeScenes } from "@/features/manuscript/analyzer";
 import { generateCandidates } from "@/features/manuscript/opening-candidates";
+import { useDebouncedValue } from "@/hooks/useDebounce";
+import { trackFrame } from "@/lib/metrics";
+import { createWorker, makeTextAnalysisWorker, makeSearchIndexWorker } from "@/lib/workers";
 
 // Filters
 export type SceneFilter = "High Hook" | "Has Reveals" | "Potential Openers";
 
 export default function SceneNavigator() {
-  const { scenes, reveals, selectedSceneId, selectScene } = useManuscriptStore();
+  const { scenes, reveals, selectedSceneId, selectScene, ensureSceneLoaded } = useManuscriptStore();
 
-  // Pre-compute analysis used in rows/heatstrip
-  const analysis = useMemo(() => analyzeScenes(scenes), [scenes]);
-  const hookScores = analysis.hookScores;
+  // Hook scores via worker (fallback to local)
+  const [hookScores, setHookScores] = useState<Map<string, number>>(new Map());
+  useEffect(() => {
+    if (!scenes.length) { setHookScores(new Map()); return; }
+    const wk = createWorker(makeTextAnalysisWorker);
+    const payload = {
+      type: "analyze" as const,
+      scenes: scenes.map((s) => ({ id: s.id, text: s.text.slice(0, 800), wordCount: s.wordCount })), // cap text head for speed
+    };
+    let cancelled = false;
+    // Post to worker with a soft timeout; fallback to local compute
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      const local = analyzeScenes(scenes);
+      setHookScores(local.hookScores);
+    }, 250);
+    wk.post(payload).then((resp) => {
+      const r = resp as { type: "result"; hookScores: [string, number][] };
+      if (cancelled) return;
+      clearTimeout(timer);
+      setHookScores(new Map(r.hookScores));
+    }).finally(() => wk.terminate());
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [scenes]);
 
   // Potential openers set for filtering label
   const openerIds = useMemo(() => new Set(generateCandidates(scenes).flatMap((c) => c.scenes)), [scenes]);
 
   const [filters, setFilters] = useState<SceneFilter[]>([]);
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, { delay: 150 });
   const searchRef = useRef<HTMLInputElement | null>(null);
   const headerRef = useRef<HTMLDivElement | null>(null);
   const [heatWidth, setHeatWidth] = useState(280);
+  const [searchIds, setSearchIds] = useState<Set<string> | null>(null);
 
   // Keyboard shortcut: '/' focuses search
   useEffect(() => {
@@ -39,6 +65,31 @@ export default function SceneNavigator() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+  // Search index worker: build index on scenes change, query on debounced input
+  useEffect(() => {
+    if (!scenes.length) { setSearchIds(null); return; }
+    const wk = createWorker(makeSearchIndexWorker);
+    const docs = scenes.map((s) => ({ id: s.id, text: `${s.id} ${s.chapterId} ${s.text.slice(0, 2000)}` }));
+    let cancelled = false;
+    type BuildMsg = { type: "build"; docs: { id: string; text: string }[] };
+    type QueryMsg = { type: "query"; q: string };
+    type QueryResp = { type: "result"; ids: string[] } | { type: "built"; size: number };
+    wk.post({ type: "build", docs } as BuildMsg).then(() => {
+      if (cancelled) return;
+      const q = debouncedQuery.trim();
+      if (!q) { setSearchIds(null); return; }
+      return wk.post({ type: "query", q } as QueryMsg).then((resp) => {
+        if (cancelled) return;
+        const r = resp as QueryResp;
+        const idsArr = (r as { type: "result"; ids: string[] }).type === "result"
+          ? (r as { type: "result"; ids: string[] }).ids
+          : [];
+        const ids = new Set<string>(idsArr);
+        setSearchIds(ids);
+      });
+    }).finally(() => wk.terminate());
+    return () => { cancelled = true; };
+  }, [scenes, debouncedQuery]);
 
   // Resize observer for heat strip width
   useEffect(() => {
@@ -88,25 +139,27 @@ export default function SceneNavigator() {
 
   // Filtering
   const filteredIndex = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = debouncedQuery.trim().toLowerCase();
     return rows
       .map((r, i) => ({ r, i }))
       .filter(({ r }) => {
         if (filters.includes("High Hook") && (r.hookScore || 0) < 0.6) return false;
         if (filters.includes("Has Reveals") && (revealsByScene.get(r.id)?.length || 0) === 0) return false;
         if (filters.includes("Potential Openers") && !openerIds.has(r.id)) return false;
-        if (!q) return true;
-        return r.name.toLowerCase().includes(q);
+    if (!q) return true;
+    // Prefer worker-backed ids when available; fallback to simple includes
+    if (searchIds) return searchIds.has(r.id);
+    return (r.name + " " + r.excerpt).toLowerCase().includes(q);
       })
       .map(({ i }) => i);
-  }, [rows, filters, query, revealsByScene, openerIds]);
+  }, [rows, filters, debouncedQuery, revealsByScene, openerIds, searchIds]);
 
   // Virtual list on filtered rows
   const virt = useVirtualList({
     items: filteredIndex,
     getKey: (i) => rows[i]?.id || i,
-    estimateSize: () => 68,
-    overscan: 12,
+    estimateSize: () => 64,
+    overscan: 20, // higher overscan for smoother scroll at cost of some memory
   });
 
   // Heat strip scores in original order
@@ -138,6 +191,17 @@ export default function SceneNavigator() {
     if (idx >= 0) virt.setActiveIndex(idx);
   }, [filteredIndex, scenes, selectedSceneId, virt]);
 
+  // Progressive prefetch: ensure full text for nearby scenes (no-op in Phase 1)
+  useEffect(() => {
+    const center = virt.activeIndex;
+    if (center == null || center < 0) return;
+    const around = [center - 1, center, center + 1].map((i) => filteredIndex[i]).filter((n) => typeof n === "number") as number[];
+    for (const idx of around) {
+      const id = scenes[idx]?.id;
+      if (id) ensureSceneLoaded?.(id);
+    }
+  }, [virt.activeIndex, filteredIndex, scenes, ensureSceneLoaded]);
+
   return (
     <div className="flex flex-col h-full w-full">
       <div ref={headerRef} className="p-2 border-b border-neutral-200 dark:border-neutral-800">
@@ -165,12 +229,25 @@ export default function SceneNavigator() {
       </div>
 
       <div className="flex-1 relative">
-        <div
+  <div
           ref={virt.parentRef}
           style={{ height: "100%", overflow: "auto", outline: "none" }}
           tabIndex={0}
           role="list"
           aria-label="Scenes"
+          aria-keyshortcuts="ArrowDown ArrowUp /"
+          onScroll={() => trackFrame()}
+          onKeyDown={(e) => {
+            if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+            e.preventDefault();
+            const dir = e.key === "ArrowDown" ? 1 : -1;
+            const cur = virt.activeIndex ?? 0;
+            const next = Math.max(0, Math.min((filteredIndex.length - 1), cur + dir));
+            virt.setActiveIndex(next);
+            const rowIndex = filteredIndex[next];
+            const id = rowIndex != null ? scenes[rowIndex]?.id : undefined;
+            if (id) selectScene(id);
+          }}
         >
           <div style={{ height: virt.totalSize, width: "100%", position: "relative" }}>
             {virt.virtualItems.map((vi: VirtualItem) => {
@@ -182,8 +259,11 @@ export default function SceneNavigator() {
                   key={r.id}
                   ref={virt.getMeasureRef(rowIndex) as unknown as React.Ref<HTMLDivElement>}
                   style={{ position: "absolute", top: vi.start, left: 0, width: "100%" }}
+      role="listitem"
+      aria-selected={isActive}
+      aria-label={`Scene ${r.name}, hook score ${Math.round((r.hookScore||0)*100)/100}`}
                 >
-                  <SceneRow data={r} index={rowIndex} isActive={isActive} onClick={(id) => selectScene(id)} highlight={query} />
+                  <SceneRow data={r} index={rowIndex} isActive={isActive} onClick={(id) => selectScene(id)} highlight={debouncedQuery} />
                 </div>
               );
             })}

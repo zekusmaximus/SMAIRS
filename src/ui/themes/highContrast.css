@@ -1,0 +1,53 @@
+/* High Contrast Theme */
+.high-contrast {
+  --hc-bg: #000;
+  --hc-fg: #fff;
+  --hc-accent: #ffd400; /* bright yellow */
+  --hc-accent-2: #00e5ff; /* cyan */
+  --hc-border: #fff;
+}
+
+.high-contrast body,
+.high-contrast .main-grid,
+.high-contrast .panel-body,
+.high-contrast .panel-title {
+  background-color: var(--hc-bg) !important;
+  color: var(--hc-fg) !important;
+}
+
+.high-contrast a,
+.high-contrast button,
+.high-contrast [role="button"],
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  color: var(--hc-fg) !important;
+  background: transparent !important;
+  border: 2px solid var(--hc-border) !important;
+  border-radius: 6px !important;
+  min-height: 40px !important; /* larger touch targets */
+  padding: 8px 10px !important;
+}
+
+.high-contrast .btn,
+.high-contrast .primary,
+.high-contrast .panel-title,
+.high-contrast .panel-body {
+  border-color: var(--hc-border) !important;
+}
+
+/* Focus indicators */
+.high-contrast :focus {
+  outline: 3px solid var(--hc-accent) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(255, 212, 0, 0.4) !important;
+}
+
+/* HeatStrip accessibility */
+.high-contrast .heat-strip-bar {
+  outline: 2px solid var(--hc-accent-2) !important;
+}
+
+/* Progress bars */
+.high-contrast .progress-track { background: #333 !important; }
+.high-contrast .progress-fill { background: var(--hc-accent) !important; }

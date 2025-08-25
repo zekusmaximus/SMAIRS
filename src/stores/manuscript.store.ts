@@ -14,6 +14,7 @@ export type ManuscriptStoreState = Selected & {
   loadManuscript: (path: string) => Promise<void>;
   selectScene: (id?: string) => void;
   getSceneById: (id: string) => ManuscriptScene | undefined;
+  ensureSceneLoaded?: (id: string) => Promise<void>; // progressive loading: hydrate full text for a scene on demand
   clearAll?: () => void;
 };
 
@@ -39,7 +40,13 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
     const ms = importManuscript(raw);
     const scenes = segmentScenes(ms);
     const { reveals } = buildRevealGraph(scenes);
-    set({ manuscript: ms, scenes, reveals });
+    // Progressive loading: keep only small excerpts initially to reduce memory footprint.
+    const EXCERPT_LEN = 400; // chars
+    const lightScenes: ManuscriptScene[] = scenes.map((s) => ({
+      ...s,
+      text: s.text.length > EXCERPT_LEN ? (s.text.slice(0, EXCERPT_LEN) + "…") : s.text,
+    }));
+    set({ manuscript: ms, scenes: lightScenes, reveals });
   },
   selectScene(id) {
     set({ selectedSceneId: id });
@@ -47,6 +54,22 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   getSceneById(id: string) {
     const { scenes } = get();
     return scenes.find((s) => s.id === id);
+  },
+  async ensureSceneLoaded(id: string) {
+    const { manuscript, scenes } = get();
+    if (!manuscript) return;
+    const idx = scenes.findIndex((s) => s.id === id);
+    if (idx < 0) return;
+    const s = scenes[idx]!; // definite
+    const expectedLen = Math.max(0, s.endOffset - s.startOffset);
+    // If already hydrated, skip
+    if (s.text && (s.text.length >= expectedLen || !manuscript.rawText)) return;
+    // Hydrate from manuscript rawText using offsets
+    const fullText = manuscript.rawText.substring(s.startOffset, s.endOffset);
+    if (!fullText || fullText === s.text) return;
+    const next = scenes.slice();
+    next[idx] = { ...s, text: fullText };
+    set({ scenes: next });
   },
   clearAll() {
     set({ manuscript: undefined, scenes: [], reveals: [], selectedSceneId: undefined });

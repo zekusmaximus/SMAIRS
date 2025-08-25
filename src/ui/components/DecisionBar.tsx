@@ -22,7 +22,7 @@ export function DecisionBar({ onToggleCompare }: { onToggleCompare?: () => void 
   const allPass = [confidence, spoilers, burden, rationale].every((s) => s === "pass");
 
   return (
-    <div className="decision-bar">
+  <div className="decision-bar" role="banner" aria-label="Decision toolbar">
       <div className="left">
         <h1 className="app-title">SMAIRS</h1>
         <VersionSelector />
@@ -34,9 +34,9 @@ export function DecisionBar({ onToggleCompare }: { onToggleCompare?: () => void 
         <PreflightPill status={rationale} label="Rationale" />
       </div>
       <div className="right">
-        <button className="btn" title="Generate (G)">G</button>
-        <button className="btn" title="Compare (C)" onClick={onToggleCompare}>C</button>
-        <button className="btn primary" title="Export (E)" disabled={!allPass}>E</button>
+        <button className="btn" title="Generate (G)" aria-label="Generate">G</button>
+        <button className="btn" title="Compare (C)" aria-label="Compare" onClick={onToggleCompare}>C</button>
+        <button className="btn primary" title="Export (E)" aria-label="Export" disabled={!allPass}>E</button>
       </div>
     </div>
   );
