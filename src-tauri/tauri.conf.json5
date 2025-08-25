@@ -5,6 +5,8 @@
   identifier: 'com.smairs.app',
   build: {
     beforeDevCommand: 'npm run dev',
+    beforeBuildCommand: 'npm run build',
+    devUrl: 'http://localhost:5173',
     frontendDist: '../dist',
   },
   app: {
@@ -17,11 +19,5 @@
         resizable: true,
       },
     ],
-  },
-  tauri: {
-    allowlist: {},
-    security: {
-      csp: null,
-    },
   },
 }
