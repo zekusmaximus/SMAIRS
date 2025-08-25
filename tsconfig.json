@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "noEmit": true,
-    "composite": false
+    "composite": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "files": [],
   "references": [

@@ -2,6 +2,7 @@
 
 mod db;
 use db::{save_reveals, save_scenes};
+mod jobs;
 
 fn main() {
     tauri::Builder::default()
@@ -10,7 +11,7 @@ fn main() {
                 .add_migrations(&db::db_url(), db::migrations())
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![save_scenes, save_reveals])
+    .invoke_handler(tauri::generate_handler![save_scenes, save_reveals, jobs::run_example_job])
         .setup(|app| {
             let window = tauri::WindowBuilder::new(
                 app,

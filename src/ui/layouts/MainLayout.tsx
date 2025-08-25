@@ -1,6 +1,12 @@
-import React, { PropsWithChildren, useMemo, useState } from "react";
+import React, { PropsWithChildren } from "react";
 import "../../styles/layout.css";
+import "../../styles/animations.css";
 import { DecisionBar } from "../components/DecisionBar";
+import SceneNavigator from "@/ui/panels/SceneNavigator";
+import CandidateGrid from "@/ui/panels/CandidateGrid";
+import CompareDrawer from "@/ui/components/CompareDrawer";
+import AnalysisDetails from "@/ui/panels/AnalysisDetails";
+import JobTray from "@/ui/components/JobTray";
 
 type PanelProps = PropsWithChildren<{ className?: string; title?: string }>;
 function Panel({ className, title, children }: PanelProps) {
@@ -13,30 +19,22 @@ function Panel({ className, title, children }: PanelProps) {
 }
 
 export function MainLayout() {
-  const [compareOpen, setCompareOpen] = useState(false);
-  const compareItems = 0; // Wire to store later; 0 means closed by default
-  const isOpen = useMemo(() => compareOpen || compareItems > 0, [compareOpen, compareItems]);
 
   return (
     <div className="main-grid">
-      <DecisionBar onToggleCompare={() => setCompareOpen((v) => !v)} />
+  <DecisionBar onToggleCompare={() => { /* compare drawer opens when pinned via CompareDrawer */ }} />
       <Panel className="panel-left" title="Scene Navigator">
-        {/* TODO: Navigator list */}
-        <div className="placeholder">Scenes</div>
+        <SceneNavigator />
       </Panel>
       <Panel className="panel-center" title="Candidates">
-        <div className="placeholder">Candidates</div>
+        <CandidateGrid />
       </Panel>
       <Panel className="panel-right" title="Analysis">
-        <div className="placeholder">Analysis</div>
+  <AnalysisDetails />
       </Panel>
 
-      <div className={`compare-drawer ${isOpen ? "open" : ""}`}>
-        <div className="compare-content">
-          <strong>Compare Drawer</strong>
-          <p>Pinned items appear here.</p>
-        </div>
-      </div>
+  <CompareDrawer />
+  <JobTray />
     </div>
   );
 }

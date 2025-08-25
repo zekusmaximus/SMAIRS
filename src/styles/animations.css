@@ -1,0 +1,51 @@
+/* Drawer slide animations */
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes slide-down {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(100%); opacity: 0; }
+}
+
+.compare-drawer-ui {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+}
+.compare-drawer-ui .drawer-inner {
+  margin: 0 auto;
+  max-width: 1200px;
+  background: var(--panel-bg, rgba(255,255,255,0.9));
+  backdrop-filter: blur(4px);
+  border-top: 1px solid var(--border, #e5e7eb);
+  padding: 8px 12px;
+  transform: translateY(100%);
+  pointer-events: auto;
+}
+.compare-drawer-ui.open .drawer-inner {
+  animation: slide-up 200ms ease-out forwards;
+}
+
+/* Card hover and entry */
+.card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  padding: 12px;
+}
+.card-hover {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+.animate-card-entry { animation: card-in 180ms ease-out; }
+@keyframes card-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Pin checkbox emphasis */
+.pin-checkbox input[type="checkbox"] {
+  accent-color: #2563eb;
+  transition: transform 120ms ease;
+}
+.pin-checkbox input[type="checkbox"]:active {
+  transform: scale(1.1);
+}
