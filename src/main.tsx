@@ -4,6 +4,10 @@ import App from './App';
 const setupMonitoringAPILazy = () => import('./features/llm/api.js').then(m => m.setupMonitoringAPI?.());
 const LLMMonitorWidget = React.lazy(() => import('./components/LLMMonitorWidget'));
 import { markStart } from './lib/metrics';
+import TopProgressBar from '@/ui/components/TopProgressBar';
+// PWA registration (vite-plugin-pwa)
+// This safely does nothing in dev and registers in production builds.
+import { registerSW } from 'virtual:pwa-register';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -16,6 +20,7 @@ markStart('first-render-ms');
 createRoot(container).render(
   <React.StrictMode>
     <App />
+  <TopProgressBar />
     <React.Suspense fallback={null}>
       <LLMMonitorWidget />
     </React.Suspense>
@@ -24,3 +29,14 @@ createRoot(container).render(
 
 // Setup monitoring after first paint
 requestIdleCallback?.(() => setupMonitoringAPILazy());
+
+// Register service worker after idle to keep TTI unaffected
+if (import.meta.env.PROD) {
+  requestIdleCallback?.(() => {
+    try {
+      registerSW({ immediate: false, onRegisteredSW() {/* noop */} });
+    } catch {
+      // ignore registration errors (e.g., unsupported environment)
+    }
+  });
+}

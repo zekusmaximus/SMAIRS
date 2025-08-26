@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { fnv1a64Hex } from "@/lib/hash";
 import type { Manuscript, Chapter } from "./types.js";
 
 const CHAPTER_RE = /^===\s*CHAPTER\s+(\d{1,3})(?:\s*:\s*(.+?))?\s*===\s*$/gim;
@@ -13,7 +13,7 @@ export function normalize(text: string): string {
 
 export function importManuscript(raw: string): Manuscript {
   const rawText = normalize(raw);
-  const checksum = createHash("sha256").update(rawText).digest("hex");
+  const checksum = fnv1a64Hex(rawText);
   const wordCount = rawText.split(/\s+/).filter(Boolean).length;
 
   const chapters: Chapter[] = [];

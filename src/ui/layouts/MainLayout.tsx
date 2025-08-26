@@ -35,6 +35,14 @@ export function MainLayout() {
   // Global keyboard shortcuts and high-contrast toggle
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      // Required shortcuts
+      if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); (document.querySelector('[data-action="open-manuscript"]') as HTMLButtonElement|null)?.click?.(); return; }
+      if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); (document.querySelector('[data-action="save"]') as HTMLButtonElement|null)?.click?.(); return; }
+      if (mod && e.shiftKey && e.key.toLowerCase() === 'e') { e.preventDefault(); (document.querySelector('button[aria-label="Export"]') as HTMLButtonElement|null)?.click?.(); return; }
+      if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); (document.querySelector('input[placeholder^="Search"]') as HTMLInputElement|null)?.focus?.(); return; }
+      if (mod && e.key === '/') { e.preventDefault(); setHelpOpen(true); return; }
+      if (e.key === 'Escape') { const openDialog = document.querySelector('[role="dialog"] .[aria-label="Close"], [role="dialog"] [data-close]') as HTMLButtonElement | null; openDialog?.click?.(); }
       // Show help
       if (e.key === "?" || (e.shiftKey && e.key === "/")) { e.preventDefault(); setHelpOpen(true); return; }
   // High contrast: Cmd/Ctrl + Alt + C
@@ -70,9 +78,9 @@ export function MainLayout() {
       <div ref={decisionRef as unknown as React.RefObject<HTMLDivElement>}>
         <DecisionBar onToggleCompare={() => { /* compare drawer opens when pinned via CompareDrawer */ }} />
       </div>
-      <Panel className="panel-left" title="Scene Navigator">
+    <Panel className="panel-left" title="Scene Navigator">
         <ErrorBoundary label="Scene Navigator">
-          <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading navigator…</div>}>
+      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading navigator…</div>}>
             <div ref={leftRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Scene Navigator Content">
               <SceneNavigator />
             </div>
@@ -81,7 +89,7 @@ export function MainLayout() {
       </Panel>
       <Panel className="panel-center" title="Manuscript">
         <ErrorBoundary label="Manuscript">
-          <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading editor…</div>}>
+      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading editor…</div>}>
             <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Manuscript Editor">
               <div style={{ height: "60vh" }}>
                 <ManuscriptEditor />
@@ -92,14 +100,14 @@ export function MainLayout() {
       </Panel>
       <Panel className="panel-right" title="Search & Analysis">
         <ErrorBoundary label="Search">
-          <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading search…</div>}>
+      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading search…</div>}>
             <div ref={rightRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Search Content">
               <SearchPanel />
             </div>
           </Suspense>
         </ErrorBoundary>
         <ErrorBoundary label="Analysis">
-          <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading analysis…</div>}>
+      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading analysis…</div>}>
             <div aria-label="Analysis Content">
               <AnalysisDetails />
             </div>

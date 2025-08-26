@@ -35,3 +35,15 @@ declare module '@tanstack/react-virtual' {
   export function useVirtualizer(opts: VirtualizerOptions): Virtualizer;
   export function elementScroll(offset: number, defaultScrollTo: (offset: number) => void): void;
 }
+
+// vite-plugin-pwa virtual module typing
+declare module 'virtual:pwa-register' {
+  export type RegisterSWOptions = {
+    immediate?: boolean;
+    onNeedRefresh?: () => void;
+    onOfflineReady?: () => void;
+    onRegistered?: (registration: ServiceWorkerRegistration | undefined) => void;
+    onRegisteredSW?: (swScriptUrl: string, registration: ServiceWorkerRegistration | undefined) => void;
+  };
+  export function registerSW(options?: RegisterSWOptions): (reloadPage?: boolean) => Promise<void>;
+}

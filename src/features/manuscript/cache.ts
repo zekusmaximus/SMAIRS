@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
-import { createHash } from "crypto";
+import { fnv1a64Hex } from "@/lib/hash";
 import type { Manuscript, Scene, SceneCacheSnap } from "./types.js";
 import { resolveTrace as resolveAnchorTrace } from "./anchoring.js"; // keep .js suffix (ESM)
 
@@ -145,7 +145,7 @@ export function diffCaches(prev: CacheFile | null, curr: CacheFile, currentFullT
 
 
 function sha256(s: string): string {
-  return createHash("sha256").update(s).digest("hex");
+  return fnv1a64Hex(s);
 }
 
 // --- Rare Shingles Extraction (8-token shingles) ---

@@ -1,6 +1,15 @@
 {
   "extends": "../tsconfig.node.json",
-  "include": ["**/*.ts"],
+  "include": ["./**/*.ts"],
+  // Override parent excludes; don't exclude this scripts folder
+  "exclude": [
+    "../node_modules",
+    "../dist",
+    "../out",
+    "../src/**",
+    "../tests",
+    "../src-tauri/**/target"
+  ],
   "compilerOptions": {
     "baseUrl": "..",
     "paths": {

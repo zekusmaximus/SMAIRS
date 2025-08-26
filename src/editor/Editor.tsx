@@ -6,6 +6,7 @@ import { search, openSearchPanel, replaceAll, setSearchQuery, SearchQuery } from
 import { useManuscriptStore } from "@/stores/manuscript.store";
 import { sceneMarkers } from "@/editor/SceneMarkers";
 import { cmManuscriptExtensions, cmStyles, setExternalHighlights } from "@/editor/cmExtensions";
+import { usePreferences } from "@/stores/preferences.store";
 import { markStart, markEnd, record, trackFrame, snapshotMemory } from "@/lib/metrics";
 
 export type ManuscriptEditorProps = {
@@ -22,6 +23,7 @@ export function ManuscriptEditor({ initialText, onChange, selectedSceneId }: Man
   const { fullText, updateText, jumpToScene, getSceneText } = useManuscriptStore();
 
   const baseText = initialText ?? fullText ?? "";
+  const fontSize = usePreferences((s) => s.editorFontSize);
 
   // Lazy highlight style to reduce initial cost
   const lazyHighlight = useMemo<Extension>(() => syntaxHighlighting(defaultHighlightStyle, { fallback: true }), []);
@@ -47,7 +49,7 @@ export function ManuscriptEditor({ initialText, onChange, selectedSceneId }: Man
       extensions: [
         cmManuscriptExtensions(),
         themeComp.current.of(EditorView.theme({
-          ".cm-content": { fontFamily: "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif", fontSize: "15px", lineHeight: 1.6 },
+          ".cm-content": { fontFamily: "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif", fontSize: `${fontSize}px`, lineHeight: 1.6 },
           ".cm-scroller": { overscrollBehavior: "contain" },
         })),
         markersComp.current.of(sceneMarkers()),
@@ -87,6 +89,15 @@ export function ManuscriptEditor({ initialText, onChange, selectedSceneId }: Man
       viewRef.current = null;
     };
   }, []);
+
+  // React to font size changes live
+  useEffect(() => {
+    const view = viewRef.current; if (!view) return;
+    view.dispatch({ effects: themeComp.current.reconfigure(EditorView.theme({
+      ".cm-content": { fontFamily: "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif", fontSize: `${fontSize}px`, lineHeight: 1.6 },
+      ".cm-scroller": { overscrollBehavior: "contain" },
+    })) });
+  }, [fontSize]);
 
   // Keep external text in sync if it is provided and differs substantially (e.g., load from DB)
   useEffect(() => {

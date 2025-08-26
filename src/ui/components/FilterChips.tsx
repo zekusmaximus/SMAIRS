@@ -7,7 +7,7 @@ export interface FilterChipsProps<T extends string> {
   className?: string;
 }
 
-export default function FilterChips<T extends string>({ options, selected, onChange, className }: FilterChipsProps<T>) {
+function FilterChipsImpl<T extends string>({ options, selected, onChange, className }: FilterChipsProps<T>) {
   const toggle = (val: T) => {
     const set = new Set(selected);
     if (set.has(val)) set.delete(val);
@@ -37,3 +37,6 @@ export default function FilterChips<T extends string>({ options, selected, onCha
     </div>
   );
 }
+
+const FilterChips = React.memo(FilterChipsImpl) as typeof FilterChipsImpl;
+export default FilterChips;

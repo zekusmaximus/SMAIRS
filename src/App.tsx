@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { StoreProvider } from '@/stores';
 import MainLayout from '@/ui/layouts/MainLayout';
 import { markEnd, snapshotMemory } from '@/lib/metrics';
+import ErrorBoundary from '@/ui/components/ErrorBoundary';
 
 export default function App() {
   useEffect(() => {
@@ -11,7 +12,9 @@ export default function App() {
   }, []);
   return (
     <StoreProvider>
-      <MainLayout />
+      <ErrorBoundary label="App Root">
+        <MainLayout />
+      </ErrorBoundary>
     </StoreProvider>
   );
 }

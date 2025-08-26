@@ -1,7 +1,7 @@
 // src/features/manuscript/anchoring.ts
 // Minimal Tier-1/Tier-2 resolver aligned with tests that churn quotes + whitespace.
 
-import { createHash } from "crypto";
+import { fnv1a64Hex } from "@/lib/hash";
 
 // Resolver is used in two contexts:
 // 1. Internally with cache.ts SceneSnap (fields: sha, offset, len, pre, post)
@@ -360,7 +360,8 @@ function norm(s: string): string {
 
 /** Explicit return type so TS doesn't infer 'any'. */
 export function sha256(s: string): string {
-  return createHash("sha256").update(s).digest("hex");
+  // Browser-safe synchronous hash; not cryptographic, but adequate for equality checks in this module
+  return fnv1a64Hex(s);
 }
 
 /** Optional OO wrapper for other call sites. */

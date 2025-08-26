@@ -13,7 +13,7 @@ export interface HeatStripProps {
  * Canvas-based horizontal heat strip. Each scene maps to a vertical bar whose height=100%, color intensity by score.
  * Width maps to manuscript progress; scores assumed 0..1.
  */
-export default function HeatStrip({ width, height = 32, scores, onSelect }: HeatStripProps) {
+function HeatStripImpl({ width, height = 32, scores, onSelect }: HeatStripProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
@@ -79,3 +79,6 @@ export default function HeatStrip({ width, height = 32, scores, onSelect }: Heat
     />
   );
 }
+
+const HeatStrip = React.memo(HeatStripImpl, (a, b) => a.width === b.width && a.height === b.height && a.onSelect === b.onSelect && a.scores.length === b.scores.length && a.scores.every((v, i) => v === b.scores[i]));
+export default HeatStrip;

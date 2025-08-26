@@ -43,6 +43,11 @@ export default function KeyboardHelp({ open, onClose }: { open: boolean; onClose
               <li><kbd>G</kbd> Generate</li>
               <li><kbd>C</kbd> Compare</li>
               <li><kbd>E</kbd> Export</li>
+              <li><kbd>Cmd/Ctrl</kbd>+<kbd>O</kbd> Open manuscript</li>
+              <li><kbd>Cmd/Ctrl</kbd>+<kbd>S</kbd> Save</li>
+              <li><kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> Export</li>
+              <li><kbd>Cmd/Ctrl</kbd>+<kbd>K</kbd> Search</li>
+              <li><kbd>Cmd/Ctrl</kbd>+<kbd>/</kbd> Help</li>
               <li><kbd>1</kbd>–<kbd>3</kbd> Focus Left/Center/Right Panel</li>
               <li><kbd>/</kbd> Focus Search</li>
               <li><kbd>?</kbd> Show this help</li>
