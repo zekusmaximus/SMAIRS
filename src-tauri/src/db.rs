@@ -56,6 +56,12 @@ fn open_db() -> Result<rusqlite::Connection, String> {
     Ok(conn)
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct ManuscriptMeta {
+    pub scene_count: i64,
+    pub reveal_count: i64,
+}
+
 #[tauri::command]
 pub async fn save_scenes(scenes: Vec<SceneRecord>) -> Result<(), String> {
     let mut conn = open_db()?;
@@ -148,4 +154,36 @@ pub async fn list_reveals() -> Result<Vec<RevealRecord>, String> {
     let mut out = Vec::new();
     for r in rows { out.push(r.map_err(|e| e.to_string())?); }
     Ok(out)
+}
+
+// New load operations with manuscript_id parameter for future multi-manuscript support.
+// Currently the schema has no manuscript_id column, so we ignore the parameter and return all rows.
+#[tauri::command]
+pub async fn load_scenes(_manuscript_id: Option<String>) -> Result<Vec<SceneRecord>, String> {
+    list_scenes().await
+}
+
+#[tauri::command]
+pub async fn load_reveals(_manuscript_id: Option<String>) -> Result<Vec<RevealRecord>, String> {
+    list_reveals().await
+}
+
+#[tauri::command]
+pub async fn get_manuscript_metadata() -> Result<ManuscriptMeta, String> {
+    let conn = open_db()?;
+    let scene_count: i64 = conn
+        .query_row("SELECT COUNT(1) FROM scenes", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+    let reveal_count: i64 = conn
+        .query_row("SELECT COUNT(1) FROM reveals", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+    Ok(ManuscriptMeta { scene_count, reveal_count })
+}
+
+#[tauri::command]
+pub async fn clear_all() -> Result<(), String> {
+    let conn = open_db()?;
+    conn.execute("DELETE FROM scenes", []).map_err(|e| e.to_string())?;
+    conn.execute("DELETE FROM reveals", []).map_err(|e| e.to_string())?;
+    Ok(())
 }
