@@ -27,7 +27,10 @@ fn main() {
             commands::version::version_save,
             commands::version::version_load,
             commands::version::version_delete,
-            commands::version::version_compare
+            commands::version::version_compare,
+            commands::search::build_search_index,
+            commands::search::search_manuscript,
+            commands::search::find_character_occurrences
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

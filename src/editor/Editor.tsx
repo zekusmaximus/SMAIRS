@@ -5,7 +5,7 @@ import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language"
 import { search, openSearchPanel, replaceAll, setSearchQuery, SearchQuery } from "@codemirror/search";
 import { useManuscriptStore } from "@/stores/manuscript.store";
 import { sceneMarkers } from "@/editor/SceneMarkers";
-import { cmManuscriptExtensions, cmStyles } from "@/editor/cmExtensions";
+import { cmManuscriptExtensions, cmStyles, setExternalHighlights } from "@/editor/cmExtensions";
 import { markStart, markEnd, record, trackFrame, snapshotMemory } from "@/lib/metrics";
 
 export type ManuscriptEditorProps = {
@@ -124,6 +124,20 @@ export function ManuscriptEditor({ initialText, onChange, selectedSceneId }: Man
       const dt = performance.now() - t0;
       record("search-ms", dt, "ms", { q });
       return count;
+    },
+    scrollTo: (offset: number) => {
+      const view = viewRef.current; if (!view) return;
+      const pos = Math.max(0, Math.min(offset, view.state.doc.length));
+      view.dispatch({ selection: { anchor: pos }, effects: EditorView.scrollIntoView(pos, { y: "center" }) });
+    },
+    setHighlights: (ranges: Array<{ from: number; to: number }>) => {
+      const view = viewRef.current; if (!view) return 0;
+      setExternalHighlights(view, ranges);
+      return ranges.length;
+    },
+    clearHighlights: () => {
+      const view = viewRef.current; if (!view) return;
+      setExternalHighlights(view, []);
     },
     replaceAll: (from: string, to: string) => {
       const view = viewRef.current;

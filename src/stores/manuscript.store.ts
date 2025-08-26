@@ -3,6 +3,7 @@ import type { Manuscript, Scene as ManuscriptScene } from "@/features/manuscript
 import { importManuscript } from "@/features/manuscript/importer";
 import { segmentScenes } from "@/features/manuscript/segmentation";
 import { buildRevealGraph, type RevealGraphEntry } from "@/features/manuscript/reveal-graph";
+import { searchAPI } from "@/features/search/searchApi";
 
 type Selected = { selectedSceneId?: string };
 
@@ -56,6 +57,8 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
       text: s.text.length > EXCERPT_LEN ? (s.text.slice(0, EXCERPT_LEN) + "…") : s.text,
     }));
     set({ manuscript: ms, fullText: ms.rawText, scenes: lightScenes, reveals });
+  // Build search index asynchronously (best effort)
+  try { void searchAPI.buildIndex(scenes); } catch (e) { console.warn("search index build failed", e); }
   },
   selectScene(id) {
     set({ selectedSceneId: id });

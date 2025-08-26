@@ -1,4 +1,4 @@
-import { Extension, RangeSetBuilder } from "@codemirror/state";
+import { Extension, RangeSetBuilder, RangeSet, StateField, StateEffect } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
 
 // Lightweight regex-based highlighters for manuscript text.
@@ -59,6 +59,7 @@ export function cmManuscriptExtensions(): Extension {
   return [
     regexHighlights(),
     virtualViewportTuning(),
+  externalSearchHighlights(),
   ];
 }
 
@@ -67,4 +68,32 @@ export const cmStyles = `
 .cm-dialogue { color: var(--cm-dialogue, #0c7); }
 .cm-character { color: var(--cm-character, #79c); font-weight: 500; }
 .cm-scene-rule { --cm-rule: #7b7b7b55; }
+.cm-search-hit { background: #ffd54a55; border-radius: 2px; box-shadow: inset 0 0 0 1px #ffcc00aa; }
 `;
+
+// External search highlight support: allows providing ranges from React side and preserves on edits.
+const searchDeco = Decoration.mark({ class: "cm-search-hit" });
+export type ExternalHighlight = { from: number; to: number };
+const setExternalHighlightsEffect = StateEffect.define<RangeSet<Decoration>>();
+export const externalSearchHighlightField = StateField.define<RangeSet<Decoration>>({
+  create() { return RangeSet.empty; },
+  update(value, tr) {
+    for (const e of tr.effects) {
+      if (e.is(setExternalHighlightsEffect)) return e.value;
+    }
+    if (tr.docChanged) return value.map(tr.changes);
+    return value;
+  },
+  provide: f => EditorView.decorations.from(f)
+});
+
+export function setExternalHighlights(view: EditorView, ranges: ExternalHighlight[]) {
+  const builder = new RangeSetBuilder<Decoration>();
+  for (const r of ranges) builder.add(r.from, r.to, searchDeco);
+  const set = builder.finish();
+  view.dispatch({ effects: setExternalHighlightsEffect.of(set) });
+}
+
+function externalSearchHighlights(): Extension {
+  return [externalSearchHighlightField];
+}

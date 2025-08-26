@@ -9,6 +9,7 @@ import KeyboardHelp from "@/ui/components/KeyboardHelp";
 const SceneNavigator = React.lazy(() => import("@/ui/panels/SceneNavigator"));
 const CompareDrawer = React.lazy(() => import("@/ui/components/CompareDrawer"));
 const AnalysisDetails = React.lazy(() => import("@/ui/panels/AnalysisDetails"));
+const SearchPanel = React.lazy(() => import("@/ui/panels/SearchPanel"));
 const ManuscriptEditor = React.lazy(() => import("@/editor/Editor"));
 const JobTray = React.lazy(() => import("@/ui/components/JobTray"));
 const DbHarness = React.lazy(() => import("@/ui/components/DbHarness"));
@@ -89,10 +90,17 @@ export function MainLayout() {
           </Suspense>
         </ErrorBoundary>
       </Panel>
-      <Panel className="panel-right" title="Analysis">
+      <Panel className="panel-right" title="Search & Analysis">
+        <ErrorBoundary label="Search">
+          <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading search…</div>}>
+            <div ref={rightRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Search Content">
+              <SearchPanel />
+            </div>
+          </Suspense>
+        </ErrorBoundary>
         <ErrorBoundary label="Analysis">
           <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading analysis…</div>}>
-            <div ref={rightRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Analysis Content">
+            <div aria-label="Analysis Content">
               <AnalysisDetails />
             </div>
           </Suspense>
