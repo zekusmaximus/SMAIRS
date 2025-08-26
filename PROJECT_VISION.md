@@ -242,19 +242,19 @@ interface TextAnchor {
 
 ### What We're Building
 
-✅ **Opening Lab** - Compare 3-5 scene-based openings  
-✅ **Reveal Graph** - Track what reader knows when  
-✅ **Spoiler Heatmap** - Visual violation detection  
-✅ **Anchored Edits** - Survive text changes  
-✅ **Bridge Paragraphs** - AI-drafted transitions  
+✅ **Opening Lab** - Compare 3-5 scene-based openings
+✅ **Reveal Graph** - Track what reader knows when
+✅ **Spoiler Heatmap** - Visual violation detection
+✅ **Anchored Edits** - Survive text changes
+✅ **Bridge Paragraphs** - AI-drafted transitions
 ✅ **Export Bundle** - DOCX + synopsis + memo
 
 ### What We're NOT Building
 
-❌ Full manuscript reordering (just opening)  
-❌ Complex UI (reports + exports are enough)  
-❌ Real-time editing (batch revisions)  
-❌ Multiple manuscripts  
+❌ Full manuscript reordering (just opening)
+❌ Complex UI (reports + exports are enough)
+❌ Real-time editing (batch revisions)
+❌ Multiple manuscripts
 ❌ Publishing workflow beyond submission
 
 ### Technology Choices
@@ -284,7 +284,7 @@ SPOILER VIOLATIONS: 2 found
    FIX: Replace "guilty" with "low"
    REASON: Premature reveal of Sarah's betrayal (properly revealed Scene 47)
 
-2. REVEAL S-007: "Virus is engineered"  
+2. REVEAL S-007: "Virus is engineered"
    FOUND IN: "a lab-born heat that licks" [Scene 23a, anchor 8b21...33]
    FIX: Replace "lab-born" with "unnatural"
    REASON: Reveals artificial origin too early
@@ -320,18 +320,37 @@ EDIT BURDEN: 7.3% of text (acceptable)
 
 ## 📝 CURRENT STATUS
 
-- [ ] Manuscript loaded and segmented into scenes
-- [ ] Reveal graph built and validated
-- [ ] Opening candidates identified (3-5 scenes)
-- [ ] Spoiler heatmaps generated
-- [ ] Edit burden calculated for each
-- [ ] Opening selected with confidence
-- [ ] Anchored edits generated
+### ✅ Phase 1: Skeleton (COMPLETED)
+- [x] Manuscript loaded and segmented into scenes
+- [x] Reveal graph built and validated
+- [x] Character extraction and analytics implemented
+- [x] Scene-level analysis with hook scoring
+- [x] Caching and delta reporting system
+- [x] CLI tools for scene inventory and analysis
+- [x] Performance benchmarks established (< 2s for 120k words)
+
+### 🚧 Phase 2: Opening Lab (IN PROGRESS)
+- [x] Opening candidates identified (3-5 scenes)
+- [x] Spoiler detection engine implemented
+- [x] Context gap analysis functional
+- [x] Edit burden calculation working
+- [x] LLM integration with capability profiles
+- [x] Comparative analysis reports
+- [ ] Spoiler heatmaps visualization (UI pending)
+- [ ] Bridge paragraph drafting (LLM integration pending)
+
+### 📋 Phase 3: Patch Packs (PLANNED)
+- [ ] Anchored micro-edits generation
 - [ ] Bridge paragraphs drafted
-- [ ] Revisions applied
-- [ ] Continuity validated
-- [ ] Export bundle created
-- [ ] Cold-reader test passed
+- [ ] Side-by-side diffs with tension curves
+- [ ] Revision instructions with anchored edits
+
+### 📦 Phase 4: Export & Validate (PLANNED)
+- [ ] Revisions applied to manuscript
+- [ ] Continuity checks implemented
+- [ ] DOCX export with Track Changes
+- [ ] Synopsis and memo generation
+- [ ] Submission bundle creation
 
 ---
 

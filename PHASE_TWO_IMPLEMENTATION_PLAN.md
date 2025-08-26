@@ -5,6 +5,9 @@ Phase Two transforms the manuscript analysis foundation from Phase One into an i
 
 Building on Phase One’s scene segmentation, anchoring system, and character extraction, Phase Two introduces the **reveal graph** infrastructure, **spoiler‑violation detection**, and **comparative analysis** capabilities that enable authors to make informed decisions about manuscript openings with minimal revision overhead.
 
+## Current Status: 🚧 IN PROGRESS
+Phase Two implementation is actively underway with substantial functionality already delivered. The core Opening Lab infrastructure is operational through CLI tools, with UI components in development.
+
 ## Objectives
 1. **Build Reveal Graph Infrastructure** — Implement comprehensive reveal extraction and dependency tracking to map what readers know at each point in the manuscript.
 2. **Create Opening Candidate Selection** — Develop a system to identify and compose 3–5 viable opening scenarios (single scenes, composites, or sequences).
@@ -99,14 +102,17 @@ export interface SpoilerViolation {
 
 ## Milestones & Deliverables
 
-| Day | Milestone                 | Deliverables                                                            | Success Criteria |
-|-----|---------------------------|-------------------------------------------------------------------------|------------------|
-| 4   | Reveal Graph Complete     | Enhanced reveal extraction, dependency graph, prereq calculation        | Graph contains >50 reveals with accurate dependencies |
-| 5   | Candidate Generation      | Opening selector, composite builder, filtering logic                    | Identifies 3–5 viable candidates from test manuscript |
-| 6   | Spoiler Detection         | Violation scanner, severity classification, fix generation              | Detects **100% of critical** spoilers; generates anchored fixes |
-| 6.5 | Context Analysis          | Gap identifier, bridge‑paragraph drafter                                | Identifies missing entities; drafts insertions **< 100 words** |
-| 7   | Edit Burden & Reports     | Burden calculator, comparative report, heatmap visualization            | Report shows all candidates with metrics; burden **≤ 10%** |
-| 7   | LLM Integration           | Scoring endpoints, mock mode, prompt templates                          | Hook scores align with manual assessment **±15%** |
+| Day | Milestone                 | Status | Deliverables                                                            | Success Criteria |
+|-----|---------------------------|--------|-------------------------------------------------------------------------|------------------|
+| 4   | Reveal Graph Complete     | ✅     | Enhanced reveal extraction, dependency graph, prereq calculation        | Graph contains >50 reveals with accurate dependencies |
+| 5   | Candidate Generation      | ✅     | Opening selector, composite builder, filtering logic                    | Identifies 3–5 viable candidates from test manuscript |
+| 6   | Spoiler Detection         | ✅     | Violation scanner, severity classification, fix generation              | Detects **100% of critical** spoilers; generates anchored fixes |
+| 6.5 | Context Analysis          | ✅     | Gap identifier, bridge‑paragraph drafter                                | Identifies missing entities; drafts insertions **< 100 words** |
+| 7   | Edit Burden & Reports     | ✅     | Burden calculator, comparative report, heatmap visualization            | Report shows all candidates with metrics; burden **≤ 10%** |
+| 7   | LLM Integration           | ✅     | Scoring endpoints, mock mode, prompt templates                          | Hook scores align with manual assessment **±15%** |
+| 8   | UI Components             | 🚧     | React panels for candidate comparison, analysis details                 | Functional UI for Opening Lab workflow |
+| 9   | Bridge Paragraph Gen      | 📋     | AI-drafted transitions for missing context                              | Generates coherent bridge paragraphs |
+| 10  | Export Integration        | 📋     | DOCX export with Track Changes, synopsis generation                     | Complete submission bundle creation |
 
 ## Dependencies & Risks
 
