@@ -11,6 +11,7 @@ const CandidateGrid = React.lazy(() => import("@/ui/panels/CandidateGrid"));
 const CompareDrawer = React.lazy(() => import("@/ui/components/CompareDrawer"));
 const AnalysisDetails = React.lazy(() => import("@/ui/panels/AnalysisDetails"));
 const JobTray = React.lazy(() => import("@/ui/components/JobTray"));
+const DbHarness = React.lazy(() => import("@/ui/components/DbHarness"));
 
 type PanelProps = PropsWithChildren<{ className?: string; title?: string }>;
 function Panel({ className, title, children }: PanelProps) {
@@ -101,6 +102,10 @@ export function MainLayout() {
       </Suspense>
       <Suspense fallback={null}>
         <JobTray />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <DbHarness />
       </Suspense>
 
       <KeyboardHelp open={helpOpen} onClose={() => setHelpOpen(false)} />

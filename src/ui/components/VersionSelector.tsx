@@ -3,16 +3,18 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 
 async function listVersions(): Promise<string[]> {
   try {
-    const mod = (await import("@tauri-apps/api")) as unknown as { invoke?: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> };
-    if (typeof mod.invoke === "function") {
-      const res = await mod.invoke("list_versions", {});
-      return res as string[];
+    // Dynamically import to avoid bundling in web tests; validate result before returning
+    const mod: unknown = await import("@tauri-apps/api");
+    const invoke = (mod as { invoke?: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> }).invoke;
+    if (typeof invoke === "function") {
+      const res = await invoke("list_versions", {});
+      if (Array.isArray(res)) return res as string[];
     }
   } catch {
-    // not running in Tauri; fall back to mock
+    // not running in Tauri or module not present; fall back to mock
   }
-  // fallback mock
-  return ["v1", "v2", "current"];
+  // Safe fallback to ensure queryFn never returns undefined
+  return ["current"]; // minimal predictable set for non-Tauri environments/tests
 }
 
 async function promoteVersion(ver: string): Promise<boolean> {
