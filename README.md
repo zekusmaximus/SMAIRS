@@ -35,9 +35,9 @@ Search Index: Tantivy (Rust) via Tauri commands
 DB / Persistence: SQLite (tauri-plugin-sql) + flat text & YAML metadata
 LLM Orchestration: Whole-document structural pass + targeted micro passes
 LLM Capability Profiles (indirection layer):
-	- STRUCTURE_LONGCTX → default anthropic:claude-4-sonnet (1M ctx beta gated)
-	- FAST_ITERATE      → default openai:gpt-5-mini
-	- JUDGE_SCORER      → default google:gemini-2.5-pro
+	- STRUCTURE_LONGCTX → default anthropic:claude-3-5-sonnet (200k ctx)
+	- FAST_ITERATE      → default openai:gpt-4o-mini
+	- JUDGE_SCORER      → default google:gemini-1.5-pro
 Profiles are the contract; concrete models are overrideable via env.
 Testing: Vitest + @testing-library/react
 Packaging: Tauri bundler
@@ -60,12 +60,13 @@ AGENT_STACK.md           // Prescriptive stack manifest (historical source)
 PROJECT_VISION.md        // Vision + phase deliverables (authoritative intent)
 package.json             // JS/TS workspace scaffold
 .nvmrc                   // Node 20 LTS pin
-src/                     // Front-end (React/TS + feature folders) – empty scaffold
-src-tauri/               // (Placeholder) Rust Tauri core (commands, indexing)
+src/                     // Front-end (React/TS + feature folders) – implemented
+src-tauri/               // Rust Tauri core (commands, indexing, DB)
 docs/                    // Architecture, contracts, runbooks
-tests/                   // Test strategy + future unit/integration tests
+tests/                   // Test strategy + unit/integration tests
 data/                    // Manuscript source (txt), metadata (YAML) – not committed
-out/                     // Generated reports, patch packs, exports – gitignored
+scripts/                 // CLI tools, benchmarks, validation scripts
+templates/               // Export templates
 .editorconfig            // Consistent formatting
 .gitattributes           // LF normalization & linguist hints
 .gitignore               // Comprehensive ignores (Node, Rust, OS, tooling)
@@ -77,12 +78,13 @@ LICENSE                  // MIT
 
 ### Key Folders
 
-- `src/` (future) feature-based modules: manuscript, search, llm, editor, ui, lib
-- `src-tauri/` Rust commands: index_build, index_query, file ops, SQLite helpers
+- `src/` feature-based modules: manuscript, search, llm, editor, ui, lib, stores, features
+- `src-tauri/` Rust commands: analysis, export, search, DB operations
 - `docs/` authoritative design & operational references
-- `tests/` Vitest config, strategy, coverage thresholds once code lands
+- `tests/` Vitest config, strategy, coverage thresholds, integration tests
 - `data/` (local only) manuscript.txt, manuscript.yml, caches/
-- `out/` generated artifacts (comparison reports, patch packs, exports)
+- `scripts/` CLI analysis tools, performance benchmarks, validation
+- `templates/` Pandoc export templates
 
 ## Core Data Concepts (See `docs/CONTRACTS.md` for full interfaces)
 
@@ -107,20 +109,20 @@ Caching & Cost: Reusable static system prompt + compressed global synopsis hash;
 
 ## Models & Environment Overrides
 
-Capability profiles decouple the product vision from concrete model IDs. Defaults (Aug 2025 – may change without README rewrite):
+Capability profiles decouple the product vision from concrete model IDs. Defaults (current as of 2024 – may change without README rewrite):
 
 ```
-STRUCTURE_LONGCTX = anthropic:claude-4-sonnet
-FAST_ITERATE      = openai:gpt-5-mini
-JUDGE_SCORER      = google:gemini-2.5-pro
+STRUCTURE_LONGCTX = anthropic:claude-3-5-sonnet
+FAST_ITERATE      = openai:gpt-4o-mini
+JUDGE_SCORER      = google:gemini-1.5-pro
 ```
 
 Override via environment variables in `.env` (copy from example):
 
 ```
-LLM_PROFILE__STRUCTURE=anthropic:claude-4-sonnet
-LLM_PROFILE__FAST=openai:gpt-5-mini
-LLM_PROFILE__JUDGE=google:gemini-2.5-pro
+LLM_PROFILE__STRUCTURE=anthropic:claude-3-5-sonnet
+LLM_PROFILE__FAST=openai:gpt-4o-mini
+LLM_PROFILE__JUDGE=google:gemini-1.5-pro
 LLM_LONGCTX_ENABLE=true   # allow >200k / 1M ctx structural pass
 ANTHROPIC_API_KEY=...
 OPENAI_API_KEY=...
@@ -129,9 +131,9 @@ LLM_OFFLINE=1             # mock mode
 ```
 
 Cost / limits snapshot (verify before heavy use):
-- Claude Sonnet 4: ~$3/Mtok in, $15/Mtok out; 1M ctx beta (higher tier >200k).
-- GPT-5 mini: low-latency, lower-cost tier (see OpenAI pricing page).
-- Gemini 2.5 Pro: reasoning / judge use (see Google pricing page).
+- Claude 3.5 Sonnet: ~$3/Mtok in, $15/Mtok out; 200k ctx (higher tier >200k).
+- GPT-4o mini: low-latency, lower-cost tier (see OpenAI pricing page).
+- Gemini 1.5 Pro: reasoning / judge use (see Google pricing page).
 
 Usage accounting will normalize token units across providers where feasible.
 
@@ -178,11 +180,11 @@ USE_REAL_LLM=true npm run analyze:opening -- data/manuscript.txt out/opening-ana
 Assumptions / Notes:
 
 - `npm run tauri:dev` needs a Tauri CLI in PATH (install globally: `cargo install tauri-cli@2` OR add `@tauri-apps/cli` as a dev dependency).
-- CLI tools are fully functional; UI is in development.
+- CLI tools are fully functional; UI is in active development with core panels implemented.
 - `LLM_OFFLINE=1` enables mock mode for development without API keys.
 - Place your manuscript at `data/manuscript.txt` for analysis.
 
-## Project Structure (Current Scaffold)
+## Project Structure (Current Implementation)
 
 ```
 .
@@ -194,10 +196,13 @@ Assumptions / Notes:
 ├─ vitest.config.ts          # jsdom, coverage reporters
 ├─ eslint.config.mjs         # Flat ESLint config
 ├─ .prettierrc               # Prettier formatting rules
-├─ src/                      # React source (App entry, styles, tests)
-├─ src-tauri/                # Tauri v2 Rust shell (no commands yet)
-├─ tests/                    # Vitest setup (jest-dom)
+├─ src/                      # React source (App entry, styles, tests, features)
+├─ src-tauri/                # Tauri v2 Rust shell (commands, DB, search)
+├─ tests/                    # Vitest setup (jest-dom, integration tests)
 ├─ docs/                     # ARCHITECTURE / CONTRACTS / RUNBOOKS
+├─ scripts/                  # CLI tools, benchmarks, validation
+├─ data/                     # Manuscript data (local only)
+├─ templates/                # Export templates
 ├─ .github/workflows/ci.yml  # CI: typecheck, lint, test, soft audits
 └─ .env.example              # Example env (LLM_OFFLINE, DEBUG)
 ```
@@ -287,17 +292,18 @@ MIT (see `LICENSE`).
 - **CLI Tools**: Scene inventory analysis, opening candidate evaluation, comprehensive reporting
 - **Performance**: Sub-2-second processing for 120k-word manuscripts
 - **Caching System**: Persistent analysis results with delta tracking
-- **Export Templates**: Pandoc-based export system for DOCX, Markdown, and PDF
-
-### 🚧 In Progress
-- **Opening Lab UI**: React-based interface for candidate comparison and analysis
-- **Spoiler Heatmaps**: Visual violation detection and context gap analysis
-- **Edit Burden Calculator**: Quantified revision effort assessment
+- **Export Pipeline**: Synopsis generation, submission bundle creation, Pandoc integration for DOCX/MD/PDF
+- **UI Panels**: Core interface components for export, analysis, candidate grid, and search
 - **Bridge Paragraph Generation**: AI-drafted transitions for missing context
 
-### 📋 Planned
+### 🚧 In Progress
+- **Opening Lab UI**: Enhanced React-based interface for candidate comparison and analysis
+- **Spoiler Heatmaps**: Visual violation detection and context gap analysis
+- **Edit Burden Calculator**: Quantified revision effort assessment
 - **Patch Pack Generation**: Anchored micro-edits with side-by-side diffs
-- **Full Export Bundle**: DOCX with Track Changes, synopsis, and agent memo
+
+### 📋 Planned
+- **Full Export Bundle**: Enhanced DOCX with Track Changes, comprehensive synopsis, and agent memo
 - **Continuity Validation**: Automated fact-checking and timeline verification
 
 ---

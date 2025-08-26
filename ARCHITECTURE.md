@@ -2,7 +2,7 @@
 
 ## Overview
 
-Single Manuscript AI Revision System (SMAIRS) is a Tauri-based desktop application that provides AI-powered manuscript analysis with a focus on opening optimization. The system processes a single manuscript to identify optimal opening scenes, detect spoilers, calculate edit burden, and generate submission-ready revisions.
+Single Manuscript AI Revision System (SMAIRS) is a Tauri-based desktop application that provides AI-powered manuscript analysis with a focus on opening optimization. The system processes a single manuscript to identify optimal opening scenes, detect spoilers, calculate edit burden, and generate submission-ready revisions. It includes advanced features for LLM integration, export management, search capabilities, and version control.
 
 ## System Architecture
 
@@ -17,6 +17,7 @@ Single Manuscript AI Revision System (SMAIRS) is a Tauri-based desktop applicati
 │  │  • Scene Navigator, Candidate Grid, Analysis Details    │  │
 │  │  • Decision Bar with keyboard shortcuts                 │  │
 │  │  • Lazy-loaded panels with error boundaries             │  │
+│  │  • Export Panel and Streaming Response components       │  │
 │  └─────────────────────────────────────────────────────────┘  │
 │                                                               │
 │  ┌─────────────────────────────────────────────────────────┐  │
@@ -25,6 +26,7 @@ Single Manuscript AI Revision System (SMAIRS) is a Tauri-based desktop applicati
 │  │  • IPC communication layer                               │  │
 │  │  • File system access                                    │  │
 │  │  • SQLite persistence                                    │  │
+│  │  • Tantivy search integration                           │  │
 │  └─────────────────────────────────────────────────────────┘  │
 │                                                               │
 │  ┌─────────────────────────────────────────────────────────┐  │
@@ -33,6 +35,8 @@ Single Manuscript AI Revision System (SMAIRS) is a Tauri-based desktop applicati
 │  │  • Scene segmentation & anchoring                       │  │
 │  │  • Reveal graph construction                            │  │
 │  │  • LLM orchestration                                    │  │
+│  │  • Search indexing and querying                         │  │
+│  │  • Version management and diff tracking                 │  │
 │  └─────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -41,17 +45,17 @@ Single Manuscript AI Revision System (SMAIRS) is a Tauri-based desktop applicati
 
 ### 1. Manuscript Ingestion
 ```
-Manuscript File → Import Module → Chapter Segmentation → Scene Analysis
+Manuscript File → Import Module → Chapter Segmentation → Scene Analysis → Search Indexing
 ```
 
 ### 2. Analysis Pipeline
 ```
-Scenes → Character Extraction → Reveal Graph → Opening Candidates → Spoiler Detection → Edit Burden → LLM Scoring
+Scenes → Character Extraction → Reveal Graph → Opening Candidates → Spoiler Detection → Edit Burden → LLM Scoring → Version Tracking
 ```
 
 ### 3. Output Generation
 ```
-Analysis Results → Report Generation → Export Templates → Submission Bundle
+Analysis Results → Report Generation → Export Templates → Submission Bundle → Pandoc Conversion
 ```
 
 ## Component Details
@@ -69,6 +73,8 @@ Analysis Results → Report Generation → Export Templates → Submission Bundl
 - **Candidate Grid**: Comparison view of opening candidates with metrics
 - **Analysis Details**: Tabbed interface for spoilers, context, metrics, and decisions
 - **Decision Bar**: Global action bar with keyboard shortcuts
+- **Export Panel**: Interface for generating and managing export bundles
+- **Streaming Response**: Real-time display of LLM responses
 
 #### Key Features
 - **Virtual Scrolling**: CodeMirror 6 for large document performance
@@ -82,8 +88,10 @@ Analysis Results → Report Generation → Export Templates → Submission Bundl
 - **Manuscript Processing**: File I/O, text parsing, chapter/scene segmentation
 - **Database Layer**: SQLite with scene/reveal metadata persistence
 - **Analysis Engine**: Character extraction, reveal graph construction
-- **LLM Integration**: Provider abstraction with capability profiles
+- **LLM Integration**: Provider abstraction with capability profiles (Anthropic, OpenAI, Google)
 - **Export System**: Pandoc integration for multiple output formats
+- **Search Engine**: Tantivy-based full-text search and indexing
+- **Version Management**: Diff tracking and revision history
 
 #### IPC Commands
 - `analyze_manuscript`: Full manuscript analysis pipeline
@@ -91,12 +99,14 @@ Analysis Results → Report Generation → Export Templates → Submission Bundl
 - `detect_spoilers`: Spoiler violation analysis
 - `calculate_burden`: Edit burden computation
 - `export_bundle`: Generate submission package
+- `search_manuscript`: Full-text search across manuscript content
+- `version_diff`: Compare manuscript versions
 
 ### Analysis Engine
 
 #### Scene Processing Pipeline
 ```
-Raw Text → Chapter Detection → Scene Segmentation → Character Extraction → Reveal Mapping → Anchor Generation
+Raw Text → Chapter Detection → Scene Segmentation → Character Extraction → Reveal Mapping → Anchor Generation → Search Indexing
 ```
 
 #### Reveal Graph Construction
@@ -106,7 +116,17 @@ Scenes → Reveal Extraction → Dependency Analysis → Graph Building → Spoi
 
 #### LLM Integration
 ```
-Capability Profiles → Provider Selection → Prompt Construction → Response Parsing → Result Caching
+Capability Profiles → Provider Selection → Prompt Construction → Response Parsing → Result Caching → Streaming Updates
+```
+
+#### Search Integration
+```
+Manuscript Content → Tantivy Indexing → Query Processing → Result Ranking → Context Extraction
+```
+
+#### Version Management
+```
+Manuscript Edits → Diff Calculation → Anchor Preservation → Revision History → Change Tracking
 ```
 
 ## Data Models
@@ -176,6 +196,26 @@ interface AnchoredEdit {
 }
 ```
 
+#### SearchResult
+```typescript
+interface SearchResult {
+  sceneId: string;
+  snippet: string;
+  score: number;
+  highlights: string[];
+}
+```
+
+#### Version
+```typescript
+interface Version {
+  id: string;
+  timestamp: Date;
+  changes: AnchoredEdit[];
+  description: string;
+}
+```
+
 ## Performance Architecture
 
 ### Caching Strategy
@@ -230,6 +270,7 @@ interface AnchoredEdit {
 - **LLM Providers**: Anthropic, OpenAI, Google (configurable)
 - **Pandoc**: Document conversion and export
 - **SQLite**: Local data persistence
+- **Tantivy**: Full-text search engine
 - **CodeMirror**: Text editing and display
 
 ### File System Integration
