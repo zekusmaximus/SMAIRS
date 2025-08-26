@@ -1,4 +1,5 @@
 use serde::Serialize;
+use tauri::Emitter;
 use std::thread;
 use std::time::Duration;
 
@@ -37,28 +38,28 @@ pub struct ErrorPayload {
 fn topic(id: &str, suffix: &str) -> String { format!("job::{}::{}", id, suffix) }
 
 pub fn emit_progress(app: &tauri::AppHandle, id: &str, percent: u8, step: Option<&str>) {
-    let _ = app.emit_all(
+    let _ = app.emit(
         &topic(id, "progress"),
         ProgressPayload { id: id.to_string(), percent, step: step.map(|s| s.to_string()) },
     );
 }
 
 pub fn emit_log(app: &tauri::AppHandle, id: &str, message: &str, level: Option<&str>) {
-    let _ = app.emit_all(
+    let _ = app.emit(
         &topic(id, "log"),
         LogPayload { id: id.to_string(), level: level.map(|s| s.to_string()), message: message.to_string(), timestamp: None },
     );
 }
 
-pub fn emit_done<T: Serialize>(app: &tauri::AppHandle, id: &str, result: Option<T>) {
-    let _ = app.emit_all(
+pub fn emit_done<T: Serialize + Clone>(app: &tauri::AppHandle, id: &str, result: Option<T>) {
+    let _ = app.emit(
         &topic(id, "done"),
         DonePayload { id: id.to_string(), result },
     );
 }
 
 pub fn emit_error(app: &tauri::AppHandle, id: &str, error: &str, code: Option<&str>) {
-    let _ = app.emit_all(
+    let _ = app.emit(
         &topic(id, "error"),
         ErrorPayload { id: id.to_string(), error: error.to_string(), code: code.map(|s| s.to_string()) },
     );

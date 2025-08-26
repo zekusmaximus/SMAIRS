@@ -61,7 +61,8 @@ pub enum DecisionVerdict {
 
 /// Export all known Specta types in this module to a TypeScript file at the given path.
 pub fn export_typescript(output_path: &str) -> specta_typescript::Result<()> {
-    let types = TypeCollection::default()
+    let mut collection = TypeCollection::default();
+    let types = collection
         .register::<Scene>()
         .register::<OpeningCandidate>()
         .register::<OpeningAnalysis>()

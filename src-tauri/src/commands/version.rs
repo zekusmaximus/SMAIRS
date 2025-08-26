@@ -12,7 +12,7 @@ pub struct VersionMetadata {
     pub description: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct VersionSnapshot {
     pub meta: VersionMetadata,
@@ -149,8 +149,8 @@ pub fn version_compare(args: CompareArgs) -> Result<serde_json::Value, String> {
     let b = version_load(LoadArgs { id: args.b_id.clone() }).map_err(|e| e.to_string())?;
     let a_meta: VersionMetadata = serde_json::from_value(a["meta"].clone()).unwrap();
     let b_meta: VersionMetadata = serde_json::from_value(b["meta"].clone()).unwrap();
-    let a_anal = a["analyses"].clone().unwrap_or(serde_json::json!({}));
-    let b_anal = b["analyses"].clone().unwrap_or(serde_json::json!({}));
+    let a_anal = a.get("analyses").cloned().unwrap_or_else(|| serde_json::json!({}));
+    let b_anal = b.get("analyses").cloned().unwrap_or_else(|| serde_json::json!({}));
     let a_map: serde_json::Map<String, serde_json::Value> = serde_json::from_value(a_anal).unwrap_or(serde_json::Map::new());
     let b_map: serde_json::Map<String, serde_json::Value> = serde_json::from_value(b_anal).unwrap_or(serde_json::Map::new());
     let avg = |vals: &Vec<f64>| if vals.len() > 0 { vals.iter().sum::<f64>() / vals.len() as f64 } else { 0.0 };
@@ -161,8 +161,8 @@ pub fn version_compare(args: CompareArgs) -> Result<serde_json::Value, String> {
     let b_spoilers: i64 = b_map.values().filter_map(|v| v.get("spoilerCount").and_then(|x| x.as_i64())).sum();
 
     // decisions diff
-    let a_dec = a["decisions"].clone().unwrap_or(serde_json::json!({}));
-    let b_dec = b["decisions"].clone().unwrap_or(serde_json::json!({}));
+    let a_dec = a.get("decisions").cloned().unwrap_or_else(|| serde_json::json!({}));
+    let b_dec = b.get("decisions").cloned().unwrap_or_else(|| serde_json::json!({}));
     let a_dmap: serde_json::Map<String, serde_json::Value> = serde_json::from_value(a_dec).unwrap_or(serde_json::Map::new());
     let b_dmap: serde_json::Map<String, serde_json::Value> = serde_json::from_value(b_dec).unwrap_or(serde_json::Map::new());
     let mut ids: Vec<String> = a_dmap.keys().cloned().collect();

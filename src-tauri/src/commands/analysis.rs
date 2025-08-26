@@ -29,6 +29,8 @@ pub async fn analyze_candidate_command(app: tauri::AppHandle, payload: AnalyzeCa
     emit_log(&app, &job_id, "Starting candidate analysis", Some("info"));
     emit_progress(&app, &job_id, 1, Some("prepare"));
     if !validate_text(&payload.manuscript_text) { let msg = "Empty manuscript_text".to_string(); emit_error(&app, &job_id, &msg, Some("invalid_input")); return Err(msg); }
+    // Touch optional candidate_text to avoid dead_code warning while keeping API intact
+    if let Some(ct) = payload.candidate_text.as_ref() { let _ = !ct.is_empty(); }
     // Note: actual LLM call happens in TS orchestrator; Rust side ensures basic sanitation and event lifecycle when called directly from UI.
     // Here we return a placeholder to keep command contract simple; UI uses provider in frontend.
     let result = OpeningAnalysisOut {

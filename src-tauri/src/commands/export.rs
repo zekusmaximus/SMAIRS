@@ -1,7 +1,6 @@
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
-use serde::Deserialize;
 
 fn ensure_out_dir() -> PathBuf {
     let mut dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
@@ -19,11 +18,10 @@ pub async fn export_write_temp(name: String, content: String) -> Result<String, 
     Ok(d.to_string_lossy().to_string())
 }
 
-#[derive(Deserialize)]
-pub struct DocxArgs { pub markdown_path: String, pub track_changes: Option<bool> }
+// Removed unused DocxArgs struct to avoid dead_code warning; functions below take explicit params
 
 #[tauri::command]
-pub async fn export_pandoc_docx(markdown_path: String, track_changes: Option<bool>) -> Result<String, String> {
+pub async fn export_pandoc_docx(markdown_path: String, _track_changes: Option<bool>) -> Result<String, String> {
     let out = ensure_out_dir();
     let docx_path = out.join("opening.docx");
     let mut args = vec![markdown_path.clone(), String::from("-o"), docx_path.to_string_lossy().to_string()];
