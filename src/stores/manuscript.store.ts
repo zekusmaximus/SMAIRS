@@ -8,6 +8,8 @@ type Selected = { selectedSceneId?: string };
 
 export type ManuscriptStoreState = Selected & {
   manuscript?: Manuscript;
+  /** Normalized complete manuscript text (LF newlines). Mirrors manuscript.rawText when loaded. */
+  fullText: string;
   scenes: ManuscriptScene[];
   reveals: RevealGraphEntry[];
   // actions
@@ -16,6 +18,12 @@ export type ManuscriptStoreState = Selected & {
   getSceneById: (id: string) => ManuscriptScene | undefined;
   ensureSceneLoaded?: (id: string) => Promise<void>; // progressive loading: hydrate full text for a scene on demand
   clearAll?: () => void;
+  /** Replace entire manuscript text. Offsets may become stale until a re-segmentation occurs. */
+  updateText: (text: string) => void;
+  /** Return the text for a given sceneId, hydrating from fullText when needed. */
+  getSceneText: (sceneId: string) => string;
+  /** Return byte/char offset for a sceneId start, or -1 if unknown. */
+  jumpToScene: (sceneId: string) => number;
 };
 
 async function readText(path: string): Promise<string> {
@@ -32,6 +40,7 @@ async function readText(path: string): Promise<string> {
 
 export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   manuscript: undefined,
+  fullText: "",
   scenes: [],
   reveals: [],
   selectedSceneId: undefined,
@@ -46,7 +55,7 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
       ...s,
       text: s.text.length > EXCERPT_LEN ? (s.text.slice(0, EXCERPT_LEN) + "…") : s.text,
     }));
-    set({ manuscript: ms, scenes: lightScenes, reveals });
+    set({ manuscript: ms, fullText: ms.rawText, scenes: lightScenes, reveals });
   },
   selectScene(id) {
     set({ selectedSceneId: id });
@@ -72,7 +81,31 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
     set({ scenes: next });
   },
   clearAll() {
-    set({ manuscript: undefined, scenes: [], reveals: [], selectedSceneId: undefined });
+    set({ manuscript: undefined, fullText: "", scenes: [], reveals: [], selectedSceneId: undefined });
+  },
+  updateText(text: string) {
+    const { manuscript } = get();
+    if (manuscript) {
+      const nextMs: Manuscript = { ...manuscript, rawText: text };
+      set({ manuscript: nextMs, fullText: text });
+    } else {
+      set({ fullText: text });
+    }
+    // Note: scene offsets are not recomputed here; a background re-segmentation pass should update scenes.
+  },
+  getSceneText(sceneId: string) {
+    const { scenes, manuscript, fullText } = get();
+    const s = scenes.find((x) => x.id === sceneId);
+    if (!s) return "";
+    if (s.text && s.text.length >= Math.max(0, s.endOffset - s.startOffset)) return s.text;
+    const src = manuscript?.rawText || fullText || "";
+    if (!src || s.startOffset == null || s.endOffset == null) return s.text || "";
+    return src.substring(s.startOffset, s.endOffset);
+  },
+  jumpToScene(sceneId: string) {
+    const { scenes } = get();
+    const s = scenes.find((x) => x.id === sceneId);
+    return s ? s.startOffset : -1;
   },
 }));
 

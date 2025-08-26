@@ -7,9 +7,9 @@ import ErrorBoundary from "@/ui/components/ErrorBoundary";
 import KeyboardHelp from "@/ui/components/KeyboardHelp";
 // React imported above
 const SceneNavigator = React.lazy(() => import("@/ui/panels/SceneNavigator"));
-const CandidateGrid = React.lazy(() => import("@/ui/panels/CandidateGrid"));
 const CompareDrawer = React.lazy(() => import("@/ui/components/CompareDrawer"));
 const AnalysisDetails = React.lazy(() => import("@/ui/panels/AnalysisDetails"));
+const ManuscriptEditor = React.lazy(() => import("@/editor/Editor"));
 const JobTray = React.lazy(() => import("@/ui/components/JobTray"));
 const DbHarness = React.lazy(() => import("@/ui/components/DbHarness"));
 
@@ -78,11 +78,13 @@ export function MainLayout() {
           </Suspense>
         </ErrorBoundary>
       </Panel>
-      <Panel className="panel-center" title="Candidates">
-        <ErrorBoundary label="Candidates">
-          <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading candidates…</div>}>
-            <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Candidates Content">
-              <CandidateGrid />
+      <Panel className="panel-center" title="Manuscript">
+        <ErrorBoundary label="Manuscript">
+          <Suspense fallback={<div className="p-3 text-sm text-neutral-500">Loading editor…</div>}>
+            <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Manuscript Editor">
+              <div style={{ height: "60vh" }}>
+                <ManuscriptEditor />
+              </div>
             </div>
           </Suspense>
         </ErrorBoundary>
