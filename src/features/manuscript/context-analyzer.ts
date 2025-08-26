@@ -29,6 +29,10 @@ export interface ContextBridgeSuggestion {
   text: string;
   insertPoint: TextAnchor;
   intrusiveness: number; // 0..1
+  wordCount?: number;
+  alternatives?: string[];
+  styleMatch?: number;
+  contextCoverage?: { covered: string[]; partial?: string[]; missed?: string[] };
 }
 
 export interface ContextGap {
@@ -182,7 +186,15 @@ export function analyzeContext(scene: Scene, originalScenes: Scene[], candidateS
     };
     gap.confusion.severity = calculateConfusionSeverity(gap);
     const bridge = DefaultBridgeGenerator.generateBridge(gap);
-    gap.bridge = { text: bridge.text, insertPoint: bridge.insertPoint || ref.anchor, intrusiveness: bridge.intrusiveness };
+    gap.bridge = {
+      text: bridge.text,
+      insertPoint: bridge.insertPoint || ref.anchor,
+      intrusiveness: bridge.intrusiveness,
+      wordCount: bridge.text.trim().split(/\s+/).filter(Boolean).length,
+      alternatives: [],
+      styleMatch: 0.5,
+      contextCoverage: { covered: gap.requiredInfo.facts.slice(0, 3) },
+    };
     gaps.push(gap);
     introduced.add(canonical);
   }
