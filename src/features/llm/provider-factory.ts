@@ -21,6 +21,7 @@ function parseVendorModel(id: string): { vendor: string; model: string } {
 export class ProviderFactory {
   private static registry: Map<string, (modelId: string) => LLMCaller> = new Map();
   private static metadata: Map<string, ProviderMetadata> = new Map();
+  private static activeOverrides: Map<string, string> = new Map(); // profile->modelId
 
   static register(vendorModel: string, factory: (modelId: string) => LLMCaller, meta?: Partial<ProviderMetadata>): void {
     this.registry.set(vendorModel, factory);
@@ -40,11 +41,16 @@ export class ProviderFactory {
   static create(vendorModel: string): LLMCaller {
     const offline = (readEnv('LLM_OFFLINE') || '0') === '1';
     if (offline) return new MockCaller('FAST_ITERATE', 'mock:offline');
+    // API key validation: return MockCaller with clear diagnostics if missing keys
+    const { vendor: vend } = parseVendorModel(vendorModel);
+    if (vend === 'anthropic' && !readEnv('ANTHROPIC_API_KEY')) return new MockCaller('FAST_ITERATE', 'mock:anthropic-missing-key');
+    if (vend === 'openai' && !readEnv('OPENAI_API_KEY')) return new MockCaller('FAST_ITERATE', 'mock:openai-missing-key');
+    if (vend === 'google' && !(readEnv('GOOGLE_API_KEY') || readEnv('GEMINI_API_KEY'))) return new MockCaller('FAST_ITERATE', 'mock:google-missing-key');
     const exact = this.registry.get(vendorModel);
     if (exact) return exact(vendorModel);
     // Wildcard support vendor:* registration
-    const [vendor] = vendorModel.split(':');
-    const wildcard = this.registry.get(`${vendor}:*`);
+    const [vendorName] = vendorModel.split(':');
+    const wildcard = this.registry.get(`${vendorName}:*`);
     if (wildcard) return wildcard(vendorModel);
     return new MockCaller('FAST_ITERATE', vendorModel || 'mock:missing');
   }
@@ -66,6 +72,13 @@ export class ProviderFactory {
       : true;
     return { id: modelId, configured: true, apiKeyPresent, capabilities: meta.capabilities || [], maxContext: meta.maxContext, costPer1M: meta.costPer1M };
   }
+
+  // --- Runtime switching helpers -----------------------------------
+  static setProfileOverride(profile: string, modelId: string | undefined): void {
+    if (!modelId) { this.activeOverrides.delete(profile); return; }
+    this.activeOverrides.set(profile, modelId);
+  }
+  static getProfileOverride(profile: string): string | undefined { return this.activeOverrides.get(profile); }
 }
 
 function readEnv(name: string): string | undefined {
@@ -78,7 +91,7 @@ function readEnv(name: string): string | undefined {
 ProviderFactory.register('mock:*', (modelId) => new MockCaller('FAST_ITERATE', `mock:${modelId.split(':')[0] || 'generic'}`), { maxContext: 128_000, costPer1M: { input: 2, output: 2 }, capabilities: ['streaming','json'] });
 
 // Register real providers with capability metadata
-ProviderFactory.register('anthropic:*', (modelId) => new AnthropicProvider(modelId), { maxContext: 1_000_000, costPer1M: { input: 15, output: 75 }, capabilities: ['streaming','json','cache_control'] });
+ProviderFactory.register('anthropic:*', (modelId) => new AnthropicProvider(modelId), { maxContext: 1_000_000, costPer1M: { input: 3, output: 15 }, capabilities: ['streaming','json','cache_control'] });
 ProviderFactory.register('openai:*', (modelId) => new OpenAIProvider(modelId), { maxContext: 128_000, costPer1M: { input: 10, output: 30 }, capabilities: ['streaming','json'] });
 ProviderFactory.register('google:*', (modelId) => new GeminiProvider(modelId), { maxContext: 1_000_000, costPer1M: { input: 10, output: 40 }, capabilities: ['streaming','json','grounding','safety'] });
 
@@ -88,3 +101,19 @@ export function resolveProvider(modelId: string): LLMCaller {
   if (offline) return new MockCaller('FAST_ITERATE', 'mock:offline');
   return ProviderFactory.create(modelId);
 }
+
+// Optional startup validation
+export function validateProvidersOnStartup(): void {
+  const vendors = ['anthropic', 'openai', 'google'] as const;
+  for (const v of vendors) {
+    const ok = v === 'anthropic' ? !!readEnv('ANTHROPIC_API_KEY')
+      : v === 'openai' ? !!readEnv('OPENAI_API_KEY')
+      : !!(readEnv('GOOGLE_API_KEY') || readEnv('GEMINI_API_KEY'));
+    if (!ok) {
+      console.warn(`[llm] ${v} API key missing; calls will fall back to mock provider.`);
+    }
+  }
+}
+
+// Perform a best-effort validation when this module is loaded
+validateProvidersOnStartup();

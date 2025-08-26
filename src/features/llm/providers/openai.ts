@@ -31,9 +31,9 @@ function estimateTokens(text: string): number {
 export class OpenAIProvider implements LLMCaller {
   private apiUrl = (readEnv('OPENAI_API_URL') || 'https://api.openai.com/v1/chat/completions');
   private apiKey = readEnv('OPENAI_API_KEY');
-  private defaultModel = (readEnv('OPENAI_MODEL') || 'gpt-5-mini');
-  private fastModel = (readEnv('OPENAI_MODEL_FAST') || 'gpt-5-mini');
-  private fullModel = (readEnv('OPENAI_MODEL_FULL') || 'gpt-5');
+  private defaultModel = (readEnv('OPENAI_MODEL') || 'gpt-4o');
+  private fastModel = (readEnv('OPENAI_MODEL_FAST') || 'gpt-4-turbo');
+  private fullModel = (readEnv('OPENAI_MODEL_FULL') || 'gpt-4o');
   private maxOutputTokens = Number(readEnv('OPENAI_MAX_TOKENS') || 4096);
   private contextWindow = 128_000; // 128k
   private costPer1M = { input: Number(readEnv('OPENAI_COST_INPUT_PER1M') || ProviderFactory.getMetadata('openai:*').costPer1M.input), output: Number(readEnv('OPENAI_COST_OUTPUT_PER1M') || ProviderFactory.getMetadata('openai:*').costPer1M.output) };
@@ -56,7 +56,7 @@ export class OpenAIProvider implements LLMCaller {
       const text = data.choices?.[0]?.message?.content || '';
       const usage = this.toUsage(data.usage);
   const json = this.maybeParseJSON<T>(text, (request as { response_format?: unknown }).response_format);
-  const result: LLMResult<T> = { text, json: json ?? undefined, usage, raw: data };
+  const result: LLMResult<T> = { text, json: json ?? undefined, usage, raw: { id: data.id, model: data.model, usage: data.usage } };
   logDebug('call:success', { model: (request as { model?: string }).model, ms: Date.now() - start, usage });
       return result;
     }, { maxAgeMs: 60 * 60 * 1000 });
@@ -109,6 +109,13 @@ export class OpenAIProvider implements LLMCaller {
     }
   }
 
+  // Alias to match optional external interface
+  async stream(args: CallArgs): Promise<AsyncIterator<string>> {
+    // Wrap the async generator into an AsyncIterator
+    const iter = this.streamText(args)[Symbol.asyncIterator]();
+    return iter;
+  }
+
   // --- Helpers -------------------------------------------------------
   private buildHeaders(stream = false): HeadersInit {
     const headers: Record<string, string> = { 'content-type': 'application/json', 'authorization': `Bearer ${this.apiKey || ''}` };
@@ -139,7 +146,8 @@ export class OpenAIProvider implements LLMCaller {
     const system = args.system || '';
     const userPrompt = this.enforceContext(args.prompt || '');
     const temperature = typeof args.temperature === 'number' ? args.temperature : 0.2;
-    const response_format = this.buildResponseFormat(args.schema);
+  const response_format = this.buildResponseFormat(args.schema);
+  const toolsConfig = this.buildTools(args.schema);
     const messages: OpenAIChatMessage[] = [];
     if (system) messages.push({ role: 'system', content: system });
     messages.push({ role: 'user', content: userPrompt });
@@ -149,6 +157,8 @@ export class OpenAIProvider implements LLMCaller {
       temperature,
       max_tokens: this.maxOutputTokens,
       ...(response_format ? { response_format } : {}),
+      ...(toolsConfig || response_format ? {} : {}),
+      ...(toolsConfig ? toolsConfig : {}),
       ...(stream ? { stream: true } : {}),
     };
     return body;
@@ -160,6 +170,17 @@ export class OpenAIProvider implements LLMCaller {
       return { type: 'json_schema', json_schema: { name: 'SMAIRS_Schema', schema: schema as Record<string, unknown> } };
     }
     return { type: 'json_object' };
+  }
+
+  private buildTools(schema: unknown): Record<string, unknown> | undefined {
+    const enabled = (readEnv('OPENAI_USE_FUNCTIONS') || '').toLowerCase() === '1';
+    if (!enabled || !schema || typeof schema !== 'object') return undefined;
+    // Use a single function with the provided JSON schema as parameters
+    const params = schema as Record<string, unknown>;
+    return {
+      tools: [ { type: 'function', function: { name: 'SMAIRS_parse', description: 'Return JSON that matches the provided schema', parameters: params } } ],
+      tool_choice: { type: 'function', function: { name: 'SMAIRS_parse' } },
+    };
   }
 
   private maybeParseJSON<T>(text: string, response_format: unknown): T | null {

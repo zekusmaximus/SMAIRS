@@ -1,5 +1,6 @@
 import type { CallArgs, LLMCaller, LLMResult, Profile } from '../providers.js';
 import { ProviderFactory } from '../provider-factory.js';
+import { globalLLMCache } from '../cache-manager.js';
 
 // Typed errors for clearer handling upstream
 export class AnthropicAPIError extends Error { status?: number; code?: string; raw?: unknown; constructor(msg: string, status?: number, code?: string, raw?: unknown) { super(msg); this.name = 'AnthropicAPIError'; this.status = status; this.code = code; this.raw = raw; } }
@@ -76,7 +77,11 @@ export class AnthropicProvider implements LLMCaller {
   }
 
   estimateCost(tokens: { input: number; output: number }): number {
-    const inCost = (Math.max(0, tokens.input || 0) / 1_000_000) * this.costPer1M.input;
+    // Account for prompt caching: apply a configurable discount to input tokens if caching is enabled.
+    const cachingEnabled = (readEnv('ANTHROPIC_PROMPT_CACHE') || '').toLowerCase() !== '0';
+    const discountRatio = Math.min(1, Math.max(0, Number(readEnv('ANTHROPIC_CACHE_DISCOUNT') || 0.5))); // 50% by default
+    const effectiveInput = cachingEnabled ? Math.round((tokens.input || 0) * (1 - discountRatio)) + Math.round((tokens.input || 0) * discountRatio * 0.5) : (tokens.input || 0);
+    const inCost = (Math.max(0, effectiveInput) / 1_000_000) * this.costPer1M.input;
     const outCost = (Math.max(0, tokens.output || 0) / 1_000_000) * this.costPer1M.output;
     return Number((inCost + outCost).toFixed(6));
   }
@@ -84,25 +89,28 @@ export class AnthropicProvider implements LLMCaller {
   async call<T>(args: CallArgs): Promise<LLMResult<T>> {
     const body = this.buildRequestBody(args);
     const headers = this.buildHeaders({ useCaching: this.shouldUseCaching(args) });
-    const model = body.model;
-    const start = Date.now();
-    try {
-      if (!this.apiKey) throw new AnthropicAuthError('Missing ANTHROPIC_API_KEY');
-      const res = await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
-      if (!res.ok) {
-        await this.throwForResponse(res);
+    const model = body.model as string;
+    const cacheKey = globalLLMCache.generateCacheKey('anthropic', { model, body: { ...body, stream: false } });
+    return await globalLLMCache.getOrCompute(cacheKey, async () => {
+      const start = Date.now();
+      try {
+        if (!this.apiKey) throw new AnthropicAuthError('Missing ANTHROPIC_API_KEY');
+        const res = await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
+        if (!res.ok) {
+          await this.throwForResponse(res);
+        }
+        const data = (await res.json()) as AnthropicMessage;
+        const text = this.extractText(data);
+        const usage = this.toUsage(data.usage);
+        const json = this.maybeParseJSON<T>(text, args.schema);
+        const result: LLMResult<T> = { text, json: json ?? undefined, usage, raw: { id: data.id, model: data.model, usage: data.usage } };
+        logDebug('call:success', { model, ms: Date.now() - start, usage });
+        return result;
+      } catch (err) {
+        logDebug('call:error', { model, ms: Date.now() - start, error: (err as Error).message });
+        throw err;
       }
-      const data = (await res.json()) as AnthropicMessage;
-      const text = this.extractText(data);
-      const usage = this.toUsage(data.usage);
-      const json = this.maybeParseJSON<T>(text, args.schema);
-      const result: LLMResult<T> = { text, json: json ?? undefined, usage, raw: data };
-      logDebug('call:success', { model, ms: Date.now() - start, usage });
-      return result;
-    } catch (err) {
-      logDebug('call:error', { model, ms: Date.now() - start, error: (err as Error).message });
-      throw err;
-    }
+    }, { maxAgeMs: 60 * 60 * 1000 });
   }
 
   async callWithRetry<T>(args: CallArgs, maxRetries = Number(readEnv('LLM_RETRIES') || 2)): Promise<LLMResult<T>> {
