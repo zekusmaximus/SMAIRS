@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "composite": true,
+  "composite": false,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2022",
-    "lib": ["ES2022"],
+  "lib": ["ES2022", "DOM"],
     "skipLibCheck": true,
     "types": ["node"],
     "baseUrl": ".",
@@ -17,10 +17,15 @@
     "vite.config.ts",
     "vitest.config.ts",
     "eslint.config.mjs",
-    "tooling.d.ts",
-  "src/**/*.ts",
-  "src/**/*.tsx",
-    "scripts/**/*.ts"
+  "tooling.d.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "out",
+  "src/**",
+  "scripts/**",
+    "tests",
+    "src-tauri/**/target"
+  ]
 }
