@@ -340,4 +340,4 @@ export async function generateBridge(
     styleMatch,
   };
 }
- 
+
