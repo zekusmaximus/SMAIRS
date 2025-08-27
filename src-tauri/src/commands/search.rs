@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use anyhow::Result;
 
-use smairs::search::{search_index_read, search_index_write, SearchHit, IndexScene};
+use crate::search::{search_index_read, search_index_write, SearchHit, IndexScene};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
