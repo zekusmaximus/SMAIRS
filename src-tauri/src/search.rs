@@ -3,9 +3,9 @@ use anyhow::{Result, anyhow};
 use once_cell::sync::OnceCell;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use serde::{Deserialize, Serialize};
-use tantivy::{schema::*, Index, IndexReader, IndexWriter, ReloadPolicy};
+use tantivy::{schema::*, Index, IndexReader, IndexWriter};
+use tantivy::doc;
 
-use crate::types::Scene;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,16 +37,16 @@ fn index_dir() -> PathBuf {
 
 fn build_schema() -> Schema {
     let mut schema = Schema::builder();
-    let scene_f = schema.add_text_field("scene_id", TEXT | STORED);
-    let chapter_f = schema.add_text_field("chapter_id", TEXT | STORED);
-    let text_f = schema.add_text_field(
+    let _scene_f = schema.add_text_field("scene_id", TEXT | STORED);
+    let _chapter_f = schema.add_text_field("chapter_id", TEXT | STORED);
+    let _text_f = schema.add_text_field(
         "text",
         TextOptions::default()
             .set_indexing_options(TextFieldIndexing::default().set_tokenizer("default").set_index_option(IndexRecordOption::WithFreqsAndPositions))
             .set_stored(),
     );
-    let offset_f = schema.add_u64_field("offset", STORED);
-    let chars_f = schema.add_text_field("character_names", TEXT); // multi-value via repeated add_text
+    let _offset_f = schema.add_u64_field("offset", STORED);
+    let _chars_f = schema.add_text_field("character_names", TEXT); // multi-value via repeated add_text
     schema.build()
 }
 
@@ -60,7 +60,7 @@ impl SearchIndex {
             Index::create_in_dir(path, schema.clone())?
         };
         // default tokenizer is fine; for fuzzy we'll use FuzzyTermQuery
-        let reader = index.reader_builder().reload_policy(ReloadPolicy::OnCommit).try_into()?;
+        let reader = index.reader()?;
         let scene_f = index.schema().get_field("scene_id").unwrap();
         let chapter_f = index.schema().get_field("chapter_id").unwrap();
         let text_f = index.schema().get_field("text").unwrap();
@@ -84,15 +84,15 @@ impl SearchIndex {
         }
 
         for s in scenes {
-            let mut doc = Document::default();
-            doc.add_text(self.scene_f, &s.id);
-            doc.add_text(self.chapter_f, &s.chapter_id);
-            doc.add_text(self.text_f, &s.text);
-            // Persist the scene start offset to support absolute navigation
-            doc.add_u64(self.offset_f, s.start_offset as u64);
+            let mut document = doc!(
+                self.scene_f => s.id.as_str(),
+                self.chapter_f => s.chapter_id.as_str(),
+                self.text_f => s.text.as_str(),
+                self.offset_f => s.start_offset as u64,
+            );
             // naive character extraction: capitalized words > 2 letters
-            for name in extract_character_names(&s.text) { doc.add_text(self.chars_f, &name.to_lowercase()); }
-            writer.add_document(doc)?;
+            for name in extract_character_names(&s.text) { document.add_text(self.chars_f, &name.to_lowercase()); }
+            writer.add_document(document)?;
         }
         writer.commit()?;
         self.reader.reload()?;
@@ -130,10 +130,10 @@ impl SearchIndex {
         let top_docs = searcher.search(&q, &tantivy::collector::TopDocs::with_limit(limit))?;
         let mut hits: Vec<SearchHit> = Vec::new();
         for (score, addr) in top_docs {
-            let retrieved = searcher.doc(addr)?;
-            let scene_id = retrieved.get_first(self.scene_f).and_then(|v| v.as_text()).unwrap_or("").to_string();
+            let retrieved = searcher.doc::<tantivy::TantivyDocument>(addr)?;
+            let scene_id = retrieved.get_first(self.scene_f).and_then(|v| v.as_str()).unwrap_or("").to_string();
             let scene_start = retrieved.get_first(self.offset_f).and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-            let text = retrieved.get_first(self.text_f).and_then(|v| v.as_text()).unwrap_or("").to_string();
+            let text = retrieved.get_first(self.text_f).and_then(|v| v.as_str()).unwrap_or("").to_string();
             let (snippet, hl, match_pos) = make_snippet(&text, &query_str);
             let abs = match_pos.map(|p| scene_start + p).unwrap_or(scene_start);
             hits.push(SearchHit { scene_id, offset: abs, snippet, score, highlights: hl });
@@ -158,10 +158,10 @@ impl SearchIndex {
         let top_docs = searcher.search(&q, &tantivy::collector::TopDocs::with_limit(200))?;
         let mut hits = vec![];
         for (score, addr) in top_docs {
-            let retrieved = searcher.doc(addr)?;
-            let scene_id = retrieved.get_first(self.scene_f).and_then(|v| v.as_text()).unwrap_or("").to_string();
+            let retrieved = searcher.doc::<tantivy::TantivyDocument>(addr)?;
+            let scene_id = retrieved.get_first(self.scene_f).and_then(|v| v.as_str()).unwrap_or("").to_string();
             let scene_start = retrieved.get_first(self.offset_f).and_then(|v| v.as_u64()).unwrap_or(0) as usize;
-            let text = retrieved.get_first(self.text_f).and_then(|v| v.as_text()).unwrap_or("").to_string();
+            let text = retrieved.get_first(self.text_f).and_then(|v| v.as_str()).unwrap_or("").to_string();
             let (snippet, hl, match_pos) = make_snippet(&text, name);
             let abs = match_pos.map(|p| scene_start + p).unwrap_or(scene_start);
             hits.push(SearchHit { scene_id, offset: abs, snippet, score, highlights: hl });

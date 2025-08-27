@@ -1,12 +1,16 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use anyhow::Result;
 
-use crate::search::{search_index_read, search_index_write, SearchHit, IndexScene};
+use smairs::search::{search_index_read, search_index_write, SearchHit, IndexScene};
 
-#[tauri::command]
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BuildIndexScene { pub id: String, pub chapter_id: String, pub text: String, pub start_offset: usize }
+pub struct BuildIndexScene {
+    pub id: String,
+    pub chapter_id: String,
+    pub text: String,
+    pub start_offset: usize,
+}
 
 #[tauri::command]
 pub async fn build_search_index(scenes: Vec<BuildIndexScene>) -> Result<(), String> {
