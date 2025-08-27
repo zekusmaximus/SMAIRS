@@ -1,0 +1,51 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless --disable-gpu",
+        "hostname": "127.0.0.1",
+        "port": 4173
+      },
+      "url": [
+        "http://127.0.0.1:4173/",
+        "http://127.0.0.1:4173/analysis",
+        "http://127.0.0.1:4173/export"
+      ]
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["error", {"minScore": 0.8}],
+        "categories:accessibility": ["error", {"minScore": 0.9}],
+        "categories:best-practices": ["error", {"minScore": 0.85}],
+        "categories:seo": ["error", {"minScore": 0.8}],
+        "first-contentful-paint": ["error", {"maxNumericValue": 2000}],
+        "largest-contentful-paint": ["error", {"maxNumericValue": 4000}],
+        "first-input-delay": ["error", {"maxNumericValue": 300}],
+        "cumulative-layout-shift": ["error", {"maxNumericValue": 0.25}],
+        "total-blocking-time": ["error", {"maxNumericValue": 600}],
+        "speed-index": ["error", {"maxNumericValue": 4000}],
+        "interactive": ["error", {"maxNumericValue": 5000}],
+        "uses-responsive-images": "error",
+        "uses-optimized-images": "error",
+        "uses-text-compression": "error",
+        "uses-rel-preload": "off",
+        "unused-css-rules": ["warn", {"maxLength": 2048}],
+        "unused-javascript": ["warn", {"maxLength": 20480}],
+        "modern-image-formats": "warn",
+        "offscreen-images": "warn",
+        "render-blocking-resources": ["warn", {"maxLength": 0}]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "./lighthouse-results"
+    },
+    "server": {
+      "command": "npm run preview",
+      "port": 4173,
+      "timeout": 60000
+    }
+  }
+}

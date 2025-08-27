@@ -1,9 +1,10 @@
-import React, { PropsWithChildren, Suspense, useEffect, useRef, useState } from "react";
+import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
 import "../../styles/layout.css";
 import "../../styles/animations.css";
 import "@/ui/themes/highContrast.css";
 import { DecisionBar } from "../components/DecisionBar";
-import ErrorBoundary from "@/ui/components/ErrorBoundary";
+import { SectionErrorBoundary, ComponentErrorBoundary } from "@/ui/components/ErrorBoundary";
+import { AsyncWrapper, LazyComponentWrapper } from "@/ui/components/AsyncWrapper";
 import KeyboardHelp from "@/ui/components/KeyboardHelp";
 // React imported above
 const SceneNavigator = React.lazy(() => import("@/ui/panels/SceneNavigator"));
@@ -79,52 +80,92 @@ export function MainLayout() {
         <DecisionBar onToggleCompare={() => { /* compare drawer opens when pinned via CompareDrawer */ }} />
       </div>
     <Panel className="panel-left" title="Scene Navigator">
-        <ErrorBoundary label="Scene Navigator">
-      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading navigator…</div>}>
-            <div ref={leftRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Scene Navigator Content">
+        <LazyComponentWrapper label="Scene Navigator" skeletonLines={5}>
+            <div ref={leftRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Scene Navigator Content" data-testid="scene-navigator">
               <SceneNavigator />
             </div>
-          </Suspense>
-        </ErrorBoundary>
+        </LazyComponentWrapper>
       </Panel>
       <Panel className="panel-center" title="Manuscript">
-        <ErrorBoundary label="Manuscript">
-      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading editor…</div>}>
-            <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Manuscript Editor">
+        <SectionErrorBoundary label="Manuscript Editor">
+          <AsyncWrapper 
+            errorBoundary="none" 
+            loadingMessage="Loading manuscript editor..."
+            fallback={
+              <div className="flex items-center justify-center" style={{ height: "60vh" }}>
+                <div className="space-y-4 text-center">
+                  <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-sm text-neutral-500">Loading editor...</p>
+                </div>
+              </div>
+            }
+          >
+            <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Manuscript Editor" data-testid="manuscript-editor">
               <div style={{ height: "60vh" }}>
                 <ManuscriptEditor />
               </div>
             </div>
-          </Suspense>
-        </ErrorBoundary>
+          </AsyncWrapper>
+        </SectionErrorBoundary>
       </Panel>
       <Panel className="panel-right" title="Search & Analysis">
-        <ErrorBoundary label="Search">
-      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading search…</div>}>
-            <div ref={rightRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Search Content">
-              <SearchPanel />
-            </div>
-          </Suspense>
-        </ErrorBoundary>
-        <ErrorBoundary label="Analysis">
-      <Suspense fallback={<div className="p-3 text-sm text-neutral-500 animate-pulse">Loading analysis…</div>}>
-            <div aria-label="Analysis Content">
-              <AnalysisDetails />
-            </div>
-          </Suspense>
-        </ErrorBoundary>
+        <div className="space-y-4">
+          <ComponentErrorBoundary label="Search Panel">
+            <AsyncWrapper 
+              errorBoundary="none" 
+              loadingMessage="Loading search..."
+              fallback={
+                <div className="p-4 space-y-2">
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                </div>
+              }
+            >
+              <div ref={rightRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Search Content" data-testid="search-panel">
+                <SearchPanel />
+              </div>
+            </AsyncWrapper>
+          </ComponentErrorBoundary>
+          
+          <ComponentErrorBoundary label="Analysis Details">
+            <AsyncWrapper 
+              errorBoundary="none" 
+              loadingMessage="Loading analysis..."
+              fallback={
+                <div className="p-4 space-y-3">
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-4/5"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/5"></div>
+                </div>
+              }
+            >
+              <div aria-label="Analysis Content" data-testid="analysis-details">
+                <AnalysisDetails />
+              </div>
+            </AsyncWrapper>
+          </ComponentErrorBoundary>
+        </div>
       </Panel>
 
-      <Suspense fallback={null}>
-        <CompareDrawer />
-      </Suspense>
-      <Suspense fallback={null}>
-        <JobTray />
-      </Suspense>
+      <ComponentErrorBoundary label="Compare Drawer">
+        <AsyncWrapper errorBoundary="none" fallback={null}>
+          <CompareDrawer />
+        </AsyncWrapper>
+      </ComponentErrorBoundary>
+      
+      <ComponentErrorBoundary label="Job Tray">
+        <AsyncWrapper errorBoundary="none" fallback={null}>
+          <JobTray />
+        </AsyncWrapper>
+      </ComponentErrorBoundary>
 
-      <Suspense fallback={null}>
-        <DbHarness />
-      </Suspense>
+      <ComponentErrorBoundary label="Database Harness">
+        <AsyncWrapper errorBoundary="none" fallback={null}>
+          <DbHarness />
+        </AsyncWrapper>
+      </ComponentErrorBoundary>
 
       <KeyboardHelp open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>

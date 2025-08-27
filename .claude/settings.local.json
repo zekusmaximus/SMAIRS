@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cargo check:*)"
+      "Bash(cargo check:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck:*)",
+      "Bash(node:*)",
+      "Bash(npm install)",
+      "Bash(cargo:*)",
+      "Bash(npm run test:unit:*)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": [],

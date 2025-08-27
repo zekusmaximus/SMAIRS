@@ -17,6 +17,8 @@ fn main() {
             smairs::commands::export::export_pandoc_docx,
             smairs::commands::export::export_pandoc_pdf,
             smairs::commands::export::export_package_zip,
+            smairs::commands::export::export_docx_track_changes,
+            smairs::commands::export::export_docx_python,
             smairs::commands::version::version_list,
             smairs::commands::version::version_create,
             smairs::commands::version::version_save,

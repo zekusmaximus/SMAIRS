@@ -62,3 +62,80 @@ pub async fn export_package_zip(files: Vec<String>, base_name: String) -> Result
     zip.finish().map_err(|e| e.to_string())?;
     Ok(zip_path.to_string_lossy().to_string())
 }
+
+#[tauri::command]
+pub async fn export_docx_track_changes(
+    markdown_path: String, 
+    changes: Vec<serde_json::Value>
+) -> Result<String, String> {
+    let out = ensure_out_dir();
+    let filter_path = out.join("track-changes.lua");
+    let docx_path = out.join("track_changes.docx");
+    
+    // Ensure the track-changes filter exists
+    if !filter_path.exists() {
+        let filter_content = include_str!("../../../filters/track-changes.lua");
+        fs::write(&filter_path, filter_content).map_err(|e| e.to_string())?;
+    }
+    
+    // Run pandoc with the track changes filter
+    let status = std::process::Command::new("pandoc")
+        .args(&[
+            markdown_path,
+            "--lua-filter".to_string(),
+            filter_path.to_string_lossy().to_string(),
+            "-t".to_string(),
+            "docx".to_string(),
+            "-o".to_string(),
+            docx_path.to_string_lossy().to_string(),
+        ])
+        .status()
+        .map_err(|e| e.to_string())?;
+    
+    if !status.success() {
+        return Err(format!("Pandoc track changes export failed with status {:?}", status.code()));
+    }
+    
+    Ok(docx_path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub async fn export_docx_python(
+    original_text: String,
+    revised_text: String,
+    changes: Vec<serde_json::Value>,
+    metadata: serde_json::Value
+) -> Result<String, String> {
+    let out = ensure_out_dir();
+    let input_file = out.join("docx_input.json");
+    let python_script = PathBuf::from("src-tauri/src/docx_processor.py");
+    
+    // Prepare input data for Python script
+    let input_data = serde_json::json!({
+        "originalText": original_text,
+        "revisedText": revised_text,
+        "changes": changes,
+        "metadata": metadata
+    });
+    
+    // Write input data to temporary file
+    fs::write(&input_file, serde_json::to_string_pretty(&input_data).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
+    
+    // Run Python script
+    let output = std::process::Command::new("python")
+        .args(&[
+            python_script.to_string_lossy().to_string(),
+            input_file.to_string_lossy().to_string()
+        ])
+        .output()
+        .map_err(|e| e.to_string())?;
+    
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Python DOCX processor failed: {}", stderr));
+    }
+    
+    let output_path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    Ok(output_path)
+}

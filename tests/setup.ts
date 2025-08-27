@@ -1,4 +1,8 @@
 import '@testing-library/jest-dom/vitest';
+import { toHaveNoViolations } from 'jest-axe';
+
+// Extend expect with jest-axe matchers
+expect.extend(toHaveNoViolations);
 
 // Mock @tauri-apps/api for Node/Vitest environment (persistence best-effort fallback uses dynamic import)
 // Provide minimal invoke stub that simply resolves; other exports can be added if needed later.
