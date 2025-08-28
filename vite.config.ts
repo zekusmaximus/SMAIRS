@@ -6,8 +6,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { compression } from 'vite-plugin-compression2';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { splitVendorChunkPlugin } from 'vite';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const zlib = require('zlib');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isTauriDebug = !!process.env.TAURI_DEBUG;

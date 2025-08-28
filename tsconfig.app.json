@@ -11,7 +11,7 @@
   "skipLibCheck": true,
   "noEmit": true,
   "declaration": false,
-    "types": ["vite/client", "vitest/globals"],
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
   "composite": false,
     "baseUrl": ".",
     "paths": {

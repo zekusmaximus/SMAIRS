@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import { expect } from 'vitest';
 import React from 'react';
 import App from './App';
 

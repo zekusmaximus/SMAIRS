@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { axe } from 'jest-axe';
 import userEvent from '@testing-library/user-event';
 
 // Import components
@@ -44,8 +44,6 @@ const mockChanges = [
   }
 ];
 
-expect.extend(toHaveNoViolations);
-
 describe('Accessibility Tests', () => {
   describe('RevisionInstructionViewer', () => {
     it('should not have accessibility violations', async () => {
@@ -74,7 +72,7 @@ describe('Accessibility Tests', () => {
 
       // Main heading should be accessible
       expect(screen.getByRole('heading', { name: /revision instructions/i })).toBeInTheDocument();
-      
+
       // Progress bar should have proper ARIA attributes
       const progressBar = screen.getByRole('progressbar');
       expect(progressBar).toHaveAttribute('aria-valuenow');
@@ -84,7 +82,7 @@ describe('Accessibility Tests', () => {
 
     it('has proper focus management', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <RevisionInstructionViewer
           instructions={mockInstructions}
@@ -180,7 +178,6 @@ describe('Accessibility Tests', () => {
       const button = document.createElement('button');
       document.body.appendChild(button);
       button.focus();
-      const previouslyFocused = document.activeElement;
 
       // Open modal
       rerender(
@@ -205,7 +202,7 @@ describe('Accessibility Tests', () => {
 
     it('traps focus within modal', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <VersionComparisonModal
           original="Original text"
@@ -220,7 +217,7 @@ describe('Accessibility Tests', () => {
 
       const modal = screen.getByRole('dialog');
       const buttons = modal.querySelectorAll('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
-      
+
       if (buttons.length > 1) {
         // Focus first button
         (buttons[0] as HTMLElement).focus();
@@ -279,7 +276,7 @@ describe('Accessibility Tests', () => {
     });
 
     it('announces status changes to screen readers', () => {
-      const { rerender } = render(<ExportProgressIndicator />);
+      render(<ExportProgressIndicator />);
 
       // Should have live regions for status announcements
       const liveRegions = document.querySelectorAll('[aria-live]');
@@ -297,7 +294,7 @@ describe('Accessibility Tests', () => {
 
       it('has proper disabled state', () => {
         render(<Button disabled>Disabled Button</Button>);
-        
+
         const button = screen.getByRole('button');
         expect(button).toBeDisabled();
         expect(button).toHaveAttribute('disabled');
@@ -305,7 +302,7 @@ describe('Accessibility Tests', () => {
 
       it('supports loading state with proper ARIA', () => {
         render(<Button loading>Loading Button</Button>);
-        
+
         const button = screen.getByRole('button');
         expect(button).toBeDisabled();
         expect(button.querySelector('[class*="animate-spin"]')).toBeInTheDocument();
@@ -315,10 +312,10 @@ describe('Accessibility Tests', () => {
     describe('Toggle', () => {
       it('should not have accessibility violations', async () => {
         const { container } = render(
-          <Toggle 
-            checked={false} 
-            onChange={() => {}} 
-            label="Test Toggle" 
+          <Toggle
+            checked={false}
+            onChange={() => {}}
+            label="Test Toggle"
           />
         );
         const results = await axe(container);
@@ -327,14 +324,14 @@ describe('Accessibility Tests', () => {
 
       it('has proper switch semantics', () => {
         render(
-          <Toggle 
-            checked={true} 
-            onChange={() => {}} 
+          <Toggle
+            checked={true}
+            onChange={() => {}}
             label="Accessible Toggle"
             description="This is a test toggle"
           />
         );
-        
+
         const toggle = screen.getByRole('switch');
         expect(toggle).toHaveAttribute('aria-checked', 'true');
         expect(toggle).toHaveAttribute('aria-labelledby');
@@ -359,7 +356,7 @@ describe('Accessibility Tests', () => {
             <div>Modal content</div>
           </Modal>
         );
-        
+
         const modal = screen.getByRole('dialog');
         expect(modal).toHaveAttribute('aria-modal', 'true');
       });
@@ -386,9 +383,9 @@ describe('Accessibility Tests', () => {
     describe('ProgressBar', () => {
       it('should not have accessibility violations', async () => {
         const { container } = render(
-          <ProgressBar 
-            value={50} 
-            max={100} 
+          <ProgressBar
+            value={50}
+            max={100}
             label="Loading progress"
             showPercentage={true}
           />
@@ -399,13 +396,13 @@ describe('Accessibility Tests', () => {
 
       it('has proper progressbar semantics', () => {
         render(
-          <ProgressBar 
-            value={75} 
-            max={100} 
+          <ProgressBar
+            value={75}
+            max={100}
             label="Test Progress"
           />
         );
-        
+
         const progressbar = screen.getByRole('progressbar');
         expect(progressbar).toHaveAttribute('aria-valuenow', '75');
         expect(progressbar).toHaveAttribute('aria-valuemax', '100');
@@ -421,7 +418,7 @@ describe('Accessibility Tests', () => {
           High contrast text
         </div>
       );
-      
+
       // This is more of a design system test, but we verify the classes are applied
       const element = screen.getByText('High contrast text');
       expect(element).toHaveClass('text-gray-900', 'dark:text-gray-100');
@@ -429,7 +426,7 @@ describe('Accessibility Tests', () => {
 
     it('provides focus indicators', () => {
       render(<Button>Focusable Button</Button>);
-      
+
       const button = screen.getByRole('button');
       expect(button).toHaveClass('focus:outline-none', 'focus:ring-2');
     });
@@ -451,7 +448,7 @@ describe('Accessibility Tests', () => {
       });
 
       render(<Button>Motion Sensitive Button</Button>);
-      
+
       // Components should respect reduced motion
       // This would need to be implemented in the actual components
       const button = screen.getByRole('button');
@@ -472,7 +469,7 @@ describe('Accessibility Tests', () => {
       const h1 = screen.getByRole('heading', { level: 1 });
       const h2 = screen.getByRole('heading', { level: 2 });
       const h3 = screen.getByRole('heading', { level: 3 });
-      
+
       expect(h1).toBeInTheDocument();
       expect(h2).toBeInTheDocument();
       expect(h3).toBeInTheDocument();
@@ -499,7 +496,7 @@ describe('Accessibility Tests', () => {
 
       const list = screen.getByRole('list');
       const items = screen.getAllByRole('listitem');
-      
+
       expect(list).toBeInTheDocument();
       expect(items).toHaveLength(2);
     });

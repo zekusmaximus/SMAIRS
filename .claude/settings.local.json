@@ -10,7 +10,10 @@
       "Bash(cargo:*)",
       "Bash(npm run test:unit:*)",
       "Bash(npm run:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(grep:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npx playwright:*)"
     ],
     "deny": [],
     "ask": [],
