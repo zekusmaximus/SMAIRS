@@ -6,6 +6,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { compression } from 'vite-plugin-compression2';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { splitVendorChunkPlugin } from 'vite';
+import autoprefixer from 'autoprefixer';
+import cssnano from 'cssnano';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isTauriDebug = !!process.env.TAURI_DEBUG;
@@ -16,7 +18,7 @@ export default defineConfig({
       // Optimize JSX in production
       jsxRuntime: 'automatic',
     }),
-    
+
     // Progressive Web App configuration
     VitePWA({
       registerType: 'autoUpdate',
@@ -124,50 +126,29 @@ export default defineConfig({
   // Build optimizations
   build: {
     // Target modern browsers
-    target: process.env.TAURI_PLATFORM == 'windows' 
-      ? ['chrome105', 'edge105'] 
+    target: process.env.TAURI_PLATFORM == 'windows'
+      ? ['chrome105', 'edge105']
       : ['safari13', 'firefox100'],
-    
+
     // Minification settings
     minify: isTauriDebug ? false : 'esbuild',
-    
+
     // Source maps
     sourcemap: isTauriDebug || process.env.VITE_SOURCEMAP === 'true',
-    
+
     // Bundle splitting and optimization
     rollupOptions: {
       output: {
         // Manual chunk splitting for optimal loading
-        manualChunks: {
-          // React ecosystem
-          'react-vendor': ['react', 'react-dom'],
-          
-          // UI libraries
-          'ui-vendor': ['framer-motion', 'lucide-react'],
-          
-          // Large feature modules
-          'export-features': [
-            './src/features/export/revision-instructions.ts',
-            './src/features/export/docx-track-changes.ts'
-          ],
-          
-          // LLM processing
-          'llm-features': ['./src/features/llm'],
-          
-          // Utilities
-          'utils': [
-            './src/utils/error-recovery.ts',
-            './src/utils/performance-monitor.ts'
-          ],
-
-          // UI components  
-          'ui-components': [
-            './src/ui/components/RevisionInstructionViewer.tsx',
-            './src/ui/components/VersionComparisonModal.tsx',
-            './src/ui/components/ExportProgressIndicator.tsx'
-          ]
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (/\\node_modules\\react|\/node_modules\/react/.test(id) || /react-dom/.test(id)) {
+              return 'react-vendor';
+            }
+            return 'vendor';
+          }
         },
-        
+
         // Asset naming for caching
         chunkFileNames: () => {
           return `js/[name]-[hash].js`;
@@ -184,7 +165,7 @@ export default defineConfig({
           return `assets/[name]-[hash][extname]`;
         }
       },
-      
+
       // External dependencies (for library builds)
       external: isProduction ? [] : ['@tauri-apps/api']
     },
@@ -192,10 +173,10 @@ export default defineConfig({
     // Performance settings
     chunkSizeWarningLimit: 1000,
     reportCompressedSize: isProduction,
-    
+
     // Asset handling
     assetsInlineLimit: 4096, // 4KB
-    
+
     // CSS code splitting
     cssCodeSplit: true
   },
@@ -203,11 +184,9 @@ export default defineConfig({
   // Dependency optimization
   optimizeDeps: {
     include: [
-      'react',
-      'react-dom',
-      'react/jsx-runtime',
-      'framer-motion',
-      'lucide-react'
+  'react',
+  'react-dom',
+  'react/jsx-runtime'
     ],
     exclude: ['@tauri-apps/api'],
     esbuildOptions: {
@@ -233,10 +212,8 @@ export default defineConfig({
     devSourcemap: !isProduction,
     postcss: {
       plugins: isProduction ? [
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('autoprefixer'),
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('cssnano')({
+        autoprefixer(),
+        cssnano({
           preset: 'default'
         })
       ] : []

@@ -2,18 +2,18 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "**" ]
+    branches: ["**"]
 
 jobs:
   build-test:
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [windows-latest]
         node: [20]
-    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +22,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          cache: 'npm'
+          cache: npm
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install deps
         run: npm ci
@@ -31,14 +34,16 @@ jobs:
         if: ${{ hashFiles('data/manuscript.txt') != '' }}
         run: npm run manuscript:validate -- data/manuscript.txt
 
-      - name: Deterministic CLI smoke (if script & manuscript present)
+      - name: Deterministic CLI smoke (Windows)
         if: ${{ hashFiles('data/manuscript.txt') != '' }}
+        shell: pwsh
         run: |
-          if npm run | grep -q cli:test:nix; then
-            npm run cli:test:nix
-          else
-            echo "cli:test:nix script not found, skipping"
-          fi
+          $hasScript = (npm run | Select-String -Quiet 'cli:test:win')
+          if ($hasScript) {
+            npm run cli:test:win
+          } else {
+            Write-Host "cli:test:win script not found, skipping"
+          }
 
       - name: Typecheck
         run: npm run typecheck
@@ -49,24 +54,24 @@ jobs:
       - name: Test
         run: npm test -- --run
 
-      - name: Performance (5MB synthetic) timing
+      - name: Performance (5MB synthetic) timing (Windows)
+        shell: pwsh
         run: |
-          echo "Running performance.large.spec.ts"
-          start=$(node -p "performance.now()") || true
-          npm test -- --run --filter=performance.large.spec.ts || true
-          # Extract timing from console warn if present
-          echo "Completed performance test"
+          Write-Host "Running performance.large.spec.ts"
+          npm test -- --run --filter=performance.large.spec.ts || exit 0
+          Write-Host "Completed performance test"
 
       - name: Summary
         if: ${{ always() }}
+        shell: pwsh
         run: |
-          echo "OS: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
-          echo "Node: ${{ matrix.node }}" >> $GITHUB_STEP_SUMMARY
-          echo "Tests executed on matrix combination." >> $GITHUB_STEP_SUMMARY
+          "OS: ${{ matrix.os }}" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          "Node: ${{ matrix.node }}" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          "Tests executed on matrix combination." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
       - name: Upload test report artifact (if present)
-        uses: actions/upload-artifact@v4
         if: ${{ always() }}
+        uses: actions/upload-artifact@v4
         with:
           name: test-report-${{ matrix.os }}
           path: out/test-report.md
