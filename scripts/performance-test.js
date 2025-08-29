@@ -5,6 +5,10 @@
  * Tests the performance optimizations for large manuscripts (120k+ words)
  */
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 // Node.js compatibility
 const { performance } = require('perf_hooks');
 const { setTimeout, setImmediate } = require('timers');

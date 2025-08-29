@@ -1,6 +1,9 @@
 // Capability profile abstraction (Phase 1 stub implementation)
 // Profiles decouple the rest of the codebase from concrete provider model IDs.
 
+import { globalErrorReporter, ErrorCategory, ErrorSeverity, RecoveryAction } from '../../utils/error-reporter';
+import { globalErrorRecovery } from '../../utils/error-recovery';
+
 export type Profile = 'STRUCTURE_LONGCTX' | 'FAST_ITERATE' | 'JUDGE_SCORER';
 
 export interface LLMResult<T = unknown> {
@@ -79,31 +82,128 @@ export class MockCaller implements LLMCaller {
   }
 
   async call<T>(args: CallArgs): Promise<LLMResult<T>> {
-    await this.acquire();
-    const profile = args.profile || this.profile;
-    const text = this.generateText(profile, args.prompt);
-  const jsonUnknown = this.generateMockResponse(profile, args.prompt);
-  const result: LLMResult<T> = { text, json: jsonUnknown as T, usage: { in: Math.round(args.prompt.length / 4), out: Math.round(text.length / 4) }, raw: { mock: true, profile } };
-    this.release();
-    return result;
-  }
+    try {
+      await this.acquire();
+      const profile = args.profile || this.profile;
 
-  async callWithRetry<T>(args: CallArgs, maxRetries = 2): Promise<LLMResult<T>> {
-    let attempt = 0;
-    // Mock never fails, but keep structure for interface parity.
-    while (true) {
-      try {
-        return await this.call<T>(args);
-      } catch (err) {
-        attempt++;
-        if (attempt > maxRetries) throw err;
-        await new Promise(r => setTimeout(r, 50 * attempt));
+      // Simulate occasional failures for testing error handling
+      if (Math.random() < 0.05) { // 5% chance of failure
+        throw new Error('Simulated LLM API failure');
       }
+
+      const text = this.generateText(profile, args.prompt);
+      const jsonUnknown = this.generateMockResponse(profile, args.prompt);
+      const result: LLMResult<T> = {
+        text,
+        json: jsonUnknown as T,
+        usage: { in: Math.round(args.prompt.length / 4), out: Math.round(text.length / 4) },
+        raw: { mock: true, profile }
+      };
+
+      this.release();
+      return result;
+    } catch (error) {
+      this.release();
+
+      // Report the error with appropriate categorization
+      globalErrorReporter.report(error as Error, {
+        category: ErrorCategory.LLM_PROVIDER,
+        severity: ErrorSeverity.MEDIUM,
+        context: {
+          profile: this.profile,
+          modelId: this.modelId,
+          promptLength: args.prompt.length,
+          hasSystemMessage: !!args.system
+        },
+        recoveryActions: this.generateLLMRecoveryActions(args)
+      });
+
+      throw error;
     }
   }
 
+  async callWithRetry<T>(args: CallArgs, maxRetries = 2): Promise<LLMResult<T>> {
+    const operationId = `llm-call-${this.profile}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    return await globalErrorRecovery.withRetry(
+      operationId,
+      async () => await this.call<T>(args),
+      {
+        maxRetries,
+        backoffStrategy: 'exponential',
+        initialDelay: 1000,
+        context: {
+          profile: this.profile,
+          modelId: this.modelId,
+          promptLength: args.prompt.length,
+          operationType: 'llm_call'
+        },
+        onRetry: (attempt, delay) => {
+          console.log(`LLM retry attempt ${attempt} for ${this.profile} after ${delay}ms`);
+        }
+      }
+    );
+  }
+
   async callBatch<T>(requests: CallArgs[]): Promise<LLMResult<T>[]> {
-    return Promise.all(requests.map(r => this.call<T>(r)));
+    try {
+      // Process requests with concurrency control
+      const results = await Promise.allSettled(
+        requests.map((request, index) =>
+          this.callWithRetry<T>(request, 2).catch(error => {
+            // Report batch item failure but don't fail the entire batch
+            globalErrorReporter.report(error, {
+              category: ErrorCategory.LLM_PROVIDER,
+              severity: ErrorSeverity.MEDIUM,
+              context: {
+                batchIndex: index,
+                batchSize: requests.length,
+                profile: this.profile,
+                modelId: this.modelId
+              }
+            });
+            throw error;
+          })
+        )
+      );
+
+      // Handle partial failures
+      const successful: LLMResult<T>[] = [];
+      const failures: Error[] = [];
+
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          successful.push(result.value);
+        } else {
+          failures.push(result.reason);
+        }
+      });
+
+      // If all failed, throw an error
+      if (successful.length === 0 && failures.length > 0) {
+        const firstError = failures[0];
+        throw new Error(`All ${requests.length} LLM requests failed. First error: ${firstError?.message || 'Unknown error'}`);
+      }
+
+      // If some failed, log warnings but return successful results
+      if (failures.length > 0) {
+        console.warn(`${failures.length} out of ${requests.length} LLM requests failed`);
+      }
+
+      return successful;
+    } catch (error) {
+      globalErrorReporter.report(error as Error, {
+        category: ErrorCategory.LLM_PROVIDER,
+        severity: ErrorSeverity.HIGH,
+        context: {
+          batchSize: requests.length,
+          profile: this.profile,
+          modelId: this.modelId,
+          operationType: 'batch_call'
+        }
+      });
+      throw error;
+    }
   }
 
   estimateCost(tokens: { input: number; output: number }): number {
@@ -224,6 +324,52 @@ export class MockCaller implements LLMCaller {
     MockCaller.active--;
     const n = MockCaller.queue.shift();
     if (n) n();
+  }
+
+  private generateLLMRecoveryActions(args: CallArgs): RecoveryAction[] {
+    const actions: RecoveryAction[] = [];
+
+    // Add retry action
+    actions.push({
+      label: 'Retry Request',
+      action: async () => {
+        // The retry will be handled by the callWithRetry method
+        console.log('Retrying LLM request...');
+      },
+      primary: true
+    });
+
+    // Add fallback model action
+    actions.push({
+      label: 'Try Different Model',
+      action: async () => {
+        // Switch to fallback model
+        const fallbackModel = getFallbackModelId(this.profile);
+        console.log(`Switching to fallback model: ${fallbackModel}`);
+      }
+    });
+
+    // Add offline mode action
+    actions.push({
+      label: 'Use Offline Mode',
+      action: async () => {
+        // Enable offline mode
+        console.log('Switching to offline mode...');
+      }
+    });
+
+    // Add reduce complexity action for long prompts
+    if (args.prompt.length > 1000) {
+      actions.push({
+        label: 'Simplify Prompt',
+        action: async () => {
+          // This would typically modify the prompt
+          console.log('Prompt simplification would be applied...');
+        }
+      });
+    }
+
+    return actions;
   }
 }
 

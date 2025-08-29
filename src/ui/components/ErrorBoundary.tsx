@@ -1,5 +1,6 @@
 import React from 'react';
 import { globalErrorRecovery } from '../../utils/error-recovery';
+import { globalErrorReporter, ErrorCategory, ErrorSeverity, RecoveryAction } from '../../utils/error-reporter';
 
 export interface ErrorInfo {
   componentStack: string;
@@ -59,17 +60,24 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
     this.setState({ errorInfo: enhancedErrorInfo });
 
-    // Log to console for development
-    console.group(`🚨 Error Boundary (${level}): ${label || 'Unknown'}`);
-    console.error('Error:', error);
-    console.error('Error Info:', enhancedErrorInfo);
-    console.error('Component Stack:', errorInfo.componentStack);
-    console.groupEnd();
-
-    // Report to error tracking service in production
-    if (process.env.NODE_ENV === 'production') {
-      this.reportError(error, enhancedErrorInfo);
-    }
+    // Report error using the centralized error reporter
+    const errorReport = globalErrorReporter.report(error, {
+      category: this.categorizeBoundaryError(error),
+      severity: this.determineBoundarySeverity(error, level),
+      context: {
+        errorBoundaryLevel: level,
+        label,
+        componentStack: errorInfo.componentStack,
+        errorBoundary: enhancedErrorInfo.errorBoundary,
+        retryCount: this.state.retryCount
+      },
+      recoveryActions: this.generateRecoveryActions(error, level, label),
+      metadata: {
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        timestamp: new Date().toISOString()
+      }
+    });
 
     // Call custom error handler
     onError?.(error, enhancedErrorInfo);
@@ -88,7 +96,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           context: {
             errorBoundaryLevel: level,
             label,
-            errorMessage: error.message
+            errorMessage: error.message,
+            errorReportId: errorReport.id
           }
         }
       );
@@ -120,7 +129,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   private handleRetry = () => {
     const maxRetries = this.props.maxRetries || 3;
-    
+
     if (this.state.retryCount >= maxRetries) {
       console.warn(`Max retries (${maxRetries}) reached for error boundary`);
       return;
@@ -155,6 +164,122 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     window.location.reload();
   };
 
+  private categorizeBoundaryError(error: Error): ErrorCategory {
+    const message = error.message.toLowerCase();
+
+    if (message.includes('network') || message.includes('fetch')) {
+      return ErrorCategory.NETWORK;
+    }
+    if (message.includes('memory') || message.includes('out of memory')) {
+      return ErrorCategory.MEMORY;
+    }
+    if (message.includes('chunk') || message.includes('loading')) {
+      return ErrorCategory.FILE_SYSTEM;
+    }
+    if (message.includes('render') || message.includes('component')) {
+      return ErrorCategory.PARSING;
+    }
+
+    return ErrorCategory.UNKNOWN;
+  }
+
+  private determineBoundarySeverity(error: Error, level: 'page' | 'section' | 'component'): ErrorSeverity {
+    // Page-level errors are more severe
+    if (level === 'page') {
+      return ErrorSeverity.HIGH;
+    }
+
+    // Section-level errors are medium severity
+    if (level === 'section') {
+      return ErrorSeverity.MEDIUM;
+    }
+
+    // Component-level errors are typically low severity
+    return ErrorSeverity.LOW;
+  }
+
+  private generateRecoveryActions(error: Error, level: 'page' | 'section' | 'component', label?: string): RecoveryAction[] {
+    const actions: RecoveryAction[] = [];
+    const message = error.message.toLowerCase();
+
+    // Add retry action if retries are available
+    if (this.state.retryCount < (this.props.maxRetries || 3)) {
+      actions.push({
+        label: 'Try Again',
+        action: () => this.handleRetry(),
+        primary: true
+      });
+    }
+
+    // Add reload action for page-level errors
+    if (level === 'page') {
+      actions.push({
+        label: 'Reload Page',
+        action: () => this.handleReload()
+      });
+    }
+
+    // Add reset action
+    actions.push({
+      label: 'Reset Component',
+      action: () => this.handleReset()
+    });
+
+    // Add network-specific actions
+    if (message.includes('network') || message.includes('fetch')) {
+      actions.push({
+        label: 'Check Connection',
+        action: () => {
+          // Open network diagnostics or just show a message
+          alert('Please check your internet connection and try again.');
+        }
+      });
+    }
+
+    // Add memory-specific actions
+    if (message.includes('memory') || message.includes('out of memory')) {
+      actions.push({
+        label: 'Free Memory',
+        action: () => {
+          // Suggest closing other tabs/applications
+          alert('Try closing other browser tabs or applications to free up memory.');
+        }
+      });
+    }
+
+    // Add show details action for development/debugging
+    if (process.env.NODE_ENV === 'development' || this.props.showDetails) {
+      actions.push({
+        label: 'Show Details',
+        action: () => {
+          // Emit event to show error details modal
+          globalErrorReporter.report(error, {
+            category: this.categorizeBoundaryError(error),
+            severity: this.determineBoundarySeverity(error, level),
+            context: {
+              errorBoundaryLevel: level,
+              label: label || 'Unknown',
+              showDetails: true
+            }
+          });
+        }
+      });
+    }
+
+    // Add report issue action
+    actions.push({
+      label: 'Report Issue',
+      action: () => {
+        const errorDetails = encodeURIComponent(
+          `Error: ${error.message}\nStack: ${error.stack}\nURL: ${window.location.href}\nUserAgent: ${navigator.userAgent}`
+        );
+        window.open(`mailto:support@example.com?subject=Error Report&body=${errorDetails}`, '_blank');
+      }
+    });
+
+    return actions;
+  }
+
   render() {
     const { hasError, error, errorInfo } = this.state;
     const { fallback: Fallback, children, level = 'component', label, showDetails = false } = this.props;
@@ -172,8 +297,11 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         );
       }
 
+      // Get recovery actions for this error
+      const recoveryActions = this.generateRecoveryActions(error, level, label);
+
       // Default fallback UI based on error level
-      return this.renderDefaultFallback(error, errorInfo, level, label, showDetails);
+      return this.renderDefaultFallback(error, errorInfo, level, label, showDetails, recoveryActions);
     }
 
     return <>{children}</>;
@@ -184,10 +312,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     errorInfo?: ErrorInfo,
     level: 'page' | 'section' | 'component' = 'component',
     label?: string,
-    showDetails = false
+    showDetails = false,
+    recoveryActions: RecoveryAction[] = []
   ) {
     const maxRetries = this.props.maxRetries || 3;
-    const canRetry = this.state.retryCount < maxRetries;
 
     // Different styles based on error level
     const levelStyles = {
@@ -284,33 +412,20 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 justify-center">
-            {canRetry && (
+            {recoveryActions.map((action, index) => (
               <button
-                onClick={this.handleRetry}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                data-testid="error-retry-btn"
+                key={index}
+                onClick={() => action.action()}
+                className={`px-4 py-2 text-sm font-medium rounded focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  action.primary
+                    ? 'text-white bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                    : 'text-red-700 bg-white border border-red-300 hover:bg-red-50 focus:ring-red-500'
+                }`}
+                data-testid={`error-action-btn-${index}`}
               >
-                Try Again
+                {action.label}
               </button>
-            )}
-
-            <button
-              onClick={this.handleReset}
-              className="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-              data-testid="error-reset-btn"
-            >
-              Reset
-            </button>
-
-            {level === 'page' && (
-              <button
-                onClick={this.handleReload}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                data-testid="error-reload-btn"
-              >
-                Reload Page
-              </button>
-            )}
+            ))}
           </div>
         </div>
       </div>

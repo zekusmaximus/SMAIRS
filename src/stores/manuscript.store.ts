@@ -4,6 +4,8 @@ import { importManuscript } from "@/features/manuscript/importer";
 import { segmentScenesAsync } from "@/features/manuscript/segmentation";
 import { buildRevealGraph, type RevealGraphEntry } from "@/features/manuscript/reveal-graph";
 import { searchAPI } from "@/features/search/searchApi";
+import { globalErrorReporter, ErrorCategory, ErrorSeverity } from '../utils/error-reporter';
+import { globalErrorRecovery } from '../utils/error-recovery';
 
 // LRU Cache for scene text
 class LRUCache<T> {
@@ -47,6 +49,16 @@ class LRUCache<T> {
 }
 
 // Memory pressure monitoring
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory: PerformanceMemory;
+}
+
 class MemoryMonitor {
   private warningThreshold = 200 * 1024 * 1024; // 200MB
   private criticalThreshold = 400 * 1024 * 1024; // 400MB
@@ -54,7 +66,8 @@ class MemoryMonitor {
 
   checkMemoryUsage(): 'normal' | 'warning' | 'critical' {
     if (typeof performance !== 'undefined' && 'memory' in performance) {
-      const memInfo = (performance as any).memory;
+      const perfWithMemory = performance as PerformanceWithMemory;
+      const memInfo = perfWithMemory.memory;
       const used = memInfo.usedJSHeapSize;
 
       if (used > this.criticalThreshold) {
@@ -89,6 +102,24 @@ export type LoadingState = 'idle' | 'loading' | 'loaded' | 'error';
 
 export type OperationStage = 'parsing' | 'segmenting' | 'analyzing' | 'indexing';
 
+export interface ManuscriptError {
+  id: string;
+  timestamp: Date;
+  operation: string;
+  error: Error;
+  context?: Record<string, unknown>;
+  recoverable: boolean;
+}
+
+export interface ManuscriptBackup {
+  id: string;
+  timestamp: Date;
+  manuscript: Manuscript | null;
+  scenes: ManuscriptScene[];
+  fullText: string;
+  operation: string;
+}
+
 export type ManuscriptStoreState = Selected & {
   manuscript?: Manuscript;
   /** Normalized complete manuscript text (LF newlines). Mirrors manuscript.rawText when loaded. */
@@ -106,6 +137,10 @@ export type ManuscriptStoreState = Selected & {
   operationStage: OperationStage | null;
   progressStartTime: number | null;
   progressMessage: string | null;
+  // error recovery
+  errorHistory: ManuscriptError[];
+  backups: ManuscriptBackup[];
+  lastAutoSave: Date | null;
   // actions
   loadManuscript: (path: string) => Promise<void>;
   loadManuscriptSync: (path: string) => Promise<void>; // Legacy synchronous version
@@ -132,6 +167,14 @@ export type ManuscriptStoreState = Selected & {
   startProgress: (stage: OperationStage, message?: string) => void;
   completeProgress: () => void;
   resetProgress: () => void;
+  // error recovery actions
+  createBackup: (operation: string) => void;
+  rollbackToBackup: (backupId: string) => Promise<void>;
+  autoSave: () => Promise<void>;
+  recoverFromError: (errorId: string) => Promise<void>;
+  clearErrorHistory: () => void;
+  getErrorHistory: () => ManuscriptError[];
+  getBackups: () => ManuscriptBackup[];
   // backward compatibility
   isLoading: boolean;
   setLoading: (loading: boolean) => void;
@@ -140,7 +183,10 @@ export type ManuscriptStoreState = Selected & {
 async function readText(path: string): Promise<string> {
   // Prefer Tauri runtime when available; fallback to Node in dev/test
   try {
-    const mod = (await import("@tauri-apps/api")) as unknown as { fs?: { readTextFile?: (p: string) => Promise<string> }; invoke?: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> };
+    const mod = await import("@tauri-apps/api") as {
+      fs?: { readTextFile?: (p: string) => Promise<string> };
+      invoke?: (cmd: string, args?: Record<string, unknown>) => Promise<unknown>;
+    };
     // Try invoke-based command first (works without FS capability)
     if (typeof mod.invoke === "function") {
       try {
@@ -177,10 +223,19 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   operationStage: null,
   progressStartTime: null,
   progressMessage: null,
+  // error recovery
+  errorHistory: [],
+  backups: [],
+  lastAutoSave: null,
   // backward compatibility
   get isLoading() { return get().loadingState === 'loading'; },
   async loadManuscript(path: string) {
+    const operationId = `load-manuscript-${Date.now()}`;
+
     try {
+      // Create backup of current state before loading new manuscript
+      get().createBackup('pre-load-manuscript');
+
       set({ loadingState: 'loading', loadingError: null });
       get().resetProgress();
 
@@ -220,6 +275,9 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
         loadingError: null
       });
 
+      // Create backup after successful load
+      get().createBackup('post-load-manuscript');
+
       // Build search index asynchronously (best effort)
       try {
         get().setProgress(95, 'indexing', 'Building search index...');
@@ -229,7 +287,43 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
         console.warn("search index build failed", e);
         get().completeProgress();
       }
+
+      // Auto-save after successful load
+      await get().autoSave();
+
     } catch (error) {
+      const manuscriptError: ManuscriptError = {
+        id: `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date(),
+        operation: 'load-manuscript',
+        error: error as Error,
+        context: { path, operationId },
+        recoverable: true
+      };
+
+      // Add to error history
+      set(state => ({
+        errorHistory: [...state.errorHistory, manuscriptError]
+      }));
+
+      // Report error
+      globalErrorReporter.report(error as Error, {
+        category: ErrorCategory.FILE_SYSTEM,
+        severity: ErrorSeverity.HIGH,
+        context: { path, operationId },
+        recoveryActions: [{
+          label: 'Try Different File',
+          action: () => {
+            // This would typically open a file picker
+            console.log('Opening file picker for retry...');
+          }
+        }, {
+          label: 'Retry Load',
+          action: () => get().loadManuscript(path),
+          primary: true
+        }]
+      });
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to load manuscript';
       set({
         loadingState: 'error',
@@ -456,6 +550,165 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
       size: cache.size(),
       maxSize: 100 // Default max size
     };
+  },
+
+  // error recovery methods
+  createBackup(operation: string) {
+    const { manuscript, scenes, fullText } = get();
+    const backup: ManuscriptBackup = {
+      id: `backup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date(),
+      manuscript: manuscript || null,
+      scenes: [...scenes],
+      fullText,
+      operation
+    };
+
+    set(state => ({
+      backups: [...state.backups.slice(-9), backup] // Keep last 10 backups
+    }));
+
+    return backup.id;
+  },
+
+  async rollbackToBackup(backupId: string) {
+    const { backups } = get();
+    const backup = backups.find(b => b.id === backupId);
+
+    if (!backup) {
+      throw new Error(`Backup ${backupId} not found`);
+    }
+
+    try {
+      // Create a backup of current state before rollback
+      get().createBackup('pre-rollback');
+
+      set({
+        manuscript: backup.manuscript || undefined,
+        scenes: [...backup.scenes],
+        fullText: backup.fullText,
+        reveals: backup.manuscript ? buildRevealGraph(backup.scenes).reveals : []
+      });
+
+      // Clear caches
+      get().sceneTextCache.clear();
+
+      // Rebuild search index
+      if (backup.scenes.length > 0) {
+        try {
+          await searchAPI.buildIndex(backup.scenes);
+        } catch (error) {
+          console.warn('Failed to rebuild search index after rollback:', error);
+        }
+      }
+    } catch (error) {
+      globalErrorReporter.report(error as Error, {
+        category: ErrorCategory.DATA_CORRUPTION,
+        severity: ErrorSeverity.HIGH,
+        context: { backupId, operation: 'rollback' }
+      });
+      throw error;
+    }
+  },
+
+  async autoSave() {
+    const { manuscript, fullText } = get();
+
+    if (!manuscript && !fullText) {
+      return; // Nothing to save
+    }
+
+    try {
+      // In a real app, this would save to a file or database
+      // For now, we'll just update the timestamp
+      set({ lastAutoSave: new Date() });
+
+      // Create a backup for recovery purposes
+      get().createBackup('auto-save');
+    } catch (error) {
+      globalErrorReporter.report(error as Error, {
+        category: ErrorCategory.STORAGE,
+        severity: ErrorSeverity.MEDIUM,
+        context: { operation: 'auto-save' }
+      });
+    }
+  },
+
+  async recoverFromError(errorId: string) {
+    const { errorHistory } = get();
+    const errorRecord = errorHistory.find(e => e.id === errorId);
+
+    if (!errorRecord) {
+      throw new Error(`Error record ${errorId} not found`);
+    }
+
+    if (!errorRecord.recoverable) {
+      throw new Error(`Error ${errorId} is not recoverable`);
+    }
+
+    try {
+      // Attempt recovery based on error type
+      const recoveryOperationId = `recovery-${errorId}`;
+
+      await globalErrorRecovery.withRetry(
+        recoveryOperationId,
+        async () => {
+          // Try to restore from the most recent backup
+          const { backups } = get();
+          if (backups.length > 0) {
+            const latestBackup = backups[backups.length - 1];
+            if (latestBackup) {
+              await get().rollbackToBackup(latestBackup.id);
+            }
+          } else {
+            // If no backups, try to reload the manuscript
+            // This is a simplified recovery - in practice, you'd have more sophisticated logic
+            set({
+              loadingState: 'idle',
+              loadingError: null,
+              errorHistory: get().errorHistory.filter(e => e.id !== errorId)
+            });
+          }
+        },
+        {
+          maxRetries: 2,
+          context: {
+            errorId,
+            operation: 'error-recovery',
+            originalError: errorRecord.error.message
+          }
+        }
+      );
+
+      // Remove the error from history if recovery succeeded
+      set(state => ({
+        errorHistory: state.errorHistory.filter(e => e.id !== errorId)
+      }));
+
+    } catch (recoveryError) {
+      // Recovery failed - report this as a new error
+      globalErrorReporter.report(recoveryError as Error, {
+        category: ErrorCategory.DATA_CORRUPTION,
+        severity: ErrorSeverity.CRITICAL,
+        context: {
+          originalErrorId: errorId,
+          operation: 'error-recovery-failed'
+        }
+      });
+      throw recoveryError;
+    }
+  },
+
+  clearErrorHistory() {
+    set({ errorHistory: [] });
+  },
+
+  getErrorHistory() {
+    return get().errorHistory;
+  },
+
+  getBackups() {
+    return get().backups;
   },
 
   // backward compatibility
