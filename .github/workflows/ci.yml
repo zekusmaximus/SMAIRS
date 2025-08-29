@@ -52,13 +52,18 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test -- --run
+        run: npm test
 
       - name: Performance (5MB synthetic) timing (Windows)
         shell: pwsh
         run: |
           Write-Host "Running performance.large.spec.ts"
-          npm test -- --run --filter=performance.large.spec.ts || exit 0
+          # Run a specific performance spec if present; ignore failures
+          npm test -- --run performance.large.spec.ts
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Performance spec failed or not found; ignoring failure"
+            $global:LASTEXITCODE = 0
+          }
           Write-Host "Completed performance test"
 
       - name: Summary
