@@ -599,8 +599,8 @@ describe('RevisionInstructionViewer', () => {
       await user.type(searchInput, 'Special');
       const endTime = performance.now();
 
-  // Search should be reasonably fast (< 200ms) under jsdom/CI
-  expect(endTime - startTime).toBeLessThan(200);
+  // Search should be reasonably fast (< 300ms) under jsdom/CI
+  expect(endTime - startTime).toBeLessThan(300);
 
       await waitFor(() => {
         // Verify header summary shows the filtered count

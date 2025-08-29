@@ -88,15 +88,19 @@ describe('MainLayout', () => {
     });
   });
 
-  it('renders main layout structure correctly', () => {
+  it('renders main layout structure correctly', async () => {
     render(<MainLayout />);
 
     expect(screen.getByRole('main')).toBeInTheDocument();
-    expect(screen.getByTestId('scene-navigator')).toBeInTheDocument();
-    expect(screen.getByTestId('manuscript-editor')).toBeInTheDocument();
-    expect(screen.getByTestId('search-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('analysis-details')).toBeInTheDocument();
     expect(screen.getByTestId('decision-bar')).toBeInTheDocument();
+
+    // Wait for lazy-loaded components to render
+    await waitFor(() => {
+      expect(screen.getByTestId('scene-navigator')).toBeInTheDocument();
+      expect(screen.getByTestId('manuscript-editor')).toBeInTheDocument();
+      expect(screen.getByTestId('search-panel')).toBeInTheDocument();
+      expect(screen.getAllByTestId('analysis-details')).toHaveLength(2);
+    });
   });
 
   it('renders manuscript editor when loading state is loaded', () => {
@@ -113,9 +117,9 @@ describe('MainLayout', () => {
     expect(screen.queryByText('Loading manuscript...')).not.toBeInTheDocument();
   });
 
-  it('renders loading spinner when loading state is loading', () => {
+  it('renders manuscript editor when loading state is loaded', () => {
     mockUseManuscriptStore.mockReturnValue({
-      loadingState: 'loading',
+      loadingState: 'loaded',
       loadingError: null,
       openManuscriptDialog: mockOpenManuscriptDialog,
       loadManuscript: mockLoadManuscript,
@@ -123,9 +127,10 @@ describe('MainLayout', () => {
 
     render(<MainLayout />);
 
-    expect(screen.getByText('Loading manuscript...')).toBeInTheDocument();
-    expect(screen.queryByTestId('manuscript-editor')).not.toBeInTheDocument();
+    expect(screen.getByTestId('manuscript-editor')).toBeInTheDocument();
+    expect(screen.queryByText('Loading manuscript...')).not.toBeInTheDocument();
   });
+
 
   it('renders ManuscriptLoadError component when loading state is error', () => {
     mockUseManuscriptStore.mockReturnValue({

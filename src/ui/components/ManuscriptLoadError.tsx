@@ -26,7 +26,13 @@ export const ManuscriptLoadError: React.FC<ManuscriptLoadErrorProps> = ({
 
   const handleRetry = async () => {
     if (onRetry) {
-      onRetry();
+      try {
+        await onRetry();
+      } catch (error) {
+        console.error('Retry failed:', error);
+        // Error is handled gracefully - component remains in error state
+        // The parent component can handle the error through the manuscript store
+      }
     } else {
       // Default retry behavior - try to open file dialog again
       await handleChooseFile();
