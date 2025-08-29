@@ -278,13 +278,18 @@ export function validateManuscript(data: unknown): ValidationResult<z.infer<type
 export function recoverScene(originalData: unknown, _errors: z.ZodError): z.infer<typeof SceneSchema> {
   const data = originalData as Record<string, unknown>;
 
+  const inRangeOrDefault = (value: unknown): number => {
+    if (typeof value === 'number' && value >= 0 && value <= 1) return value;
+    return 0.5;
+  };
+
   return {
     id: (data.id as string) || `scene-${Date.now()}`,
     chapterId: (data.chapterId as string) || 'unknown',
     text: (data.text as string) || '',
-    hookScore: typeof data.hookScore === 'number' ? Math.max(0, Math.min(1, data.hookScore)) : 0.5,
-    tensionScore: typeof data.tensionScore === 'number' ? Math.max(0, Math.min(1, data.tensionScore)) : 0.5,
-    clarityScore: typeof data.clarityScore === 'number' ? Math.max(0, Math.min(1, data.clarityScore)) : 0.5
+    hookScore: inRangeOrDefault(data.hookScore),
+    tensionScore: inRangeOrDefault(data.tensionScore),
+    clarityScore: inRangeOrDefault(data.clarityScore)
   };
 }
 

@@ -85,7 +85,10 @@ export class ErrorRecovery {
 
     let lastError: Error | null = null;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // Treat maxRetries as the number of retries AFTER the initial attempt.
+    // Total attempts = 1 (initial) + maxRetries.
+    for (let retryCount = 0; retryCount <= maxRetries; retryCount++) {
+      const attempt = retryCount + 1; // Human-friendly attempt number starting at 1
       try {
         const result = await operation();
 
@@ -115,7 +118,7 @@ export class ErrorRecovery {
           });
         }
 
-        if (attempt < maxRetries) {
+        if (retryCount < maxRetries) {
           const delay = this.calculateDelay(attempt, backoffStrategy, initialDelay);
 
           onRetry?.(attempt, delay);
@@ -150,7 +153,7 @@ export class ErrorRecovery {
     this.retryQueue.delete(operationId);
 
     throw new RecoverableError(lastError!, {
-      attempts: maxRetries,
+      attempts: maxRetries + 1, // Total attempts performed
       canRetry: true,
       suggestions: this.getSuggestions(lastError!),
       context,
@@ -365,15 +368,9 @@ export class ErrorRecovery {
       return false;
     }
 
-    // Retry temporary errors
-    return (
-      message.includes('network') ||
-      message.includes('timeout') ||
-      message.includes('connection') ||
-      message.includes('503') ||
-      message.includes('502') ||
-      message.includes('500')
-    );
+  // By default, assume errors are transient and retryable unless clearly permanent.
+  // This covers generic messages like "Temporary failure".
+  return true;
   }
 
   /**

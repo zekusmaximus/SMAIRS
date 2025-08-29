@@ -18,6 +18,7 @@ afterEach(() => {
   Object.assign(console, originalConsole);
   // Clear any error reports between tests
   vi.clearAllMocks();
+  globalErrorReporter.clearReports();
 });
 
 describe('Error Handling Integration', () => {
