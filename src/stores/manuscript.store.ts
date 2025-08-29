@@ -9,6 +9,8 @@ type Selected = { selectedSceneId?: string };
 
 export type LoadingState = 'idle' | 'loading' | 'loaded' | 'error';
 
+export type OperationStage = 'parsing' | 'segmenting' | 'analyzing' | 'indexing';
+
 export type ManuscriptStoreState = Selected & {
   manuscript?: Manuscript;
   /** Normalized complete manuscript text (LF newlines). Mirrors manuscript.rawText when loaded. */
@@ -18,6 +20,11 @@ export type ManuscriptStoreState = Selected & {
   // loading states
   loadingState: LoadingState;
   loadingError: string | null;
+  // progress tracking
+  parseProgress: number; // 0-100 for percentage display
+  operationStage: OperationStage | null;
+  progressStartTime: number | null;
+  progressMessage: string | null;
   // actions
   loadManuscript: (path: string) => Promise<void>;
   openManuscriptDialog: () => Promise<string | null>;
@@ -34,6 +41,11 @@ export type ManuscriptStoreState = Selected & {
   // loading state actions
   setLoadingState: (state: LoadingState) => void;
   setLoadingError: (error: string | null) => void;
+  // progress tracking actions
+  setProgress: (progress: number, stage?: OperationStage, message?: string) => void;
+  startProgress: (stage: OperationStage, message?: string) => void;
+  completeProgress: () => void;
+  resetProgress: () => void;
   // backward compatibility
   isLoading: boolean;
   setLoading: (loading: boolean) => void;
@@ -71,15 +83,34 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   selectedSceneId: undefined,
   loadingState: 'idle',
   loadingError: null,
+  // progress tracking
+  parseProgress: 0,
+  operationStage: null,
+  progressStartTime: null,
+  progressMessage: null,
   // backward compatibility
   get isLoading() { return get().loadingState === 'loading'; },
   async loadManuscript(path: string) {
     try {
       set({ loadingState: 'loading', loadingError: null });
+      get().resetProgress();
+
+      // Start progress tracking
+      get().startProgress('parsing', 'Reading manuscript file...');
 
       const raw = await readText(path);
+      get().setProgress(25, 'parsing', 'Parsing manuscript content...');
+
       const ms = importManuscript(raw);
-      const scenes = segmentScenes(ms);
+      get().setProgress(50, 'segmenting', 'Segmenting scenes...');
+
+      const scenes = segmentScenes(ms, (progress, message) => {
+        // Convert segmentation progress (0-95) to manuscript loading progress (50-75)
+        const adjustedProgress = 50 + (progress * 0.25);
+        get().setProgress(adjustedProgress, 'segmenting', message || 'Segmenting scenes...');
+      });
+      get().setProgress(75, 'analyzing', 'Building reveal graph...');
+
       const { reveals } = buildRevealGraph(scenes);
 
       // Progressive loading: keep only small excerpts initially to reduce memory footprint.
@@ -88,6 +119,8 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
         ...s,
         text: s.text.length > EXCERPT_LEN ? (s.text.slice(0, EXCERPT_LEN) + "…") : s.text,
       }));
+
+      get().setProgress(90, 'indexing', 'Preparing manuscript data...');
 
       set({
         manuscript: ms,
@@ -100,9 +133,12 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
 
       // Build search index asynchronously (best effort)
       try {
+        get().setProgress(95, 'indexing', 'Building search index...');
         void searchAPI.buildIndex(scenes);
+        get().completeProgress();
       } catch (e) {
         console.warn("search index build failed", e);
+        get().completeProgress();
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to load manuscript';
@@ -110,6 +146,7 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
         loadingState: 'error',
         loadingError: errorMessage
       });
+      get().resetProgress();
       throw error; // Re-throw so calling code can handle it
     }
   },
@@ -196,6 +233,7 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
       loadingState: 'idle',
       loadingError: null
     });
+    get().resetProgress();
   },
   updateText(text: string) {
     const { manuscript } = get();
@@ -226,6 +264,38 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   },
   setLoadingError(error: string | null) {
     set({ loadingError: error });
+  },
+  // progress tracking methods
+  setProgress(progress: number, stage?: OperationStage, message?: string) {
+    set({
+      parseProgress: Math.max(0, Math.min(100, progress)),
+      ...(stage && { operationStage: stage }),
+      ...(message && { progressMessage: message })
+    });
+  },
+  startProgress(stage: OperationStage, message?: string) {
+    set({
+      operationStage: stage,
+      progressStartTime: Date.now(),
+      progressMessage: message || null,
+      parseProgress: 0
+    });
+  },
+  completeProgress() {
+    set({
+      parseProgress: 100,
+      operationStage: null,
+      progressStartTime: null,
+      progressMessage: null
+    });
+  },
+  resetProgress() {
+    set({
+      parseProgress: 0,
+      operationStage: null,
+      progressStartTime: null,
+      progressMessage: null
+    });
   },
   // backward compatibility
   setLoading(loading: boolean) {

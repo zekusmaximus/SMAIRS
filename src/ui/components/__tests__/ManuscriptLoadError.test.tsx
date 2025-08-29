@@ -11,7 +11,13 @@ vi.mock('@/stores/manuscript.store', () => ({
 
 // Mock the Button component
 vi.mock('../Button', () => ({
-  Button: ({ children, onClick, variant, size, className }: any) => (
+  Button: ({ children, onClick, variant, size, className }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    variant?: string;
+    size?: string;
+    className?: string;
+  }) => (
     <button
       onClick={onClick}
       className={className}

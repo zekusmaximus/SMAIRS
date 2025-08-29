@@ -59,8 +59,10 @@ describe('ManuscriptStore', () => {
 
       const loadPromise = store.loadManuscript('/path/to/manuscript.txt');
 
-      expect(store.loadingState).toBe('loading');
-      expect(store.loadingError).toBeNull();
+      // Get fresh state after synchronous update
+      const currentState = useManuscriptStore.getState();
+      expect(currentState.loadingState).toBe('loading');
+      expect(currentState.loadingError).toBeNull();
 
       await loadPromise;
     });
@@ -71,10 +73,11 @@ describe('ManuscriptStore', () => {
 
       await store.loadManuscript('/path/to/manuscript.txt');
 
-      expect(store.loadingState).toBe('loaded');
-      expect(store.loadingError).toBeNull();
-      expect(store.fullText).toBe(sampleText);
-      expect(store.manuscript).toBeDefined();
+      const currentState = useManuscriptStore.getState();
+      expect(currentState.loadingState).toBe('loaded');
+      expect(currentState.loadingError).toBeNull();
+      expect(currentState.fullText).toBe(sampleText);
+      expect(currentState.manuscript).toBeDefined();
     });
 
     it('should transition to error state on failed manuscript load', async () => {
@@ -83,8 +86,9 @@ describe('ManuscriptStore', () => {
 
       await expect(store.loadManuscript('/nonexistent/path.txt')).rejects.toThrow();
 
-      expect(store.loadingState).toBe('error');
-      expect(store.loadingError).toBe(errorMessage);
+      const currentState = useManuscriptStore.getState();
+      expect(currentState.loadingState).toBe('error');
+      expect(currentState.loadingError).toBe(errorMessage);
     });
 
     it('should handle Tauri invoke fallback to fs.readFileSync', async () => {
@@ -96,8 +100,9 @@ describe('ManuscriptStore', () => {
 
       await store.loadManuscript('/path/to/manuscript.txt');
 
-      expect(store.loadingState).toBe('loaded');
-      expect(store.fullText).toBe(sampleText);
+      const currentState = useManuscriptStore.getState();
+      expect(currentState.loadingState).toBe('loaded');
+      expect(currentState.fullText).toBe(sampleText);
     });
   });
 
@@ -148,8 +153,9 @@ describe('ManuscriptStore', () => {
 
       await expect(store.openManuscriptDialog()).rejects.toThrow(errorMessage);
 
-      expect(store.loadingState).toBe('error');
-      expect(store.loadingError).toBe(errorMessage);
+      const currentState = useManuscriptStore.getState();
+      expect(currentState.loadingState).toBe('error');
+      expect(currentState.loadingError).toBe(errorMessage);
     });
 
     it('should handle Tauri API not available', async () => {
@@ -191,6 +197,15 @@ They found a hidden cave.`;
       expect(scene?.id).toBe(sceneId);
     });
 
+    it('should get scene by id after state update', () => {
+      const currentState = useManuscriptStore.getState();
+      const sceneId = currentState.scenes[0]?.id;
+      const scene = currentState.getSceneById(sceneId!);
+
+      expect(scene).toBeDefined();
+      expect(scene?.id).toBe(sceneId);
+    });
+
     it('should return undefined for non-existent scene id', () => {
       const scene = store.getSceneById('non-existent-id');
 
@@ -219,6 +234,15 @@ They found a hidden cave.`;
       expect(offset).toBeGreaterThanOrEqual(0);
     });
 
+    it('should get scene jump offset after state update', () => {
+      const currentState = useManuscriptStore.getState();
+      const sceneId = currentState.scenes[0]?.id;
+      const offset = currentState.jumpToScene(sceneId!);
+
+      expect(typeof offset).toBe('number');
+      expect(offset).toBeGreaterThanOrEqual(0);
+    });
+
     it('should return -1 for non-existent scene jump', () => {
       const offset = store.jumpToScene('non-existent-id');
 
@@ -229,23 +253,23 @@ They found a hidden cave.`;
   describe('State Management', () => {
     it('should set loading state correctly', () => {
       store.setLoadingState('loading');
-      expect(store.loadingState).toBe('loading');
+      expect(useManuscriptStore.getState().loadingState).toBe('loading');
 
       store.setLoadingState('loaded');
-      expect(store.loadingState).toBe('loaded');
+      expect(useManuscriptStore.getState().loadingState).toBe('loaded');
 
       store.setLoadingState('error');
-      expect(store.loadingState).toBe('error');
+      expect(useManuscriptStore.getState().loadingState).toBe('error');
     });
 
     it('should set loading error correctly', () => {
       const errorMessage = 'Test error';
       store.setLoadingError(errorMessage);
 
-      expect(store.loadingError).toBe(errorMessage);
+      expect(useManuscriptStore.getState().loadingError).toBe(errorMessage);
 
       store.setLoadingError(null);
-      expect(store.loadingError).toBeNull();
+      expect(useManuscriptStore.getState().loadingError).toBeNull();
     });
 
     it('should clear all state correctly', () => {
@@ -277,8 +301,9 @@ They found a hidden cave.`;
         // Expected to throw
       }
 
-      expect(store.loadingState).toBe('error');
-      expect(store.loadingError).toBe(errorMessage);
+      const currentState = useManuscriptStore.getState();
+      expect(currentState.loadingState).toBe('error');
+      expect(currentState.loadingError).toBe(errorMessage);
     });
   });
 

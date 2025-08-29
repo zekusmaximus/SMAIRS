@@ -9,6 +9,7 @@ import { ManuscriptLoadError } from "@/ui/components/ManuscriptLoadError";
 import { useManuscriptStore } from "@/stores/manuscript.store";
 import KeyboardHelp from "@/ui/components/KeyboardHelp";
 import OverlayStack from "@/ui/components/OverlayStack";
+import { OperationStatus } from "@/ui/components/OperationStatus";
 // React imported above
 const SceneNavigator = React.lazy(() => import("@/ui/panels/SceneNavigator"));
 const CompareDrawer = React.lazy(() => import("@/ui/components/CompareDrawer"));
@@ -88,7 +89,7 @@ export function MainLayout() {
       </div>
     <Panel className="panel-left" title="Scene Navigator">
         <LazyComponentWrapper label="Scene Navigator" skeletonLines={5}>
-            <div ref={leftRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Scene Navigator Content" data-testid="scene-navigator">
+            <div ref={leftRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Scene Navigator Content">
               <SceneNavigator />
             </div>
         </LazyComponentWrapper>
@@ -97,13 +98,6 @@ export function MainLayout() {
         <SectionErrorBoundary label="Manuscript Editor">
           {loadingState === 'error' ? (
             <ManuscriptLoadError />
-          ) : loadingState === 'loading' ? (
-            <div className="flex items-center justify-center" style={{ height: "60vh" }}>
-              <div className="space-y-4 text-center">
-                <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-                <p className="text-sm text-neutral-500">Loading manuscript...</p>
-              </div>
-            </div>
           ) : (
             <AsyncWrapper
               errorBoundary="none"
@@ -117,7 +111,7 @@ export function MainLayout() {
                 </div>
               }
             >
-              <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Manuscript Editor" data-testid="manuscript-editor">
+              <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Manuscript Editor">
                 <div style={{ height: "60vh" }}>
                   <ManuscriptEditor />
                 </div>
@@ -140,7 +134,7 @@ export function MainLayout() {
                 </div>
               }
             >
-              <div ref={rightRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Search Content" data-testid="search-panel">
+              <div ref={rightRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Search Content">
                 <SearchPanel />
               </div>
             </AsyncWrapper>
@@ -179,6 +173,7 @@ export function MainLayout() {
             <LLMMonitorWidget />
             <DbHarness />
             <JobTray compact />
+            <OperationStatus compact showQueue />
           </OverlayStack>
         </AsyncWrapper>
       </ComponentErrorBoundary>

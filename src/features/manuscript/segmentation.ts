@@ -8,6 +8,9 @@ const SCENE_RE =
 /** Chapter header: === CHAPTER 01 === or === CHAPTER 01: Title === */
 const CHAPTER_RE = /^===\s*CHAPTER\s+\d{1,3}(?::.*)?\s*===\s*$/gim;
 
+/** Progress callback type for segmentation operations */
+export type SegmentationProgressCallback = (progress: number, message?: string) => void;
+
 type Header = {
   id: string;            // chNN_sMM
   chapterId: string;     // chNN
@@ -16,8 +19,11 @@ type Header = {
   bodyStart: number;     // first char of scene body (skips single newline if present)
 };
 
-export function segmentScenes(ms: Manuscript): Scene[] {
+export function segmentScenes(ms: Manuscript, onProgress?: SegmentationProgressCallback): Scene[] {
   const text: string = ms.rawText;
+
+  // Report initial progress
+  onProgress?.(0, 'Starting scene segmentation...');
 
   // 1) Collect chapter start offsets (sorted)
   const chapterStarts: number[] = [];
@@ -30,11 +36,14 @@ export function segmentScenes(ms: Manuscript): Scene[] {
     chapterStarts.sort((a, b) => a - b);
   }
 
+  onProgress?.(10, 'Found chapter boundaries...');
+
   // 2) Collect scene headers with definite indices
   const headers: Header[] = [];
   {
     const re = new RegExp(SCENE_RE.source, SCENE_RE.flags);
     let m: RegExpExecArray | null;
+    let headerCount = 0;
     while ((m = re.exec(text)) !== null) {
       const capCh = m[1];
       const capSc = m[2];
@@ -50,18 +59,41 @@ export function segmentScenes(ms: Manuscript): Scene[] {
 
       const chapterId = resolveChapterId(ms, headerStart);
       headers.push({ id, chapterId, headerStart, headerEnd, bodyStart });
+
+      headerCount++;
+      // Report progress based on text position
+      const progressPercent = 10 + (headerStart / text.length) * 30; // 10-40% range
+      onProgress?.(progressPercent, `Found ${headerCount} scene headers...`);
     }
   }
 
-  if (headers.length === 0) return [];
+  if (headers.length === 0) {
+    onProgress?.(100, 'No scenes found');
+    return [];
+  }
+
+  onProgress?.(40, 'Processing scene boundaries...');
 
   // 3) Sort headers by position
   headers.sort((a, b) => a.headerStart - b.headerStart);
 
   // 4) Build scenes using the next header / next chapter / EOF as boundary
   const scenes: Scene[] = [];
+  let currentChapterId = '';
+  let scenesInCurrentChapter = 0;
+
   for (let i = 0; i < headers.length; i++) {
     const h: Header = headers[i] as Header; // definite
+
+    // Track chapter changes for progress reporting
+    if (h.chapterId !== currentChapterId) {
+      if (currentChapterId !== '') {
+        onProgress?.(40 + (i / headers.length) * 55, `Completed chapter ${currentChapterId} (${scenesInCurrentChapter} scenes)`);
+      }
+      currentChapterId = h.chapterId;
+      scenesInCurrentChapter = 0;
+      onProgress?.(40 + (i / headers.length) * 55, `Processing chapter ${currentChapterId}...`);
+    }
 
     // Next scene header start (or +∞)
     const nextHeaderStart: number =
@@ -86,7 +118,16 @@ export function segmentScenes(ms: Manuscript): Scene[] {
       wordCount,
       dialogueRatio,
     });
+
+    scenesInCurrentChapter++;
+
+    // Report progress based on completion percentage
+    const progressPercent = 40 + ((i + 1) / headers.length) * 55; // 40-95% range
+    onProgress?.(progressPercent, `Processed ${i + 1}/${headers.length} scenes...`);
   }
+
+  // Final progress report
+  onProgress?.(95, `Completed segmentation: ${scenes.length} scenes in ${ms.chapters.length} chapters`);
 
   return scenes;
 }

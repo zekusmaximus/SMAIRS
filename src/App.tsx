@@ -5,10 +5,19 @@ import { markEnd, snapshotMemory } from '@/lib/metrics';
 import { PageErrorBoundary } from '@/ui/components/ErrorBoundary';
 import { globalErrorRecovery } from '@/utils/error-recovery';
 import { useManuscriptStore } from '@/stores/manuscript.store';
-import { LoadingState } from '@/ui/components/LoadingStates';
+import { ProgressOverlay } from '@/ui/components/ProgressOverlay';
 
 export default function App() {
-  const { isLoading: manuscriptLoading, loadingError: manuscriptError, setLoading, setLoadingError } = useManuscriptStore();
+  const {
+    isLoading: manuscriptLoading,
+    loadingError: manuscriptError,
+    setLoading,
+    setLoadingError,
+    parseProgress,
+    operationStage,
+    progressStartTime,
+    progressMessage
+  } = useManuscriptStore();
 
   useEffect(() => {
     // First render measured from module init to effect flush
@@ -73,7 +82,7 @@ export default function App() {
 
       try {
         // First, try environment variable path
-        const pathFromEnv = (import.meta as any)?.env?.VITE_MANUSCRIPT_PATH as string | undefined;
+        const pathFromEnv = (import.meta as { env?: { VITE_MANUSCRIPT_PATH?: string } })?.env?.VITE_MANUSCRIPT_PATH;
         if (pathFromEnv) {
           try {
             console.log('Loading manuscript from environment path:', pathFromEnv);
@@ -88,7 +97,7 @@ export default function App() {
         try {
           console.log('Attempting to load manuscript from app resources...');
           const tauriApi = await import('@tauri-apps/api');
-          const { path } = tauriApi as any;
+          const { path } = tauriApi;
 
           if (path && typeof path.appDataDir === 'function') {
             // Try appDataDir first (user data directory)
@@ -125,7 +134,7 @@ export default function App() {
         try {
           console.log('Showing file picker dialog...');
           const tauriApi = await import('@tauri-apps/api');
-          const { dialog } = tauriApi as any;
+          const { dialog } = tauriApi;
 
           if (dialog && typeof dialog.open === 'function') {
             const selected = await dialog.open({
@@ -138,7 +147,7 @@ export default function App() {
               defaultPath: await (async () => {
                 try {
                   const tauriApi = await import('@tauri-apps/api');
-                  const { path } = tauriApi as any;
+                  const { path } = tauriApi;
                   if (path && typeof path.appDataDir === 'function') {
                     return await path.appDataDir();
                   }
@@ -179,44 +188,34 @@ export default function App() {
   return (
     <StoreProvider>
       <PageErrorBoundary onError={handleAppError}>
-        <LoadingState
-          loading={manuscriptLoading}
-          error={manuscriptError}
-          loadingComponent={
-            <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Loading Manuscript
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Attempting to load your manuscript file...
-                </p>
-              </div>
-            </div>
-          }
-          errorComponent={
-            <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
-              <div className="text-center max-w-md">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Manuscript Loading Failed
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  {manuscriptError}
-                </p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Retry Loading
-                </button>
-              </div>
-            </div>
-          }
-        >
+        {/* Progress Overlay for manuscript loading */}
+        <ProgressOverlay
+          isVisible={manuscriptLoading}
+          operationName="Loading Manuscript"
+          progress={parseProgress / 100} // Convert percentage to 0-1 range
+          startTime={progressStartTime || undefined}
+          message={progressMessage || operationStage ? `${operationStage}: ${progressMessage || 'Processing...'}` : 'Loading manuscript file...'}
+          canCancel={false} // Manuscript loading typically shouldn't be cancellable
+        />
+
+        {/* Error Overlay for manuscript loading failures */}
+        {manuscriptError && !manuscriptLoading && (
+          <ProgressOverlay
+            isVisible={true}
+            operationName="Manuscript Loading Failed"
+            progress={0}
+            message={manuscriptError}
+            canCancel={false}
+            backdrop="dark"
+          />
+        )}
+
+        {/* Main Application Content */}
+        {!manuscriptLoading && !manuscriptError && (
           <div data-testid="app-ready">
             <MainLayout />
           </div>
-        </LoadingState>
+        )}
       </PageErrorBoundary>
     </StoreProvider>
   );
