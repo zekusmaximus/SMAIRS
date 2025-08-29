@@ -12,6 +12,7 @@ export { ViewModeSelector, DiffViewModeSelector } from './ViewModeSelector.js';
 export { Button } from './Button.js';
 export { Modal, ModalHeader, ModalBody, ModalFooter, ModalToolbar } from './Modal.js';
 export { Toggle } from './Toggle.js';
+export { ManuscriptLoadError } from './ManuscriptLoadError.js';
 
 // Existing components (re-export for convenience)
 export { ErrorBoundary } from './ErrorBoundary.js';

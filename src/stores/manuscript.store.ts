@@ -7,14 +7,20 @@ import { searchAPI } from "@/features/search/searchApi";
 
 type Selected = { selectedSceneId?: string };
 
+export type LoadingState = 'idle' | 'loading' | 'loaded' | 'error';
+
 export type ManuscriptStoreState = Selected & {
   manuscript?: Manuscript;
   /** Normalized complete manuscript text (LF newlines). Mirrors manuscript.rawText when loaded. */
   fullText: string;
   scenes: ManuscriptScene[];
   reveals: RevealGraphEntry[];
+  // loading states
+  loadingState: LoadingState;
+  loadingError: string | null;
   // actions
   loadManuscript: (path: string) => Promise<void>;
+  openManuscriptDialog: () => Promise<string | null>;
   selectScene: (id?: string) => void;
   getSceneById: (id: string) => ManuscriptScene | undefined;
   ensureSceneLoaded?: (id: string) => Promise<void>; // progressive loading: hydrate full text for a scene on demand
@@ -25,6 +31,12 @@ export type ManuscriptStoreState = Selected & {
   getSceneText: (sceneId: string) => string;
   /** Return byte/char offset for a sceneId start, or -1 if unknown. */
   jumpToScene: (sceneId: string) => number;
+  // loading state actions
+  setLoadingState: (state: LoadingState) => void;
+  setLoadingError: (error: string | null) => void;
+  // backward compatibility
+  isLoading: boolean;
+  setLoading: (loading: boolean) => void;
 };
 
 async function readText(path: string): Promise<string> {
@@ -57,20 +69,99 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   scenes: [],
   reveals: [],
   selectedSceneId: undefined,
+  loadingState: 'idle',
+  loadingError: null,
+  // backward compatibility
+  get isLoading() { return get().loadingState === 'loading'; },
   async loadManuscript(path: string) {
-    const raw = await readText(path);
-    const ms = importManuscript(raw);
-    const scenes = segmentScenes(ms);
-    const { reveals } = buildRevealGraph(scenes);
-    // Progressive loading: keep only small excerpts initially to reduce memory footprint.
-    const EXCERPT_LEN = 400; // chars
-    const lightScenes: ManuscriptScene[] = scenes.map((s) => ({
-      ...s,
-      text: s.text.length > EXCERPT_LEN ? (s.text.slice(0, EXCERPT_LEN) + "…") : s.text,
-    }));
-    set({ manuscript: ms, fullText: ms.rawText, scenes: lightScenes, reveals });
-  // Build search index asynchronously (best effort)
-  try { void searchAPI.buildIndex(scenes); } catch (e) { console.warn("search index build failed", e); }
+    try {
+      set({ loadingState: 'loading', loadingError: null });
+
+      const raw = await readText(path);
+      const ms = importManuscript(raw);
+      const scenes = segmentScenes(ms);
+      const { reveals } = buildRevealGraph(scenes);
+
+      // Progressive loading: keep only small excerpts initially to reduce memory footprint.
+      const EXCERPT_LEN = 400; // chars
+      const lightScenes: ManuscriptScene[] = scenes.map((s) => ({
+        ...s,
+        text: s.text.length > EXCERPT_LEN ? (s.text.slice(0, EXCERPT_LEN) + "…") : s.text,
+      }));
+
+      set({
+        manuscript: ms,
+        fullText: ms.rawText,
+        scenes: lightScenes,
+        reveals,
+        loadingState: 'loaded',
+        loadingError: null
+      });
+
+      // Build search index asynchronously (best effort)
+      try {
+        void searchAPI.buildIndex(scenes);
+      } catch (e) {
+        console.warn("search index build failed", e);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load manuscript';
+      set({
+        loadingState: 'error',
+        loadingError: errorMessage
+      });
+      throw error; // Re-throw so calling code can handle it
+    }
+  },
+  async openManuscriptDialog() {
+    try {
+      const mod = (await import("@tauri-apps/api")) as unknown as {
+        dialog?: {
+          open?: (options?: {
+            multiple?: boolean;
+            directory?: boolean;
+            filters?: Array<{ name: string; extensions: string[] }>;
+          }) => Promise<string | string[] | null>;
+        };
+      };
+
+      if (!mod.dialog?.open) {
+        throw new Error("Tauri dialog API not available");
+      }
+
+      const result = await mod.dialog.open({
+        multiple: false,
+        directory: false,
+        filters: [
+          {
+            name: "Manuscript Files",
+            extensions: ["txt", "md", "manuscript"]
+          },
+          {
+            name: "Text Files",
+            extensions: ["txt"]
+          },
+          {
+            name: "Markdown Files",
+            extensions: ["md"]
+          },
+          {
+            name: "All Files",
+            extensions: ["*"]
+          }
+        ]
+      });
+
+      if (typeof result === 'string') {
+        return result;
+      }
+
+      return null;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to open file dialog';
+      set({ loadingState: 'error', loadingError: errorMessage });
+      throw error;
+    }
   },
   selectScene(id) {
     set({ selectedSceneId: id });
@@ -96,7 +187,15 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
     set({ scenes: next });
   },
   clearAll() {
-    set({ manuscript: undefined, fullText: "", scenes: [], reveals: [], selectedSceneId: undefined });
+    set({
+      manuscript: undefined,
+      fullText: "",
+      scenes: [],
+      reveals: [],
+      selectedSceneId: undefined,
+      loadingState: 'idle',
+      loadingError: null
+    });
   },
   updateText(text: string) {
     const { manuscript } = get();
@@ -121,6 +220,16 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
     const { scenes } = get();
     const s = scenes.find((x) => x.id === sceneId);
     return s ? s.startOffset : -1;
+  },
+  setLoadingState(state: LoadingState) {
+    set({ loadingState: state });
+  },
+  setLoadingError(error: string | null) {
+    set({ loadingError: error });
+  },
+  // backward compatibility
+  setLoading(loading: boolean) {
+    set({ loadingState: loading ? 'loading' : 'idle' });
   },
 }));
 
