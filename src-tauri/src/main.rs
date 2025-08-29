@@ -28,6 +28,7 @@ fn main() {
             smairs::commands::search::build_search_index,
             smairs::commands::search::search_manuscript,
             smairs::commands::search::find_character_occurrences
+            ,smairs::commands::fs::load_manuscript_text
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

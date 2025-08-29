@@ -109,8 +109,8 @@ export default defineConfig({
     } : undefined
   },
 
-  // For env prefix
-  envPrefix: ['VITE_', 'TAURI_'],
+  // Expose additional env vars (LLM/API keys) to client code
+  envPrefix: ['VITE_', 'TAURI_', 'ANTHROPIC_', 'OPENAI_', 'GOOGLE_', 'GEMINI_', 'LLM_'],
 
   resolve: {
     alias: {

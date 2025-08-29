@@ -30,11 +30,23 @@ export type ManuscriptStoreState = Selected & {
 async function readText(path: string): Promise<string> {
   // Prefer Tauri runtime when available; fallback to Node in dev/test
   try {
-    const mod = (await import("@tauri-apps/api")) as unknown as { fs?: { readTextFile?: (p: string) => Promise<string> } };
-    if (mod.fs && typeof mod.fs.readTextFile === "function") return await mod.fs.readTextFile(path);
+    const mod = (await import("@tauri-apps/api")) as unknown as { fs?: { readTextFile?: (p: string) => Promise<string> }; invoke?: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> };
+    // Try invoke-based command first (works without FS capability)
+    if (typeof mod.invoke === "function") {
+      try {
+        const res = await mod.invoke("load_manuscript_text", { path });
+        if (typeof res === "string") return res;
+      } catch {
+        // fall through to fs/readFile
+      }
+    }
+    if (mod.fs && typeof mod.fs.readTextFile === "function") {
+      try { return await mod.fs.readTextFile(path); } catch { /* ignore */ }
+    }
   } catch {
     // ignore and fallback
   }
+  // Node fallback (tests / Node CLIs)
   const { readFileSync } = await import("fs");
   return readFileSync(path, "utf8");
 }

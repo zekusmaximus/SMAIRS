@@ -4,6 +4,7 @@ import MainLayout from '@/ui/layouts/MainLayout';
 import { markEnd, snapshotMemory } from '@/lib/metrics';
 import { PageErrorBoundary } from '@/ui/components/ErrorBoundary';
 import { globalErrorRecovery } from '@/utils/error-recovery';
+import { useManuscriptStore } from '@/stores/manuscript.store';
 
 export default function App() {
   useEffect(() => {
@@ -58,6 +59,21 @@ export default function App() {
       });
     }
   };
+
+  // Optional: auto-load a manuscript when a path is provided via env, or try a dev default
+  useEffect(() => {
+    const pathFromEnv = (import.meta as any)?.env?.VITE_MANUSCRIPT_PATH as string | undefined;
+    const { loadManuscript } = useManuscriptStore.getState();
+    (async () => {
+      if (pathFromEnv) {
+        try { await loadManuscript(pathFromEnv); return; } catch { /* ignore and try fallback */ }
+      }
+      // Dev convenience: try repo-relative default; may fail in packaged builds
+      if (!pathFromEnv) {
+        try { await loadManuscript('data/manuscript.txt'); } catch { /* ignore */ }
+      }
+    })();
+  }, []);
 
   return (
     <StoreProvider>
