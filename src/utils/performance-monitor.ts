@@ -1,21 +1,27 @@
 import { useEffect, useState, useCallback } from 'react';
 
+// Minimal helper types to avoid explicit 'any' while keeping dependencies light
+type LongTaskEntry = PerformanceEntry & { attribution?: Array<{ name?: string }>; duration: number };
+type LayoutShiftEntry = PerformanceEntry & { value?: number };
+type FirstInputEntry = PerformanceEntry & { processingStart?: number };
+type PerfWithMemory = { memory?: { usedJSHeapSize: number } };
+
 export interface PerformanceMetrics {
   // Core performance metrics
   fps: number[];
   memoryUsage: number[];
   loadTimes: Record<string, number>;
   renderTimes: Record<string, number>;
-  
+
   // Network metrics
   networkRequests: number;
   networkLatency: number[];
   failedRequests: number;
-  
+
   // User interaction metrics
   inputLatency: number[];
   scrollPerformance: number[];
-  
+
   // Application-specific metrics
   manuscriptProcessingTime: Record<string, number>;
   exportTimes: Record<string, number>;
@@ -29,17 +35,17 @@ export interface PerformanceReport {
   averageMemory: number;
   slowTasks: number;
   totalLoadTime: number;
-  
+
   // Performance scores (0-100)
   overallScore: number;
   performanceScore: number;
   memoryScore: number;
   networkScore: number;
-  
+
   // Recommendations
   suggestions: string[];
   criticalIssues: string[];
-  
+
   // Detailed breakdown
   breakdown: {
     import: PerformanceBreakdown;
@@ -84,7 +90,7 @@ export class PerformanceMonitor {
 
   startMonitoring(): void {
     if (this.isMonitoring) return;
-    
+
     this.isMonitoring = true;
     console.log('🔍 Starting performance monitoring...');
 
@@ -98,7 +104,7 @@ export class PerformanceMonitor {
 
   stopMonitoring(): void {
     if (!this.isMonitoring) return;
-    
+
     this.isMonitoring = false;
     console.log('⏹️ Stopping performance monitoring...');
 
@@ -134,7 +140,8 @@ export class PerformanceMonitor {
       try {
         const layoutShiftObserver = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            if ((entry as any).value > 0.1) {
+            const ls = entry as LayoutShiftEntry;
+            if ((ls.value ?? 0) > 0.1) {
               console.warn('Layout shift detected:', entry);
             }
           }
@@ -162,7 +169,9 @@ export class PerformanceMonitor {
       try {
         const fidObserver = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            this.metrics.inputLatency.push((entry as any).processingStart - entry.startTime);
+            const fie = entry as FirstInputEntry;
+            const start = typeof fie.processingStart === 'number' ? fie.processingStart : entry.startTime;
+            this.metrics.inputLatency.push(start - entry.startTime);
           }
         });
         fidObserver.observe({ entryTypes: ['first-input'] });
@@ -182,11 +191,11 @@ export class PerformanceMonitor {
 
       frameCount++;
       const currentTime = performance.now();
-      
+
       if (currentTime >= startTime + 1000) {
         const fps = Math.round((frameCount * 1000) / (currentTime - startTime));
         this.metrics.fps.push(fps);
-        
+
         // Keep only last 60 seconds of data
         if (this.metrics.fps.length > 60) {
           this.metrics.fps = this.metrics.fps.slice(-60);
@@ -207,7 +216,7 @@ export class PerformanceMonitor {
   }
 
   private monitorMemoryUsage(): void {
-    if (!('memory' in performance)) {
+  if (!('memory' in (performance as object))) {
       console.warn('Memory monitoring not available in this browser');
       return;
     }
@@ -215,11 +224,12 @@ export class PerformanceMonitor {
     this.memoryCheckInterval = window.setInterval(() => {
       if (!this.isMonitoring) return;
 
-      const memory = (performance as any).memory;
-      const memoryMB = memory.usedJSHeapSize / (1024 * 1024);
-      
+  const memory = (performance as unknown as PerfWithMemory).memory;
+  if (!memory || typeof memory.usedJSHeapSize !== 'number') return;
+  const memoryMB = memory.usedJSHeapSize / (1024 * 1024);
+
       this.metrics.memoryUsage.push(memoryMB);
-      
+
       // Keep only last 5 minutes of data
       if (this.metrics.memoryUsage.length > 300) {
         this.metrics.memoryUsage = this.metrics.memoryUsage.slice(-300);
@@ -246,7 +256,7 @@ export class PerformanceMonitor {
     window.fetch = async (...args) => {
       const startTime = performance.now();
       const url = args[0] instanceof Request ? args[0].url : args[0].toString();
-      
+
       this.metrics.networkRequests++;
       this.networkStartTimes.set(url, startTime);
 
@@ -254,7 +264,7 @@ export class PerformanceMonitor {
         const response = await originalFetch(...args);
         const endTime = performance.now();
         const latency = endTime - startTime;
-        
+
         this.metrics.networkLatency.push(latency);
         this.networkStartTimes.delete(url);
 
@@ -301,7 +311,7 @@ export class PerformanceMonitor {
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     // Monitor input latency
-    const handleInput = (event: Event) => {
+  const handleInput = () => {
       const startTime = performance.now();
       requestAnimationFrame(() => {
         const endTime = performance.now();
@@ -327,13 +337,13 @@ export class PerformanceMonitor {
       } else if (markName.includes('analysis')) {
         console.log(`🔍 Analysis operation: ${markName}`);
       }
-      
+
       return originalMark(markName);
     };
 
     performance.measure = (measureName: string, startMark?: string, endMark?: string) => {
       const result = originalMeasure(measureName, startMark, endMark);
-      
+
       // Store custom measurements
       if (measureName.includes('manuscript')) {
         this.metrics.manuscriptProcessingTime[measureName] = result.duration;
@@ -356,9 +366,9 @@ export class PerformanceMonitor {
 
   private logSlowTask(entry: PerformanceEntry): void {
     console.warn(`🐌 Long task detected: ${entry.duration.toFixed(0)}ms`, entry);
-    
+
     // Try to identify the source
-    const longTask = entry as any;
+    const longTask = entry as LongTaskEntry;
     if (longTask.attribution && longTask.attribution.length > 0) {
       console.warn('Task attribution:', longTask.attribution[0]);
     }
@@ -366,7 +376,7 @@ export class PerformanceMonitor {
 
   private warnLowFrameRate(fps: number): void {
     console.warn(`⚠️ Low frame rate detected: ${fps}fps`);
-    
+
     // Provide specific suggestions based on current activity
     if (this.metrics.memoryUsage.length > 0) {
       const currentMemory = this.metrics.memoryUsage[this.metrics.memoryUsage.length - 1]!;
@@ -378,7 +388,7 @@ export class PerformanceMonitor {
 
   private warnHighMemory(memoryMB: number): void {
     console.warn(`⚠️ High memory usage: ${memoryMB.toFixed(1)}MB`);
-    
+
     if (memoryMB > 300) {
       console.warn('🚨 Critical memory usage! Consider refreshing the page.');
     }
@@ -392,7 +402,7 @@ export class PerformanceMonitor {
     const avgFPS = this.getAverage(this.metrics.fps);
     const memoryPeak = Math.max(...this.metrics.memoryUsage, 0);
     const averageMemory = this.getAverage(this.metrics.memoryUsage);
-    
+
     // Calculate performance scores (0-100)
     const performanceScore = Math.min(100, Math.max(0, (avgFPS / 60) * 100));
     const memoryScore = Math.min(100, Math.max(0, 100 - (memoryPeak / 500) * 100));
@@ -408,15 +418,15 @@ export class PerformanceMonitor {
       averageMemory: Math.round(averageMemory),
       slowTasks: this.metrics.fps.filter(fps => fps < 30).length,
       totalLoadTime: this.getTotalLoadTime(),
-      
+
       overallScore,
       performanceScore: Math.round(performanceScore),
       memoryScore: Math.round(memoryScore),
       networkScore: Math.round(networkScore),
-      
+
       suggestions,
       criticalIssues,
-      
+
       breakdown: {
         import: this.analyzeImportPerformance(),
         analysis: this.analyzeAnalysisPerformance(),
@@ -434,16 +444,16 @@ export class PerformanceMonitor {
   private calculateNetworkScore(): number {
     const avgLatency = this.getAverage(this.metrics.networkLatency);
     const failureRate = this.metrics.failedRequests / Math.max(this.metrics.networkRequests, 1);
-    
+
     let score = 100;
-    
+
     // Penalize high latency
     if (avgLatency > 1000) score -= 30;
     else if (avgLatency > 500) score -= 15;
-    
+
     // Penalize failed requests
     score -= failureRate * 50;
-    
+
     return Math.max(0, score);
   }
 
@@ -555,7 +565,7 @@ export class PerformanceMonitor {
   private analyzeUIPerformance(): PerformanceBreakdown {
     const avgFPS = this.getAverage(this.metrics.fps);
     const avgInputLatency = this.getAverage(this.metrics.inputLatency);
-    
+
     let score = 100;
     if (avgFPS < 60) score -= (60 - avgFPS) * 2;
     if (avgInputLatency > 16) score -= (avgInputLatency - 16) * 2;
@@ -588,7 +598,7 @@ export const globalPerformanceMonitor = new PerformanceMonitor();
 export function usePerformanceMonitor() {
   const [report, setReport] = useState<PerformanceReport | null>(null);
   const [isMonitoring, setIsMonitoring] = useState(false);
-  
+
   useEffect(() => {
     return () => {
       globalPerformanceMonitor.destroy();
@@ -633,16 +643,16 @@ export class PerformanceBenchmark {
 
   async benchmark<T>(name: string, operation: () => Promise<T>): Promise<T> {
     const startTime = performance.now();
-    
+
     try {
       const result = await operation();
       const duration = performance.now() - startTime;
-      
+
       if (!this.benchmarks.has(name)) {
         this.benchmarks.set(name, []);
       }
       this.benchmarks.get(name)!.push(duration);
-      
+
       console.log(`⏱️ ${name}: ${duration.toFixed(2)}ms`);
       return result;
     } catch (error) {

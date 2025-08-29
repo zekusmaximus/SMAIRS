@@ -151,7 +151,7 @@ const revisedManuscript = demoManuscript
 export function RevisionWorkflowDemo() {
   const [showComparison, setShowComparison] = useState(false);
   const [appliedInstructions, setAppliedInstructions] = useState<RevisionInstruction[]>([]);
-  
+
   const { startExport, state: exportState } = useExportStore();
 
   const handleApplyInstruction = useCallback((instruction: RevisionInstruction) => {
@@ -203,7 +203,7 @@ export function RevisionWorkflowDemo() {
                 Complete UI integration for revision instruction management
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <Button
                 variant="secondary"
@@ -212,7 +212,7 @@ export function RevisionWorkflowDemo() {
               >
                 📊 Compare Versions
               </Button>
-              
+
               <Button
                 variant="success"
                 onClick={handleStartExport}
@@ -234,20 +234,19 @@ export function RevisionWorkflowDemo() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
               <RevisionInstructionViewer
                 instructions={demoInstructions}
-                manuscript={demoManuscript}
                 onApply={handleApplyInstruction}
                 onApplyAll={handleApplyAll}
               />
             </div>
           </div>
-          
+
           {/* Status Panel */}
           <div className="lg:col-span-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 📈 Status Overview
               </h2>
-              
+
               <div className="space-y-4">
                 {/* Applied Instructions */}
                 <div>
@@ -261,7 +260,7 @@ export function RevisionWorkflowDemo() {
                     {Math.round((appliedInstructions.length / demoInstructions.length) * 100)}% complete
                   </div>
                 </div>
-                
+
                 {/* Instruction Types */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -282,7 +281,7 @@ export function RevisionWorkflowDemo() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Applied Instructions List */}
                 {appliedInstructions.length > 0 && (
                   <div>
@@ -301,7 +300,7 @@ export function RevisionWorkflowDemo() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Demo Instructions */}
                 <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
@@ -325,7 +324,7 @@ export function RevisionWorkflowDemo() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             📋 Demo Data Preview
           </h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -335,7 +334,7 @@ export function RevisionWorkflowDemo() {
                 {originalManuscript}
               </div>
             </div>
-            
+
             <div>
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Revised Manuscript Sample
@@ -375,11 +374,11 @@ export function RevisionWorkflowDemo() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
             <p>
-              🎯 <strong>SMAIRS UI Components Integration Demo</strong> - 
+              🎯 <strong>SMAIRS UI Components Integration Demo</strong> -
               Revision workflow with accessibility, keyboard navigation, and responsive design
             </p>
             <p className="mt-2">
-              Features: Guided instructions, version comparison, export progress tracking, 
+              Features: Guided instructions, version comparison, export progress tracking,
               search & filter, keyboard shortcuts, and comprehensive error handling
             </p>
           </div>

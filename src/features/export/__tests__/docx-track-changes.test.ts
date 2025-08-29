@@ -39,7 +39,7 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
     },
     {
       id: "edit2",
-      type: "delete", 
+      type: "delete",
       anchor: { sceneId: "ch01_s01", offset: 245, length: 15 },
       originalText: "with caution",
       reason: "Remove redundant description"
@@ -49,12 +49,10 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
   beforeEach(() => {
     exporter = new DocxTrackChangesExporter();
     mockTauriInvoke = vi.fn();
-    
-    // Mock Tauri invoke function
-    vi.stubGlobal('globalThis', {
-      __TAURI__: true
-    });
-    
+
+  // Mock Tauri presence without clobbering the global object
+  vi.stubGlobal('__TAURI__', true);
+
     // Mock dynamic import of Tauri API
     vi.doMock("@tauri-apps/api/core", () => ({
       invoke: mockTauriInvoke
@@ -78,7 +76,7 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
 
       const result = await exporter.exportWithChanges(
         sampleOriginalText,
-        sampleRevisedText, 
+        sampleRevisedText,
         sampleChanges,
         sampleMetadata
       );
@@ -249,7 +247,7 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
       // Generate a large document (simulate 120k words)
       const words = Array.from({ length: 120000 }, (_, i) => `word${i}`);
       const largeText = words.join(' ');
-      
+
       // Create changes throughout the document
       const largeChanges: AnchoredEdit[] = Array.from({ length: 100 }, (_, i) => ({
         id: `large_edit_${i}`,
@@ -266,7 +264,7 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
       }));
 
       const startTime = Date.now();
-      
+
       const result = await exporter.exportWithChanges(
         largeText,
         largeText,
@@ -293,7 +291,7 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
           reason: "Replace A"
         },
         {
-          id: "insert1", 
+          id: "insert1",
           type: "insert",
           anchor: { sceneId: "test", offset: 5, length: 0 },
           newText: " inserted",
@@ -381,7 +379,7 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
   describe('validation', () => {
     it('validates output when requested', async () => {
       const validDocx = new TextEncoder().encode('<w:ins w:author="Test"><w:document>Valid DOCX</w:document></w:ins>');
-      
+
       mockTauriInvoke.mockResolvedValue('out/valid.docx');
       vi.doMock("node:fs", () => ({
         readFileSync: vi.fn().mockReturnValue(validDocx)
@@ -403,7 +401,7 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
 
     it('warns about invalid output', async () => {
       const invalidDocx = new TextEncoder().encode('Invalid content without track changes');
-      
+
       mockTauriInvoke.mockResolvedValue('out/invalid.docx');
       vi.doMock("node:fs", () => ({
         readFileSync: vi.fn().mockReturnValue(invalidDocx)
@@ -437,9 +435,14 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
         position: 0
       };
 
-      // Access private method via type assertion for testing
-      const revision = (exporter as any).createRevision(trackChange);
-      const ooxml = (exporter as any).generateOOXMLElement(trackChange, revision);
+      // Access private methods via minimal test-only interface to avoid 'any'
+      type TestableExporter = {
+        createRevision: (tc: TrackChange) => unknown;
+        generateOOXMLElement: (tc: TrackChange, rev: unknown) => string;
+      };
+      const testable = exporter as unknown as TestableExporter;
+      const revision = testable.createRevision(trackChange);
+      const ooxml = testable.generateOOXMLElement(trackChange, revision);
 
       expect(ooxml).toContain('<w:ins');
       expect(ooxml).toContain('w:author="Test Author"');
@@ -458,8 +461,12 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
         position: 0
       };
 
-      const revision = (exporter as any).createRevision(trackChange);
-      const ooxml = (exporter as any).generateOOXMLElement(trackChange, revision);
+      const testable = exporter as unknown as {
+        createRevision: (tc: TrackChange) => unknown;
+        generateOOXMLElement: (tc: TrackChange, rev: unknown) => string;
+      };
+      const revision = testable.createRevision(trackChange);
+      const ooxml = testable.generateOOXMLElement(trackChange, revision);
 
       expect(ooxml).toContain('w:author="Author &quot;Name&quot; &amp; &lt;Company&gt;"');
       expect(ooxml).toContain('<w:delText>Text with &lt;tags&gt; &amp; &quot;quotes&quot;</w:delText>');
@@ -467,8 +474,8 @@ The detective walked into the crime scene. Sarah Martinez was already examining 
 
     it('generates Windows file time format', () => {
       const testDate = new Date('2024-01-15T10:30:00Z');
-      const windowsFileTime = (exporter as any).toWindowsFileTime(testDate);
-      
+  const windowsFileTime = (exporter as unknown as { toWindowsFileTime: (d: Date) => string }).toWindowsFileTime(testDate);
+
       expect(windowsFileTime).toMatch(/^\d+$/); // Should be numeric string
       expect(parseInt(windowsFileTime)).toBeGreaterThan(0);
     });

@@ -2,7 +2,7 @@
 
 declare global {
   namespace Vi {
-    interface JestAssertion<T = any> {
+  interface JestAssertion<T = unknown> {
       toHaveNoViolations(): T;
     }
   }

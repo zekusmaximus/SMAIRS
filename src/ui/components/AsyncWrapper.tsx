@@ -66,7 +66,7 @@ export const AsyncWrapper: React.FC<AsyncWrapperProps> = ({
 /**
  * Hook for creating async operations with built-in error recovery
  */
-export function useAsyncOperation<T = any>(operationId: string) {
+export function useAsyncOperation<T = unknown>(operationId: string) {
   const [state, setState] = React.useState<{
     data: T | null;
     loading: boolean;
@@ -243,10 +243,10 @@ export function useAsyncOperations() {
   const [operations, setOperations] = React.useState<Map<string, {
     loading: boolean;
     error: Error | null;
-    data: any;
+  data: unknown;
   }>>(new Map());
 
-  const isAnyLoading = React.useMemo(() => 
+  const isAnyLoading = React.useMemo(() =>
     Array.from(operations.values()).some(op => op.loading),
     [operations]
   );
@@ -269,7 +269,7 @@ export function useAsyncOperations() {
 
       try {
         const result = await globalErrorRecovery.withRetry(operationId, operation);
-        
+
         setOperations(prev => new Map(prev).set(operationId, {
           loading: false,
           error: null,
@@ -279,7 +279,7 @@ export function useAsyncOperations() {
         return result;
       } catch (error) {
         const errorObj = error instanceof Error ? error : new Error(String(error));
-        
+
         setOperations(prev => new Map(prev).set(operationId, {
           loading: false,
           error: errorObj,
@@ -288,11 +288,11 @@ export function useAsyncOperations() {
 
         throw error;
       }
-    }, 
+    },
     []
   );
 
-  const getOperation = React.useCallback((operationId: string) => 
+  const getOperation = React.useCallback((operationId: string) =>
     operations.get(operationId) || { loading: false, error: null, data: null },
     [operations]
   );

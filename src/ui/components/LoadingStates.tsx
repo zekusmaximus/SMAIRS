@@ -6,8 +6,8 @@ export interface LoadingSpinnerProps {
   className?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'md', 
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
   color = 'primary',
   className = ''
 }) => {
@@ -67,7 +67,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   animation = 'pulse'
 }) => {
   const baseClasses = 'bg-gray-200';
-  
+
   const variantClasses = {
     text: 'rounded',
     rectangular: '',
@@ -131,7 +131,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
         <div className="flex flex-col items-center">
           {children || <LoadingSpinner size="lg" />}
-          
+
           {message && (
             <p className="mt-4 text-sm text-gray-600 text-center">
               {message}
@@ -196,7 +196,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 
   if (error) {
     const errorMessage = typeof error === 'string' ? error : error.message;
-    
+
     return (
       <div className={`flex items-center justify-center py-8 ${className}`}>
         {errorComponent || (
@@ -286,7 +286,7 @@ export interface LoadingStateResult<T> {
   reset: () => void;
 }
 
-export function useLoadingState<T = any>(
+export function useLoadingState<T = unknown>(
   options: UseLoadingStateOptions<T> = {}
 ): LoadingStateResult<T> {
   const [data, setData] = React.useState<T | null>(null);
@@ -322,9 +322,9 @@ export function useLoadingState<T = any>(
 
 // Specialized loading components for common scenarios
 
-export const AnalysisLoadingState: React.FC<{ progress?: number; currentStep?: string }> = ({ 
-  progress, 
-  currentStep 
+export const AnalysisLoadingState: React.FC<{ progress?: number; currentStep?: string }> = ({
+  progress,
+  currentStep
 }) => (
   <div className="flex flex-col items-center space-y-4 py-8">
     <LoadingSpinner size="lg" />
@@ -355,8 +355,8 @@ export const AnalysisLoadingState: React.FC<{ progress?: number; currentStep?: s
   </div>
 );
 
-export const ExportLoadingState: React.FC<{ 
-  progress?: number; 
+export const ExportLoadingState: React.FC<{
+  progress?: number;
   currentFile?: string;
   filesProcessed?: number;
   totalFiles?: number;
@@ -380,7 +380,7 @@ export const ExportLoadingState: React.FC<{
         </svg>
       </div>
     </div>
-    
+
     <div className="text-center">
       <h3 className="text-lg font-semibold text-gray-900 mb-2">
         Exporting Files
@@ -420,7 +420,7 @@ export const ManuscriptSkeletonLoader: React.FC = () => (
       <LoadingSkeleton height="2rem" width="60%" variant="rounded" />
       <LoadingSkeleton height="1rem" width="40%" variant="rounded" />
     </div>
-    
+
     {/* Content skeleton */}
     <div className="space-y-3">
       {Array.from({ length: 8 }, (_, i) => (
@@ -431,7 +431,7 @@ export const ManuscriptSkeletonLoader: React.FC = () => (
         </div>
       ))}
     </div>
-    
+
     {/* Action buttons skeleton */}
     <div className="flex space-x-2 mt-6">
       <LoadingSkeleton height="2.5rem" width="6rem" variant="rounded" />

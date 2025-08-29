@@ -6,22 +6,27 @@ interface ProgressBarProps {
   className?: string;
   showPercentage?: boolean;
   label?: string;
+  // When true, keep aria-label but don't render the visible label text block
+  visuallyHiddenLabel?: boolean;
 }
 
-export function ProgressBar({ 
-  value, 
-  max, 
-  className = '', 
+export function ProgressBar({
+  value,
+  max,
+  className = '',
   showPercentage = false,
-  label 
+  label,
+  visuallyHiddenLabel = false
 }: ProgressBarProps) {
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
-  
+
   return (
     <div className={`w-full ${className}`}>
-      {(label || showPercentage) && (
+      {(((label && !visuallyHiddenLabel) || showPercentage)) && (
         <div className="flex justify-between items-center mb-2 text-sm">
-          {label && <span className="text-gray-700 dark:text-gray-300">{label}</span>}
+          {label && !visuallyHiddenLabel && (
+            <span className="text-gray-700 dark:text-gray-300">{label}</span>
+          )}
           {showPercentage && (
             <span className="text-gray-600 dark:text-gray-400">
               {Math.round(percentage)}%
@@ -30,7 +35,7 @@ export function ProgressBar({
         </div>
       )}
       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-        <div 
+        <div
           className="h-2 bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${percentage}%` }}
           role="progressbar"
@@ -50,8 +55,6 @@ interface SteppedProgressBarProps {
 }
 
 export function SteppedProgressBar({ total, completed, className = '' }: SteppedProgressBarProps) {
-  const percentage = total > 0 ? (completed / total) * 100 : 0;
-  
   return (
     <div className={`w-full ${className}`}>
       <div className="flex justify-between items-center mb-2">
@@ -62,7 +65,7 @@ export function SteppedProgressBar({ total, completed, className = '' }: Stepped
           {completed} of {total} completed
         </span>
       </div>
-      <ProgressBar value={completed} max={total} />
+  <ProgressBar value={completed} max={total} label="Progress" visuallyHiddenLabel />
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
         <span>0%</span>
         <span>50%</span>

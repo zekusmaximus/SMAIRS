@@ -1,12 +1,31 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import { enqueue, setMaxConcurrent } from "@/lib/jobQueue";
 import * as events from "@/lib/events";
 
 describe("jobQueue", () => {
   beforeEach(() => {
     setMaxConcurrent(2);
+    // Ensure timers are available in this environment, then switch to fake timers
+    // Some Vitest worker contexts can lack global setTimeout if plugins misconfigure env.
+    if (typeof global.setTimeout !== 'function') {
+      // Attach jsdom timers from window as a fallback
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (global as any).setTimeout = window.setTimeout.bind(window);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global as any).clearTimeout = window.clearTimeout.bind(window);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global as any).setInterval = window.setInterval.bind(window);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global as any).clearInterval = window.clearInterval.bind(window);
+    }
     vi.useFakeTimers();
     vi.spyOn(events, "emitJobEvent").mockResolvedValue();
+  });
+
+  afterEach(() => {
+    // Restore timers and mocks to prevent leakage between tests
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("enqueues and emits done", async () => {

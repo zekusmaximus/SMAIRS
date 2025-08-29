@@ -7,7 +7,6 @@ import ErrorBoundary from './ErrorBoundary.js';
 
 interface RevisionInstructionViewerProps {
   instructions: RevisionInstruction[];
-  manuscript: string;
   onApply: (instruction: RevisionInstruction) => void;
   onApplyAll: () => void;
 }
@@ -16,7 +15,6 @@ type ViewMode = 'list' | 'guided' | 'print';
 
 export function RevisionInstructionViewer({
   instructions,
-  manuscript,
   onApply,
   onApplyAll
 }: RevisionInstructionViewerProps) {
@@ -28,11 +26,12 @@ export function RevisionInstructionViewer({
   // Filter instructions based on search
   const filteredInstructions = useMemo(() => {
     if (!searchQuery.trim()) return instructions;
-    
+
     const query = searchQuery.toLowerCase();
-    return instructions.filter(instruction => 
+    return instructions.filter(instruction =>
       instruction.sceneName.toLowerCase().includes(query) ||
       instruction.action.explanation.toLowerCase().includes(query) ||
+  instruction.action.verb.toLowerCase().includes(query) ||
       instruction.findContext.targetText.toLowerCase().includes(query)
     );
   }, [instructions, searchQuery]);
@@ -40,8 +39,26 @@ export function RevisionInstructionViewer({
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs, textareas, or contenteditable regions,
+      // but still handle Escape to clear search.
+      const target = e.target as EventTarget | null;
+      const el = (target instanceof Element && typeof target.closest === 'function')
+        ? (target as HTMLElement)
+        : null;
+      const active = document.activeElement instanceof Element ? document.activeElement : null;
+      const inInteractive = !!(
+        (el && el.closest('input, textarea, [contenteditable="true"]')) ||
+        (active && active.closest('input, textarea, [contenteditable="true"]'))
+      );
+      if (inInteractive && e.key !== 'Escape') return;
+      // Escape clears search in all modes
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSearchQuery('');
+        return;
+      }
       if (viewMode !== 'guided') return;
-      
+
       switch (e.key) {
         case 'ArrowRight':
         case ' ':
@@ -57,10 +74,6 @@ export function RevisionInstructionViewer({
             e.preventDefault();
             handleMarkComplete(currentStep);
           }
-          break;
-        case 'Escape':
-          e.preventDefault();
-          setSearchQuery('');
           break;
       }
     };
@@ -118,7 +131,7 @@ export function RevisionInstructionViewer({
           </div>
         `).join('')}
       `;
-      
+
       // Trigger browser print dialog
       const printWindow = window.open('', '_blank');
       if (printWindow) {
@@ -132,7 +145,7 @@ export function RevisionInstructionViewer({
                 .instruction-card { margin-bottom: 2em; padding: 1em; border: 1px solid #ddd; }
                 .completed { background-color: #f0f8ff; }
                 .progress-summary { background: #f5f5f5; padding: 1em; margin-bottom: 2em; }
-                @media print { 
+                @media print {
                   .instruction-card { break-inside: avoid; }
                   body { margin: 1cm; }
                 }
@@ -188,11 +201,11 @@ export function RevisionInstructionViewer({
               Revision Instructions
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              {filteredInstructions.length} instruction{filteredInstructions.length !== 1 ? 's' : ''} 
+              {filteredInstructions.length} instruction{filteredInstructions.length !== 1 ? 's' : ''}
               {searchQuery && ` (filtered from ${instructions.length})`}
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-3">
             <ViewModeSelector mode={viewMode} onChange={setViewMode} />
           </div>
@@ -203,9 +216,16 @@ export function RevisionInstructionViewer({
           <input
             type="text"
             placeholder="Search instructions..."
+            aria-label="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setSearchQuery('');
+              }
+            }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                      bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
                      focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -217,8 +237,8 @@ export function RevisionInstructionViewer({
         </div>
 
         {/* Progress indicator */}
-        <SteppedProgressBar 
-          total={filteredInstructions.length} 
+        <SteppedProgressBar
+          total={filteredInstructions.length}
           completed={completed.size}
         />
 
@@ -236,7 +256,7 @@ export function RevisionInstructionViewer({
                 onPrevious={handlePrevious}
               />
             )}
-            
+
             {viewMode === 'list' && (
               <ListView
                 instructions={filteredInstructions}
@@ -256,7 +276,6 @@ export function RevisionInstructionViewer({
           {/* Context panel */}
           <div className="lg:col-span-1">
             <ContextPanel
-              manuscript={manuscript}
               instruction={filteredInstructions[currentStep]}
               highlightColor="bg-yellow-200 dark:bg-yellow-800"
             />
@@ -302,14 +321,14 @@ interface GuidedModeProps {
   onPrevious: () => void;
 }
 
-function GuidedMode({ 
-  instruction, 
-  stepIndex, 
-  totalSteps, 
-  isCompleted, 
-  onComplete, 
-  onNext, 
-  onPrevious 
+function GuidedMode({
+  instruction,
+  stepIndex,
+  totalSteps,
+  isCompleted,
+  onComplete,
+  onNext,
+  onPrevious
 }: GuidedModeProps) {
   if (!instruction) {
     return <div className="text-center text-gray-500">No instruction selected</div>;
@@ -403,14 +422,14 @@ function GuidedMode({
 
       {/* Footer */}
       <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <Button 
-          variant="secondary" 
-          onClick={onPrevious} 
+        <Button
+          variant="secondary"
+          onClick={onPrevious}
           disabled={stepIndex === 0}
         >
           ← Previous
         </Button>
-        
+
         <div className="flex items-center space-x-3">
           <Button
             variant={isCompleted ? "success" : "primary"}
@@ -418,10 +437,10 @@ function GuidedMode({
           >
             {isCompleted ? "✓ Completed" : "Mark Complete"}
           </Button>
-          
-          <Button 
-            variant="secondary" 
-            onClick={onNext} 
+
+          <Button
+            variant="secondary"
+            onClick={onNext}
             disabled={stepIndex >= totalSteps - 1}
           >
             Next →
@@ -436,7 +455,7 @@ function GuidedMode({
 function getActionTitle(instruction: RevisionInstruction): string {
   switch (instruction.action.verb) {
     case 'Replace': return 'Replace Text';
-    case 'Insert': return 'Add Content'; 
+    case 'Insert': return 'Add Content';
     case 'Delete': return 'Remove Content';
     default: return 'Modify Content';
   }
@@ -453,13 +472,13 @@ function ListView({ instructions, completed, onToggleComplete }: ListViewProps) 
   return (
     <div className="space-y-4">
       {instructions.map((instruction, index) => (
-        <div 
+        <div
           key={instruction.stepNumber}
           className={`
-            bg-white dark:bg-gray-800 rounded-lg shadow-sm border 
+            bg-white dark:bg-gray-800 rounded-lg shadow-sm border
             transition-all duration-200
-            ${completed.has(index) 
-              ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10' 
+            ${completed.has(index)
+              ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10'
               : 'border-gray-200 dark:border-gray-700 hover:shadow-md'
             }
           `}
@@ -485,22 +504,22 @@ function ListView({ instructions, completed, onToggleComplete }: ListViewProps) 
                       </svg>
                     )}
                   </button>
-                  
+
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Step {instruction.stepNumber}: {getActionTitle(instruction)}
                   </h3>
-                  
+
                   {completed.has(index) && (
                     <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
                       Complete
                     </span>
                   )}
                 </div>
-                
+
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                   {instruction.sceneName}
                 </p>
-                
+
                 <div className="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div>
                     <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Find:</h4>
@@ -508,7 +527,7 @@ function ListView({ instructions, completed, onToggleComplete }: ListViewProps) 
                       {instruction.findContext.targetText}
                     </div>
                   </div>
-                  
+
                   {instruction.action.replacement && (
                     <div>
                       <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Replace with:</h4>
@@ -518,7 +537,7 @@ function ListView({ instructions, completed, onToggleComplete }: ListViewProps) 
                     </div>
                   )}
                 </div>
-                
+
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                   <strong>Why:</strong> {instruction.action.explanation}
                 </p>
@@ -545,10 +564,10 @@ function PrintView({ instructions, completed }: PrintViewProps) {
           {completed.size} of {instructions.length} completed
         </p>
       </div>
-      
+
       <div className="space-y-6 print:space-y-4">
         {instructions.map((instruction, index) => (
-          <div 
+          <div
             key={instruction.stepNumber}
             className={`
               border border-gray-300 p-4 rounded print:break-inside-avoid
@@ -566,11 +585,11 @@ function PrintView({ instructions, completed }: PrintViewProps) {
                 Step {instruction.stepNumber}: {getActionTitle(instruction)}
               </h2>
             </div>
-            
+
             <p className="text-sm text-gray-600 mb-3">
               <strong>Scene:</strong> {instruction.sceneName}
             </p>
-            
+
             <div className="mb-3">
               <h3 className="font-semibold mb-1">Find this text:</h3>
               <div className="font-mono text-sm bg-gray-100 p-2 border">
@@ -579,7 +598,7 @@ function PrintView({ instructions, completed }: PrintViewProps) {
                 {instruction.findContext.followingText}
               </div>
             </div>
-            
+
             {instruction.action.replacement && (
               <div className="mb-3">
                 <h3 className="font-semibold mb-1">{instruction.action.verb} with:</h3>
@@ -588,7 +607,7 @@ function PrintView({ instructions, completed }: PrintViewProps) {
                 </div>
               </div>
             )}
-            
+
             <div>
               <h3 className="font-semibold mb-1">Reason:</h3>
               <p className="text-sm">{instruction.action.explanation}</p>
@@ -596,7 +615,7 @@ function PrintView({ instructions, completed }: PrintViewProps) {
           </div>
         ))}
       </div>
-      
+
       <div className="mt-8 print:mt-6 text-center text-sm text-gray-500">
         Generated by SMAIRS - {new Date().toLocaleDateString()}
       </div>
@@ -605,12 +624,11 @@ function PrintView({ instructions, completed }: PrintViewProps) {
 }
 
 interface ContextPanelProps {
-  manuscript: string;
   instruction?: RevisionInstruction;
   highlightColor: string;
 }
 
-function ContextPanel({ manuscript, instruction, highlightColor }: ContextPanelProps) {
+function ContextPanel({ instruction, highlightColor }: ContextPanelProps) {
   if (!instruction) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -625,15 +643,13 @@ function ContextPanel({ manuscript, instruction, highlightColor }: ContextPanelP
   }
 
   // Extract more context around the instruction location
-  const contextRadius = 500;
-  const sceneText = manuscript; // In a real app, you'd get the specific scene text
-  
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
       <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
         Manuscript Context
       </h3>
-      
+
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -643,13 +659,13 @@ function ContextPanel({ manuscript, instruction, highlightColor }: ContextPanelP
             Approximate line {instruction.findContext.approximateLine}
           </div>
         </div>
-        
+
         <div className="max-h-96 overflow-y-auto">
           <div className="font-mono text-sm bg-gray-50 dark:bg-gray-900 p-4 rounded whitespace-pre-wrap">
             <span className="text-gray-600 dark:text-gray-400">
               {instruction.findContext.precedingText}
             </span>
-            <span className={`${highlightColor} px-1 font-semibold`}>
+            <span data-testid="context-highlight" className={`${highlightColor} px-1 font-semibold`}>
               {instruction.findContext.targetText}
             </span>
             <span className="text-gray-600 dark:text-gray-400">
@@ -657,7 +673,7 @@ function ContextPanel({ manuscript, instruction, highlightColor }: ContextPanelP
             </span>
           </div>
         </div>
-        
+
         <div className="text-xs text-gray-500 dark:text-gray-400">
           <p className="mb-1">
             <strong>Action:</strong> {instruction.action.verb}
@@ -679,15 +695,15 @@ interface ActionBarProps {
   totalCount: number;
 }
 
-function ActionBar({ 
-  onApplyAll, 
-  onExportPDF, 
-  onPrint, 
-  completedCount, 
-  totalCount 
+function ActionBar({
+  onApplyAll,
+  onExportPDF,
+  onPrint,
+  completedCount,
+  totalCount
 }: ActionBarProps) {
   const allCompleted = completedCount === totalCount;
-  
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -702,26 +718,26 @@ function ActionBar({
             </span>
           )}
         </div>
-        
+
         <div className="flex flex-wrap gap-3">
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={onApplyAll}
             icon="⚡"
           >
             Apply All Automatically
           </Button>
-          
-          <Button 
-            variant="secondary" 
+
+          <Button
+            variant="secondary"
             onClick={onExportPDF}
             icon="📄"
           >
             Export PDF
           </Button>
-          
-          <Button 
-            variant="secondary" 
+
+          <Button
+            variant="secondary"
             onClick={onPrint}
             icon="🖨️"
           >

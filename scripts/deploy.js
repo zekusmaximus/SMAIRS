@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /* eslint-env node */
-/* eslint-disable no-console, @typescript-eslint/no-unused-vars */
- 
+/* global process, console */
+
 
 /**
  * Production Deployment Script
- * 
+ *
  * This script handles the complete deployment process including:
  * - Pre-deployment checks
  * - Building optimized production bundle
@@ -61,11 +61,11 @@ class DeploymentManager {
   exec(command, options = {}) {
     try {
       this.log(`Executing: ${command}`);
-      const result = execSync(command, { 
-        cwd: rootDir, 
+      const result = execSync(command, {
+        cwd: rootDir,
         stdio: 'pipe',
         encoding: 'utf8',
-        ...options 
+        ...options
       });
       return result.trim();
     } catch (error) {
@@ -104,7 +104,7 @@ class DeploymentManager {
       if (gitStatus) {
         this.log('⚠️  Warning: Working directory has uncommitted changes');
       }
-    } catch (error) {
+  } catch {
       this.log('⚠️  Warning: Not in a git repository');
     }
 
@@ -176,7 +176,7 @@ class DeploymentManager {
   analyzeBundleSizes() {
     const stats = this.exec('npm run build:analyze -- --json', { stdio: 'pipe' });
     const analysis = JSON.parse(stats);
-    
+
     return {
       totalSize: analysis.assets.reduce((sum, asset) => sum + asset.size, 0),
       chunks: analysis.assets.filter(asset => asset.name.endsWith('.js')),
@@ -187,7 +187,7 @@ class DeploymentManager {
 
   logBundleAnalysis(analysis) {
     this.log(`Total bundle size: ${this.formatBytes(analysis.totalSize)}`);
-    
+
     if (analysis.totalSize > config.maxBundleSize) {
       this.error(`Bundle size exceeds limit: ${this.formatBytes(config.maxBundleSize)}`);
     }
@@ -202,12 +202,12 @@ class DeploymentManager {
 
   async validatePerformanceMetrics() {
     this.log('🚀 Validating performance metrics...');
-    
+
     // Use Lighthouse CI or similar tool
     try {
       this.exec('npx lhci autorun --config=.lighthouserc.json');
       this.log('✅ Performance metrics validated');
-    } catch (error) {
+  } catch {
       this.log('⚠️  Performance validation failed - proceeding with deployment', 'warn');
     }
   }
@@ -266,7 +266,7 @@ class DeploymentManager {
 
   async healthCheck() {
     this.log('🏥 Running health check...');
-    
+
     const healthEndpoints = [
       `https://${this.environment === 'staging' ? 'staging.' : ''}smairs.app/health`,
       `https://api.${this.environment === 'staging' ? 'staging.' : ''}smairs.app/health`
@@ -277,7 +277,7 @@ class DeploymentManager {
         // Use curl or fetch to check endpoint
         this.exec(`curl -f -s "${endpoint}" || exit 1`);
         this.log(`✅ Health check passed: ${endpoint}`);
-      } catch (error) {
+  } catch {
         this.error(`Health check failed: ${endpoint}`);
       }
     }
@@ -308,7 +308,7 @@ class DeploymentManager {
 
     const reportPath = join(rootDir, `deployment-report-${this.environment}-${Date.now()}.json`);
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    
+
     this.log(`📋 Deployment report saved: ${reportPath}`);
     this.log(`🎉 Deployment completed successfully in ${duration}ms`);
   }
@@ -354,7 +354,7 @@ class DeploymentManager {
 // Main execution
 async function main() {
   const environment = process.argv[2] || 'production';
-  
+
   if (!config.environments.includes(environment)) {
     console.error(`❌ Invalid environment: ${environment}`);
     console.error(`Available environments: ${config.environments.join(', ')}`);

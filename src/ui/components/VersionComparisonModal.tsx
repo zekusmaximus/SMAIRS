@@ -77,9 +77,9 @@ export function VersionComparisonModal({
   // Filter changes based on search
   const filteredChanges = useMemo(() => {
     if (!searchQuery.trim()) return changes;
-    
+
     const query = searchQuery.toLowerCase();
-    return changes.filter(change => 
+    return changes.filter(change =>
       (change.originalText?.toLowerCase().includes(query)) ||
       (change.revisedText?.toLowerCase().includes(query)) ||
       (change.reason?.toLowerCase().includes(query))
@@ -89,7 +89,7 @@ export function VersionComparisonModal({
   // Navigation handlers
   const navigateToChange = useCallback((direction: 'next' | 'prev') => {
     const changeIndices = filteredChanges
-      .map((change, index) => ({ change, originalIndex: changes.indexOf(change) }))
+      .map((change) => ({ change, originalIndex: changes.indexOf(change) }))
       .filter(({ change }) => change.type !== 'unchanged')
       .map(({ originalIndex }) => originalIndex);
 
@@ -105,7 +105,7 @@ export function VersionComparisonModal({
     }
 
     setCurrentChangeIndex(newIndex);
-    
+
     // Scroll to the change
     const element = document.getElementById(`change-${newIndex}`);
     element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -146,17 +146,18 @@ export function VersionComparisonModal({
   }, [isOpen, navigateToChange, searchQuery, onClose]);
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
       size="xl"
+  labelledBy="modal-title"
       className="max-h-[90vh] flex flex-col"
     >
       <ErrorBoundary label="Version Comparison Modal">
-        <ModalHeader className="flex-shrink-0">
+    <ModalHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+      <h2 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                 {title}
               </h2>
               <DiffStats stats={diffStats} />
@@ -164,6 +165,7 @@ export function VersionComparisonModal({
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      aria-label="Close"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -171,19 +173,19 @@ export function VersionComparisonModal({
             </button>
           </div>
         </ModalHeader>
-        
+
         <ModalToolbar className="flex-shrink-0">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-4">
               <DiffViewModeSelector mode={viewMode} onChange={setViewMode} />
-              
+
               <Toggle
                 label="Line Numbers"
                 checked={showLineNumbers}
                 onChange={setShowLineNumbers}
                 size="sm"
               />
-              
+
               <Toggle
                 label="Syntax Highlighting"
                 checked={highlightSyntax}
@@ -191,7 +193,7 @@ export function VersionComparisonModal({
                 size="sm"
               />
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
@@ -201,7 +203,7 @@ export function VersionComparisonModal({
               >
                 ↑ Prev
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -233,7 +235,7 @@ export function VersionComparisonModal({
             </div>
           </div>
         </div>
-        
+
         <ModalBody className="flex-1 overflow-hidden p-0">
           <div className="h-full overflow-auto">
             {viewMode === 'split' && (
@@ -242,33 +244,30 @@ export function VersionComparisonModal({
                 revised={revised}
                 changes={filteredChanges}
                 showLineNumbers={showLineNumbers}
-                highlightSyntax={highlightSyntax}
                 currentChangeIndex={currentChangeIndex}
                 onChangeSelect={setCurrentChangeIndex}
               />
             )}
-            
+
             {viewMode === 'unified' && (
               <UnifiedDiffView
-                original={original}
-                revised={revised}
                 changes={filteredChanges}
                 showLineNumbers={showLineNumbers}
                 currentChangeIndex={currentChangeIndex}
                 onChangeSelect={setCurrentChangeIndex}
               />
             )}
-            
+
             {viewMode === 'changes-only' && (
-              <ChangesOnlyView 
-                changes={filteredChanges} 
+              <ChangesOnlyView
+                changes={filteredChanges}
                 currentChangeIndex={currentChangeIndex}
                 onChangeSelect={setCurrentChangeIndex}
               />
             )}
           </div>
         </ModalBody>
-        
+
         <ModalFooter className="flex-shrink-0">
           <div className="flex items-center justify-between w-full">
             <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -286,7 +285,7 @@ export function VersionComparisonModal({
                 <span>No changes found</span>
               )}
             </div>
-            
+
             <div className="flex space-x-3">
               <Button variant="ghost" onClick={onClose}>
                 Cancel
@@ -340,23 +339,21 @@ interface SplitDiffViewProps {
   revised: string;
   changes: DiffSegment[];
   showLineNumbers: boolean;
-  highlightSyntax: boolean;
   currentChangeIndex: number;
   onChangeSelect: (index: number) => void;
 }
 
-function SplitDiffView({ 
-  original, 
-  revised, 
-  changes, 
-  showLineNumbers, 
-  highlightSyntax,
+function SplitDiffView({
+  original,
+  revised,
+  changes,
+  showLineNumbers,
   currentChangeIndex,
   onChangeSelect
 }: SplitDiffViewProps) {
   const originalLines = original.split('\n');
   const revisedLines = revised.split('\n');
-  
+
   return (
     <div className="grid grid-cols-2 h-full">
       {/* Original */}
@@ -366,18 +363,16 @@ function SplitDiffView({
         </div>
         <div className="p-4">
           <CodeView
-            content={original}
             lines={originalLines}
             changes={changes}
             showLineNumbers={showLineNumbers}
-            highlightSyntax={highlightSyntax}
             side="original"
             currentChangeIndex={currentChangeIndex}
             onChangeSelect={onChangeSelect}
           />
         </div>
       </div>
-      
+
       {/* Revised */}
       <div>
         <div className="sticky top-0 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border-b">
@@ -385,11 +380,9 @@ function SplitDiffView({
         </div>
         <div className="p-4">
           <CodeView
-            content={revised}
             lines={revisedLines}
             changes={changes}
             showLineNumbers={showLineNumbers}
-            highlightSyntax={highlightSyntax}
             side="revised"
             currentChangeIndex={currentChangeIndex}
             onChangeSelect={onChangeSelect}
@@ -402,18 +395,14 @@ function SplitDiffView({
 
 // Unified Diff View
 interface UnifiedDiffViewProps {
-  original: string;
-  revised: string;
   changes: DiffSegment[];
   showLineNumbers: boolean;
   currentChangeIndex: number;
   onChangeSelect: (index: number) => void;
 }
 
-function UnifiedDiffView({ 
-  original, 
-  revised, 
-  changes, 
+function UnifiedDiffView({
+  changes,
   showLineNumbers,
   currentChangeIndex,
   onChangeSelect
@@ -443,7 +432,7 @@ function UnifiedDiffView({
           originalLineNum++;
           revisedLineNum++;
           break;
-          
+
         case 'deleted':
           lines.push({
             type: 'deleted',
@@ -453,7 +442,7 @@ function UnifiedDiffView({
           });
           originalLineNum++;
           break;
-          
+
         case 'added':
           lines.push({
             type: 'added',
@@ -463,7 +452,7 @@ function UnifiedDiffView({
           });
           revisedLineNum++;
           break;
-          
+
         case 'modified':
           lines.push({
             type: 'deleted',
@@ -489,9 +478,9 @@ function UnifiedDiffView({
   return (
     <div className="p-4">
       <div className="font-mono text-sm">
-        {unifiedDiff.map((line, index) => (
+    {unifiedDiff.map((line, _index) => (
           <div
-            key={index}
+      key={_index}
             id={line.changeIndex !== undefined ? `change-${line.changeIndex}` : undefined}
             className={`
               flex hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer
@@ -515,7 +504,7 @@ function UnifiedDiffView({
                 </span>
               </div>
             )}
-            
+
             {/* Change indicator */}
             <div className="flex-shrink-0 w-8 text-center select-none">
               {line.type === 'added' ? (
@@ -526,7 +515,7 @@ function UnifiedDiffView({
                 <span className="text-gray-400"> </span>
               )}
             </div>
-            
+
             {/* Content */}
             <div className="flex-1 whitespace-pre-wrap break-all">
               {line.content}
@@ -564,15 +553,15 @@ function ChangesOnlyView({ changes, currentChangeIndex, onChangeSelect }: Change
       {changesOnly.map((change, index) => {
         const originalIndex = changes.indexOf(change);
         const isSelected = originalIndex === currentChangeIndex;
-        
+
         return (
           <div
             key={index}
             id={`change-${originalIndex}`}
             className={`
               border rounded-lg p-4 cursor-pointer transition-all duration-200
-              ${isSelected 
-                ? 'ring-2 ring-blue-500 border-blue-300 dark:border-blue-600' 
+              ${isSelected
+                ? 'ring-2 ring-blue-500 border-blue-300 dark:border-blue-600'
                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
               }
             `}
@@ -592,19 +581,19 @@ function ChangesOnlyView({ changes, currentChangeIndex, onChangeSelect }: Change
                    '~ Modified'
                   }
                 </span>
-                
+
                 {change.source && (
                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                     {change.source}
                   </span>
                 )}
               </div>
-              
+
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 Lines {change.startOffset}-{change.endOffset}
               </div>
             </div>
-            
+
             {change.originalText && change.type !== 'added' && (
               <div className="mb-2">
                 <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Original:</div>
@@ -613,7 +602,7 @@ function ChangesOnlyView({ changes, currentChangeIndex, onChangeSelect }: Change
                 </div>
               </div>
             )}
-            
+
             {change.revisedText && change.type !== 'deleted' && (
               <div className="mb-2">
                 <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -624,7 +613,7 @@ function ChangesOnlyView({ changes, currentChangeIndex, onChangeSelect }: Change
                 </div>
               </div>
             )}
-            
+
             {change.reason && (
               <div>
                 <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Reason:</div>
@@ -642,21 +631,18 @@ function ChangesOnlyView({ changes, currentChangeIndex, onChangeSelect }: Change
 
 // Code View Component
 interface CodeViewProps {
-  content: string;
   lines: string[];
   changes: DiffSegment[];
   showLineNumbers: boolean;
-  highlightSyntax: boolean;
   side: 'original' | 'revised';
   currentChangeIndex: number;
   onChangeSelect: (index: number) => void;
 }
 
-function CodeView({ 
-  content, 
-  lines, 
-  changes, 
-  showLineNumbers, 
+function CodeView({
+  lines,
+  changes,
+  showLineNumbers,
   side,
   currentChangeIndex,
   onChangeSelect
@@ -665,24 +651,24 @@ function CodeView({
     <div className="font-mono text-sm">
       {lines.map((line, lineIndex) => {
         const lineNumber = lineIndex + 1;
-        
+
         // Find if this line has changes
         const relevantChanges = changes.filter(change => {
           const startLine = Math.floor(change.startOffset / 50) + 1; // Rough estimate
           const endLine = Math.floor(change.endOffset / 50) + 1;
           return lineNumber >= startLine && lineNumber <= endLine;
         });
-        
+
         const hasChanges = relevantChanges.length > 0;
         const changeTypes = relevantChanges.map(c => c.type);
-        
+
         return (
           <div
             key={lineIndex}
             className={`
               flex hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer
               ${hasChanges ? 'bg-blue-50 dark:bg-blue-900/10' : ''}
-              ${relevantChanges.some((_, index) => changes.indexOf(relevantChanges[index]!) === currentChangeIndex) 
+              ${relevantChanges.some((_, index) => changes.indexOf(relevantChanges[index]!) === currentChangeIndex)
                 ? 'ring-2 ring-blue-500' : ''
               }
             `}
@@ -697,7 +683,7 @@ function CodeView({
                 {lineNumber}
               </div>
             )}
-            
+
             {/* Change indicator */}
             <div className="flex-shrink-0 w-6 text-center select-none">
               {changeTypes.includes('added') && side === 'revised' && (
@@ -710,7 +696,7 @@ function CodeView({
                 <span className="text-blue-500">~</span>
               )}
             </div>
-            
+
             <div className="flex-1 whitespace-pre-wrap break-all">
               {line}
             </div>

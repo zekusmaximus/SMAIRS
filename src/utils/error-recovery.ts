@@ -1,6 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 
-export interface RetryableOperation<T = any> {
+// Helper types to avoid 'any'
+type GenericContext = Record<string, unknown>;
+type RecoveryEventDetail = Record<string, unknown>;
+
+export interface RetryableOperation<T = unknown> {
   id: string;
   operation: () => Promise<T>;
   attempts: number;
@@ -8,14 +12,14 @@ export interface RetryableOperation<T = any> {
   backoffStrategy: 'exponential' | 'linear' | 'fixed';
   lastError?: Error;
   nextRetryAt?: Date;
-  context?: Record<string, any>;
+  context?: GenericContext;
 }
 
 export interface RecoverableErrorOptions {
   attempts: number;
   canRetry: boolean;
   suggestions: string[];
-  context?: Record<string, any>;
+  context?: GenericContext;
   recoveryActions?: Array<{
     label: string;
     action: () => Promise<void> | void;
@@ -66,7 +70,7 @@ export class ErrorRecovery {
       onError?: (error: Error, attempt: number) => void;
       onRetry?: (attempt: number, nextDelay: number) => void;
       shouldRetry?: (error: Error) => boolean;
-      context?: Record<string, any>;
+  context?: GenericContext;
     } = {}
   ): Promise<T> {
     const {
@@ -84,10 +88,10 @@ export class ErrorRecovery {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await operation();
-        
+
         // Remove from retry queue if successful
         this.retryQueue.delete(operationId);
-        
+
         // Emit success event
         this.emit('operation-success', {
           operationId,
@@ -113,9 +117,9 @@ export class ErrorRecovery {
 
         if (attempt < maxRetries) {
           const delay = this.calculateDelay(attempt, backoffStrategy, initialDelay);
-          
+
           onRetry?.(attempt, delay);
-          
+
           // Add to retry queue for later processing
           this.retryQueue.set(operationId, {
             id: operationId,
@@ -144,7 +148,7 @@ export class ErrorRecovery {
 
     // All retries exhausted
     this.retryQueue.delete(operationId);
-    
+
     throw new RecoverableError(lastError!, {
       attempts: maxRetries,
       canRetry: true,
@@ -163,7 +167,7 @@ export class ErrorRecovery {
     options: {
       maxRetries?: number;
       backoffStrategy?: 'exponential' | 'linear' | 'fixed';
-      context?: Record<string, any>;
+  context?: GenericContext;
     } = {}
   ): Promise<void> {
     const {
@@ -205,7 +209,7 @@ export class ErrorRecovery {
         readyOperations.map(async (op) => {
           try {
             const result = await op.operation();
-            
+
             this.retryQueue.delete(op.id);
             this.emit('operation-success', {
               operationId: op.id,
@@ -228,7 +232,7 @@ export class ErrorRecovery {
             } else {
               const delay = this.calculateDelay(op.attempts, op.backoffStrategy, 1000);
               op.nextRetryAt = new Date(Date.now() + delay);
-              
+
               this.emit('operation-retry', {
                 operationId: op.id,
                 attempt: op.attempts,
@@ -302,7 +306,7 @@ export class ErrorRecovery {
   /**
    * Get contextual recovery actions
    */
-  private getRecoveryActions(error: Error, context: Record<string, any>) {
+  private getRecoveryActions(error: Error, context: GenericContext) {
     const actions: Array<{ label: string; action: () => Promise<void> | void }> = [];
     const message = error.message.toLowerCase();
 
@@ -349,7 +353,7 @@ export class ErrorRecovery {
    */
   private defaultShouldRetry(error: Error): boolean {
     const message = error.message.toLowerCase();
-    
+
     // Don't retry permanent errors
     if (
       message.includes('404') ||
@@ -401,7 +405,7 @@ export class ErrorRecovery {
   /**
    * Event emitter helpers
    */
-  private emit(eventType: string, detail: any): void {
+  private emit(eventType: string, detail: RecoveryEventDetail): void {
     this.eventEmitter.dispatchEvent(
       new CustomEvent(eventType, { detail })
     );
@@ -427,7 +431,7 @@ export class ErrorRecovery {
         maxRetries: op.maxRetries,
         nextRetryAt: op.nextRetryAt,
         lastError: op.lastError?.message,
-        context: op.context
+        context: op.context as GenericContext | undefined
       }))
     };
   }
@@ -485,7 +489,7 @@ export function useErrorRecovery() {
     };
     const handleFailure = (event: Event) => {
       setIsRetrying(false);
-      const customEvent = event as CustomEvent;
+      const customEvent = event as CustomEvent<{ error: Error; attempts: number }>;
       const error = new RecoverableError(customEvent.detail.error, {
         attempts: customEvent.detail.attempts,
         canRetry: true,
@@ -505,16 +509,19 @@ export function useErrorRecovery() {
     };
   }, []);
 
-  const retryOperation = useCallback(async (operationId: string, operation: () => Promise<any>) => {
-    try {
-      return await globalErrorRecovery.withRetry(operationId, operation);
-    } catch (error) {
-      if (error instanceof RecoverableError) {
-        setErrors(prev => [...prev, error]);
+  const retryOperation = useCallback(
+    async <T>(operationId: string, operation: () => Promise<T>) => {
+      try {
+        return await globalErrorRecovery.withRetry(operationId, operation);
+      } catch (error) {
+        if (error instanceof RecoverableError) {
+          setErrors(prev => [...prev, error]);
+        }
+        throw error;
       }
-      throw error;
-    }
-  }, []);
+    },
+    []
+  );
 
   const clearError = useCallback((index: number) => {
     setErrors(prev => prev.filter((_, i) => i !== index));

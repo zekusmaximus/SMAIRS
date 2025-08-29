@@ -50,7 +50,6 @@ describe('Accessibility Tests', () => {
       const { container } = render(
         <RevisionInstructionViewer
           instructions={mockInstructions}
-          manuscript="Test manuscript"
           onApply={() => {}}
           onApplyAll={() => {}}
         />
@@ -64,7 +63,6 @@ describe('Accessibility Tests', () => {
       render(
         <RevisionInstructionViewer
           instructions={mockInstructions}
-          manuscript="Test manuscript"
           onApply={() => {}}
           onApplyAll={() => {}}
         />
@@ -86,7 +84,6 @@ describe('Accessibility Tests', () => {
       render(
         <RevisionInstructionViewer
           instructions={mockInstructions}
-          manuscript="Test manuscript"
           onApply={() => {}}
           onApplyAll={() => {}}
         />
@@ -111,7 +108,6 @@ describe('Accessibility Tests', () => {
       render(
         <RevisionInstructionViewer
           instructions={mockInstructions}
-          manuscript="Test manuscript"
           onApply={() => {}}
           onApplyAll={() => {}}
         />
@@ -352,7 +348,7 @@ describe('Accessibility Tests', () => {
 
       it('has proper modal ARIA attributes', () => {
         render(
-          <Modal isOpen={true} onClose={() => {}}>
+          <Modal isOpen={true} onClose={() => {}} ariaLabel="Test Modal">
             <div>Modal content</div>
           </Modal>
         );
@@ -363,7 +359,7 @@ describe('Accessibility Tests', () => {
 
       it('prevents body scroll when open', () => {
         const { rerender } = render(
-          <Modal isOpen={false} onClose={() => {}}>
+          <Modal isOpen={false} onClose={() => {}} ariaLabel="Test Modal">
             <div>Modal content</div>
           </Modal>
         );
@@ -371,7 +367,7 @@ describe('Accessibility Tests', () => {
         expect(document.body.style.overflow).not.toBe('hidden');
 
         rerender(
-          <Modal isOpen={true} onClose={() => {}}>
+          <Modal isOpen={true} onClose={() => {}} ariaLabel="Test Modal">
             <div>Modal content</div>
           </Modal>
         );
