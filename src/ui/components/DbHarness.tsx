@@ -21,7 +21,11 @@ async function getInvoke(): Promise<Invoke | undefined> {
   return undefined;
 }
 
-export default function DbHarness() {
+interface DbHarnessProps {
+  className?: string;
+}
+
+export default function DbHarness({ className = '' }: DbHarnessProps) {
   const [open, setOpen] = React.useState(false);
   const [log, setLog] = React.useState<string>("");
   const [scenes, setScenes] = React.useState<SceneRecord[]>([]);
@@ -70,7 +74,7 @@ export default function DbHarness() {
   };
 
   return (
-    <div className="db-harness" style={{ position: "fixed", bottom: 8, right: 8, zIndex: 50 }}>
+    <div className={`db-harness ${className}`}>
       <button className="btn" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="db-harness-panel" title="Toggle DB Harness">
         {open ? "Hide DB Harness" : "Show DB Harness"}
       </button>

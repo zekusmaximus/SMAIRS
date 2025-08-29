@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useLLMMonitor } from '../features/llm/api.js';
 
-export function LLMMonitorWidget() {
+interface LLMMonitorWidgetProps {
+  className?: string;
+}
+
+export function LLMMonitorWidget({ className = '' }: LLMMonitorWidgetProps) {
   const { metrics, health } = useLLMMonitor();
   const [show, setShow] = useState(false);
   if (!metrics) return null;
   const healthColor = health > 80 ? 'green' : health > 50 ? 'goldenrod' : 'crimson';
   return (
-    <div style={{ position: 'fixed', bottom: 12, right: 12, zIndex: 9999 }}>
+    <div className={className}>
       <button
         onClick={() => setShow(!show)}
         style={{ background: '#111', color: '#fff', borderRadius: 6, padding: '6px 10px', border: '1px solid #444' }}

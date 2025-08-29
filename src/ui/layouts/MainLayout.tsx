@@ -6,6 +6,7 @@ import { DecisionBar } from "../components/DecisionBar";
 import { SectionErrorBoundary, ComponentErrorBoundary } from "@/ui/components/ErrorBoundary";
 import { AsyncWrapper, LazyComponentWrapper } from "@/ui/components/AsyncWrapper";
 import KeyboardHelp from "@/ui/components/KeyboardHelp";
+import OverlayStack from "@/ui/components/OverlayStack";
 // React imported above
 const SceneNavigator = React.lazy(() => import("@/ui/panels/SceneNavigator"));
 const CompareDrawer = React.lazy(() => import("@/ui/components/CompareDrawer"));
@@ -14,6 +15,7 @@ const SearchPanel = React.lazy(() => import("@/ui/panels/SearchPanel"));
 const ManuscriptEditor = React.lazy(() => import("@/editor/Editor"));
 const JobTray = React.lazy(() => import("@/ui/components/JobTray"));
 const DbHarness = React.lazy(() => import("@/ui/components/DbHarness"));
+const LLMMonitorWidget = React.lazy(() => import("@/components/LLMMonitorWidget"));
 
 type PanelProps = PropsWithChildren<{ className?: string; title?: string }>;
 function Panel({ className, title, children }: PanelProps) {
@@ -88,8 +90,8 @@ export function MainLayout() {
       </Panel>
       <Panel className="panel-center" title="Manuscript">
         <SectionErrorBoundary label="Manuscript Editor">
-          <AsyncWrapper 
-            errorBoundary="none" 
+          <AsyncWrapper
+            errorBoundary="none"
             loadingMessage="Loading manuscript editor..."
             fallback={
               <div className="flex items-center justify-center" style={{ height: "60vh" }}>
@@ -111,8 +113,8 @@ export function MainLayout() {
       <Panel className="panel-right" title="Search & Analysis">
         <div className="space-y-4">
           <ComponentErrorBoundary label="Search Panel">
-            <AsyncWrapper 
-              errorBoundary="none" 
+            <AsyncWrapper
+              errorBoundary="none"
               loadingMessage="Loading search..."
               fallback={
                 <div className="p-4 space-y-2">
@@ -127,10 +129,10 @@ export function MainLayout() {
               </div>
             </AsyncWrapper>
           </ComponentErrorBoundary>
-          
+
           <ComponentErrorBoundary label="Analysis Details">
-            <AsyncWrapper 
-              errorBoundary="none" 
+            <AsyncWrapper
+              errorBoundary="none"
               loadingMessage="Loading analysis..."
               fallback={
                 <div className="p-4 space-y-3">
@@ -154,16 +156,14 @@ export function MainLayout() {
           <CompareDrawer />
         </AsyncWrapper>
       </ComponentErrorBoundary>
-      
-      <ComponentErrorBoundary label="Job Tray">
-        <AsyncWrapper errorBoundary="none" fallback={null}>
-          <JobTray />
-        </AsyncWrapper>
-      </ComponentErrorBoundary>
 
-      <ComponentErrorBoundary label="Database Harness">
+      <ComponentErrorBoundary label="Overlay Components">
         <AsyncWrapper errorBoundary="none" fallback={null}>
-          <DbHarness />
+          <OverlayStack>
+            <LLMMonitorWidget />
+            <DbHarness />
+            <JobTray compact />
+          </OverlayStack>
         </AsyncWrapper>
       </ComponentErrorBoundary>
 
