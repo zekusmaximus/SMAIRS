@@ -5,7 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import a11y from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
-  { ignores: ['dist', 'out', 'src-tauri/**/target', 'eslint.config.mjs'] },
+  { ignores: ['dist', 'out', 'src-tauri/**/target', 'eslint.config.mjs', '.eslintrc.override.js'] },
   js.configs.recommended,
   // Untyped TS/JS (tooling) - basic recommended only
   ...tseslint.configs.recommended,
