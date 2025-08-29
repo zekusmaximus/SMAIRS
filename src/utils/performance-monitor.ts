@@ -26,6 +26,18 @@ export interface PerformanceMetrics {
   manuscriptProcessingTime: Record<string, number>;
   exportTimes: Record<string, number>;
   analysisPerformance: Record<string, number>;
+
+  // Quality settings (auto-adjusted based on performance)
+  qualitySettings: QualitySettings;
+}
+
+export interface QualitySettings {
+  virtualScrollOverscan: number;
+  searchChunkSize: number;
+  cacheSize: number;
+  renderThrottle: number;
+  memoryThreshold: number;
+  enableAdvancedFeatures: boolean;
 }
 
 export interface PerformanceReport {
@@ -84,7 +96,15 @@ export class PerformanceMonitor {
       scrollPerformance: [],
       manuscriptProcessingTime: {},
       exportTimes: {},
-      analysisPerformance: {}
+      analysisPerformance: {},
+      qualitySettings: {
+        virtualScrollOverscan: 20,
+        searchChunkSize: 50000,
+        cacheSize: 100,
+        renderThrottle: 16,
+        memoryThreshold: 200,
+        enableAdvancedFeatures: true
+      }
     };
   }
 
@@ -185,6 +205,7 @@ export class PerformanceMonitor {
   private monitorFrameRate(): void {
     let frameCount = 0;
     let startTime = performance.now();
+    let qualityCheckCount = 0;
 
     const measureFPS = () => {
       if (!this.isMonitoring) return;
@@ -203,6 +224,13 @@ export class PerformanceMonitor {
 
         if (fps < 30) {
           this.warnLowFrameRate(fps);
+        }
+
+        // Auto-adjust quality settings every 10 seconds
+        qualityCheckCount++;
+        if (qualityCheckCount >= 10) {
+          this.adjustQualitySettings();
+          qualityCheckCount = 0;
         }
 
         frameCount = 0;
@@ -582,6 +610,99 @@ export class PerformanceMonitor {
         ...(avgInputLatency > 50 ? ['Reduce main thread blocking'] : [])
       ]
     };
+  }
+
+  // Auto-adjust quality settings based on performance
+  adjustQualitySettings(): void {
+    const avgFPS = this.getAverage(this.metrics.fps);
+    const memoryPeak = Math.max(...this.metrics.memoryUsage, 0);
+    const avgInputLatency = this.getAverage(this.metrics.inputLatency);
+
+    let needsAdjustment = false;
+    const settings = { ...this.metrics.qualitySettings };
+
+    // Adjust based on FPS
+    if (avgFPS < 30 && settings.enableAdvancedFeatures) {
+      settings.enableAdvancedFeatures = false;
+      settings.virtualScrollOverscan = Math.max(5, settings.virtualScrollOverscan - 5);
+      needsAdjustment = true;
+    } else if (avgFPS > 50 && !settings.enableAdvancedFeatures) {
+      settings.enableAdvancedFeatures = true;
+      settings.virtualScrollOverscan = Math.min(30, settings.virtualScrollOverscan + 5);
+      needsAdjustment = true;
+    }
+
+    // Adjust based on memory usage
+    if (memoryPeak > 300) {
+      settings.cacheSize = Math.max(25, settings.cacheSize - 25);
+      settings.memoryThreshold = Math.max(150, settings.memoryThreshold - 50);
+      needsAdjustment = true;
+    } else if (memoryPeak < 150 && settings.cacheSize < 100) {
+      settings.cacheSize = Math.min(100, settings.cacheSize + 25);
+      settings.memoryThreshold = Math.min(250, settings.memoryThreshold + 25);
+      needsAdjustment = true;
+    }
+
+    // Adjust based on input latency
+    if (avgInputLatency > 50) {
+      settings.renderThrottle = Math.max(32, settings.renderThrottle * 2);
+      settings.searchChunkSize = Math.max(25000, settings.searchChunkSize - 10000);
+      needsAdjustment = true;
+    } else if (avgInputLatency < 16 && settings.renderThrottle > 16) {
+      settings.renderThrottle = Math.max(16, settings.renderThrottle / 2);
+      settings.searchChunkSize = Math.min(100000, settings.searchChunkSize + 10000);
+      needsAdjustment = true;
+    }
+
+    if (needsAdjustment) {
+      this.metrics.qualitySettings = settings;
+      console.log('🔧 Auto-adjusted quality settings:', settings);
+      this.onQualitySettingsChange?.(settings);
+    }
+  }
+
+  // Callback for quality settings changes
+  onQualitySettingsChange?: (settings: QualitySettings) => void;
+
+  setQualitySettingsCallback(callback: (settings: QualitySettings) => void): void {
+    this.onQualitySettingsChange = callback;
+  }
+
+  getQualitySettings(): QualitySettings {
+    return { ...this.metrics.qualitySettings };
+  }
+
+  // Manual quality adjustment
+  setQualityLevel(level: 'low' | 'medium' | 'high'): void {
+    const settings: QualitySettings = {
+      low: {
+        virtualScrollOverscan: 5,
+        searchChunkSize: 25000,
+        cacheSize: 25,
+        renderThrottle: 32,
+        memoryThreshold: 150,
+        enableAdvancedFeatures: false
+      },
+      medium: {
+        virtualScrollOverscan: 15,
+        searchChunkSize: 50000,
+        cacheSize: 50,
+        renderThrottle: 16,
+        memoryThreshold: 200,
+        enableAdvancedFeatures: true
+      },
+      high: {
+        virtualScrollOverscan: 25,
+        searchChunkSize: 75000,
+        cacheSize: 100,
+        renderThrottle: 8,
+        memoryThreshold: 300,
+        enableAdvancedFeatures: true
+      }
+    }[level];
+
+    this.metrics.qualitySettings = settings;
+    this.onQualitySettingsChange?.(settings);
   }
 
   destroy(): void {

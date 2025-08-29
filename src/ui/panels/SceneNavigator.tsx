@@ -16,7 +16,7 @@ import { createWorker, makeTextAnalysisWorker, makeSearchIndexWorker } from "@/l
 export type SceneFilter = "High Hook" | "Has Reveals" | "Potential Openers";
 
 export default function SceneNavigator() {
-  const { scenes, reveals, selectedSceneId, selectScene, ensureSceneLoaded } = useManuscriptStore();
+  const { scenes, reveals, selectedSceneId, selectScene, preloadScenes } = useManuscriptStore();
 
   // Hook scores via worker (fallback to local)
   const [hookScores, setHookScores] = useState<Map<string, number>>(new Map());
@@ -154,12 +154,12 @@ export default function SceneNavigator() {
       .map(({ i }) => i);
   }, [rows, filters, debouncedQuery, revealsByScene, openerIds, searchIds]);
 
-  // Virtual list on filtered rows
+  // Virtual list on filtered rows with performance optimizations
   const virt = useVirtualList({
     items: filteredIndex,
     getKey: (i) => rows[i]?.id || i,
     estimateSize: () => 64,
-    overscan: 20, // higher overscan for smoother scroll at cost of some memory
+    overscan: scenes.length > 1000 ? 10 : 20, // Reduce overscan for very large datasets
   });
 
   // Heat strip scores in original order
@@ -191,16 +191,28 @@ export default function SceneNavigator() {
     if (idx >= 0) virt.setActiveIndex(idx);
   }, [filteredIndex, scenes, selectedSceneId, virt]);
 
-  // Progressive prefetch: ensure full text for nearby scenes (no-op in Phase 1)
+  // Enhanced progressive prefetch with memory awareness
   useEffect(() => {
     const center = virt.activeIndex;
     if (center == null || center < 0) return;
-    const around = [center - 1, center, center + 1].map((i) => filteredIndex[i]).filter((n) => typeof n === "number") as number[];
-    for (const idx of around) {
-      const id = scenes[idx]?.id;
-      if (id) ensureSceneLoaded?.(id);
+
+    // Get scenes in viewport and nearby for preloading
+    const viewportScenes = virt.virtualItems.map(vi => filteredIndex[vi.index]).filter(n => typeof n === "number") as number[];
+    const prefetchScenes = [
+      ...viewportScenes,
+      ...[center - 2, center - 1, center + 1, center + 2].map(i => filteredIndex[i]).filter(n => typeof n === "number") as number[]
+    ];
+
+    // Remove duplicates and limit to reasonable number
+    const uniqueScenes = [...new Set(prefetchScenes)].slice(0, 10);
+
+    // Preload scenes using the store's preload method
+    const sceneIds = uniqueScenes.map(idx => scenes[idx]?.id).filter(Boolean) as string[];
+    if (sceneIds.length > 0) {
+      // Use the manuscript store's preload method for better memory management
+      preloadScenes(sceneIds);
     }
-  }, [virt.activeIndex, filteredIndex, scenes, ensureSceneLoaded]);
+  }, [virt.activeIndex, virt.virtualItems, filteredIndex, scenes]);
 
   return (
     <div className="flex flex-col h-full w-full">

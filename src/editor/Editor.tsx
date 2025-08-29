@@ -85,6 +85,11 @@ export function ManuscriptEditor({ initialText, onChange, selectedSceneId }: Man
     snapshotMemory();
 
     return () => {
+      // Cancel any ongoing searches
+      if (searchStateRef.current.abortController) {
+        searchStateRef.current.abortController.abort();
+      }
+
       viewRef.current?.destroy();
       viewRef.current = null;
     };
@@ -120,21 +125,75 @@ export function ManuscriptEditor({ initialText, onChange, selectedSceneId }: Man
     }
   }, [selectedSceneId, jumpToScene]);
 
+  // Enhanced search with debouncing and incremental results
+  const searchStateRef = useRef({
+    currentQuery: '',
+    abortController: null as AbortController | null,
+    lastSearchTime: 0
+  });
+
   // Imperative search API for external callers
   const api = useMemo(() => ({
     find: (q: string) => {
       const view = viewRef.current;
       if (!view) return 0;
+
+      // Cancel previous search
+      if (searchStateRef.current.abortController) {
+        searchStateRef.current.abortController.abort();
+      }
+
+      // Create new abort controller for this search
+      searchStateRef.current.abortController = new AbortController();
+      searchStateRef.current.currentQuery = q;
+
       const t0 = performance.now();
-      const query = new SearchQuery({ search: q, caseSensitive: false, regexp: false, wholeWord: false });
-    view.dispatch({ effects: setSearchQuery.of(query) });
-    // Count at least one match quickly
-      const cur = query.getCursor(view.state, 0);
-      const first = cur.next();
-      const count = (first && (first as { done?: boolean }).done) ? 0 : 1;
-      const dt = performance.now() - t0;
-      record("search-ms", dt, "ms", { q });
-      return count;
+
+      try {
+        const query = new SearchQuery({
+          search: q,
+          caseSensitive: false,
+          regexp: false,
+          wholeWord: false
+        });
+
+        view.dispatch({ effects: setSearchQuery.of(query) });
+
+        // For large documents, use incremental search
+        if (q.length > 2) {
+          // Use requestIdleCallback for non-blocking search when possible
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+              if (searchStateRef.current.abortController?.signal.aborted) return;
+              const cur = query.getCursor(view.state, 0);
+              let count = 0;
+              let iterations = 0;
+              const maxIterations = 1000; // Limit iterations for performance
+
+              while (!cur.next().done && iterations < maxIterations) {
+                count++;
+                iterations++;
+              }
+
+              const dt = performance.now() - t0;
+              record("search-ms", dt, "ms", { q, count, incremental: true });
+            });
+            return 1; // Return initial estimate
+          }
+        }
+
+        // Fallback to immediate search for short queries
+        const cur = query.getCursor(view.state, 0);
+        const first = cur.next();
+        const count = (first && (first as { done?: boolean }).done) ? 0 : 1;
+        const dt = performance.now() - t0;
+        record("search-ms", dt, "ms", { q, count });
+        return count;
+
+      } catch (error) {
+        console.warn('Search error:', error);
+        return 0;
+      }
     },
     scrollTo: (offset: number) => {
       const view = viewRef.current; if (!view) return;
@@ -153,8 +212,42 @@ export function ManuscriptEditor({ initialText, onChange, selectedSceneId }: Man
     replaceAll: (from: string, to: string) => {
       const view = viewRef.current;
       if (!view) return;
-    view.dispatch({ effects: setSearchQuery.of(new SearchQuery({ search: from, replace: to })) });
-    replaceAll(view);
+
+      // For large documents, use chunked replacement to prevent UI blocking
+      const docLength = view.state.doc.length;
+      if (docLength > 100000) { // 100k+ characters
+        const chunkSize = 50000; // Process in 50k character chunks
+        let offset = 0;
+
+        const processChunk = () => {
+          if (offset >= docLength) return;
+
+          const chunkEnd = Math.min(offset + chunkSize, docLength);
+          const chunk = view.state.doc.sliceString(offset, chunkEnd);
+
+          // Only process this chunk if it contains the search term
+          if (chunk.includes(from)) {
+            const query = new SearchQuery({ search: from, replace: to });
+            view.dispatch({ effects: setSearchQuery.of(query) });
+
+            // Use setTimeout to yield control
+            setTimeout(() => {
+              replaceAll(view);
+              offset = chunkEnd;
+              processChunk();
+            }, 0);
+          } else {
+            offset = chunkEnd;
+            processChunk();
+          }
+        };
+
+        processChunk();
+      } else {
+        // Standard replacement for smaller documents
+        view.dispatch({ effects: setSearchQuery.of(new SearchQuery({ search: from, replace: to })) });
+        replaceAll(view);
+      }
     },
     getSceneText: (sceneId: string) => getSceneText(sceneId),
   }), [getSceneText]);

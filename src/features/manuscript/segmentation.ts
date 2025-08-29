@@ -11,6 +11,83 @@ const CHAPTER_RE = /^===\s*CHAPTER\s+\d{1,3}(?::.*)?\s*===\s*$/gim;
 /** Progress callback type for segmentation operations */
 export type SegmentationProgressCallback = (progress: number, message?: string) => void;
 
+/** Worker-based segmentation with fallback to synchronous processing */
+export async function segmentScenesAsync(
+  ms: Manuscript,
+  onProgress?: SegmentationProgressCallback,
+  options: { useWorker?: boolean; chunkSize?: number } = {}
+): Promise<Scene[]> {
+  const { useWorker = true, chunkSize = 1000 } = options;
+
+  if (useWorker && typeof Worker !== 'undefined') {
+    try {
+      return await segmentScenesWithWorker(ms, onProgress, chunkSize);
+    } catch (error) {
+      console.warn('Web worker segmentation failed, falling back to synchronous processing:', error);
+      // Fall through to synchronous implementation
+    }
+  }
+
+  // Fallback to synchronous processing
+  return segmentScenes(ms, onProgress);
+}
+
+/** Web worker-based segmentation */
+async function segmentScenesWithWorker(
+  ms: Manuscript,
+  onProgress?: SegmentationProgressCallback,
+  chunkSize: number = 1000
+): Promise<Scene[]> {
+  return new Promise((resolve, reject) => {
+    try {
+      // Create worker using Vite's worker import
+      const worker = new Worker(new URL('../workers/manuscript.worker.ts', import.meta.url), {
+        type: 'module'
+      });
+
+      const timeout = setTimeout(() => {
+        worker.terminate();
+        reject(new Error('Segmentation timed out'));
+      }, 30000); // 30 second timeout
+
+      worker.onmessage = (e) => {
+        const { data } = e;
+
+        switch (data.type) {
+          case 'progress':
+            onProgress?.(data.progress, data.message);
+            break;
+          case 'result':
+            clearTimeout(timeout);
+            worker.terminate();
+            resolve(data.scenes);
+            break;
+          case 'error':
+            clearTimeout(timeout);
+            worker.terminate();
+            reject(new Error(data.error));
+            break;
+        }
+      };
+
+      worker.onerror = (error) => {
+        clearTimeout(timeout);
+        worker.terminate();
+        reject(error);
+      };
+
+      // Send segmentation request
+      worker.postMessage({
+        type: 'segment',
+        manuscript: ms,
+        chunkSize
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 type Header = {
   id: string;            // chNN_sMM
   chapterId: string;     // chNN

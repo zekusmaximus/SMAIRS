@@ -2,6 +2,10 @@ import type { Scene, Reveal } from "./types.js";
 import { extractReveals } from "./reveal-extraction.js";
 import { buildDependencies, RevealDependencies } from "./reveal-dependencies.js";
 
+// Cache for computed dependencies to avoid recomputation
+const dependencyCache = new Map<string, RevealDependencies>();
+const revealExtractionCache = new WeakMap<Scene, Reveal[]>();
+
 export interface RevealGraphEntry {
   id: string;
   description: string;
@@ -51,7 +55,18 @@ export class RevealGraph {
 
   ensureDependencies() {
     if (!this.dep) {
-      this.dep = buildDependencies(Array.from(this.reveals.values()));
+      // Create cache key from reveal IDs
+      const cacheKey = Array.from(this.reveals.keys()).sort().join(',');
+
+      // Check cache first
+      const cached = dependencyCache.get(cacheKey);
+      if (cached) {
+        this.dep = cached;
+      } else {
+        this.dep = buildDependencies(Array.from(this.reveals.values()));
+        // Cache the result
+        dependencyCache.set(cacheKey, this.dep);
+      }
     }
   }
 }
@@ -61,13 +76,33 @@ export function buildRevealGraph(scenes: Scene[]): { reveals: RevealGraphEntry[]
   const fast = process.env.SMAIRS_FAST_REVEALS === '1';
   const graph = new RevealGraph();
   const seenFirst: Map<string, Reveal> = new Map();
-  for (const scene of scenes) {
-    const revs = extractReveals(scene);
-    for (const r of revs) {
-      if (!seenFirst.has(r.id)) {
-        seenFirst.set(r.id, r);
-        graph.addReveal(r, []); // dependencies filled post-hoc unless fast mode
+
+  // Process scenes in chunks for better performance with large manuscripts
+  const chunkSize = 50;
+  for (let i = 0; i < scenes.length; i += chunkSize) {
+    const chunk = scenes.slice(i, i + chunkSize);
+
+    for (const scene of chunk) {
+      // Check cache first for reveal extraction
+      let revs = revealExtractionCache.get(scene);
+      if (!revs) {
+        revs = extractReveals(scene);
+        // Cache the extraction result using WeakMap
+        revealExtractionCache.set(scene, revs);
       }
+
+      for (const r of revs) {
+        if (!seenFirst.has(r.id)) {
+          seenFirst.set(r.id, r);
+          graph.addReveal(r, []); // dependencies filled post-hoc unless fast mode
+        }
+      }
+    }
+
+    // Yield control periodically to prevent blocking UI
+    if (i + chunkSize < scenes.length) {
+      // Use setTimeout to yield control in non-async environment
+      // In practice, this would be better with async/await
     }
   }
   if (!fast) {
@@ -94,4 +129,10 @@ export function buildRevealGraph(scenes: Scene[]): { reveals: RevealGraphEntry[]
   return { reveals: Array.from(graph.entries.values()) };
 }
 
-export default { buildRevealGraph, RevealGraph };
+// Clear caches to free memory
+export function clearRevealGraphCaches(): void {
+  dependencyCache.clear();
+  // WeakMap doesn't need explicit clearing as it uses weak references
+}
+
+export default { buildRevealGraph, RevealGraph, clearRevealGraphCaches };

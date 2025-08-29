@@ -1,9 +1,87 @@
 import { create } from "zustand";
 import type { Manuscript, Scene as ManuscriptScene } from "@/features/manuscript/types";
 import { importManuscript } from "@/features/manuscript/importer";
-import { segmentScenes } from "@/features/manuscript/segmentation";
+import { segmentScenesAsync } from "@/features/manuscript/segmentation";
 import { buildRevealGraph, type RevealGraphEntry } from "@/features/manuscript/reveal-graph";
 import { searchAPI } from "@/features/search/searchApi";
+
+// LRU Cache for scene text
+class LRUCache<T> {
+  private cache = new Map<string, T>();
+  private maxSize: number;
+
+  constructor(maxSize: number = 50) {
+    this.maxSize = maxSize;
+  }
+
+  get(key: string): T | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      // Move to end (most recently used)
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: string, value: T): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxSize) {
+      // Remove least recently used
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
+    }
+    this.cache.set(key, value);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  size(): number {
+    return this.cache.size;
+  }
+}
+
+// Memory pressure monitoring
+class MemoryMonitor {
+  private warningThreshold = 200 * 1024 * 1024; // 200MB
+  private criticalThreshold = 400 * 1024 * 1024; // 400MB
+  private listeners: ((level: 'normal' | 'warning' | 'critical') => void)[] = [];
+
+  checkMemoryUsage(): 'normal' | 'warning' | 'critical' {
+    if (typeof performance !== 'undefined' && 'memory' in performance) {
+      const memInfo = (performance as any).memory;
+      const used = memInfo.usedJSHeapSize;
+
+      if (used > this.criticalThreshold) {
+        this.notifyListeners('critical');
+        return 'critical';
+      } else if (used > this.warningThreshold) {
+        this.notifyListeners('warning');
+        return 'warning';
+      }
+    }
+    return 'normal';
+  }
+
+  onMemoryPressure(callback: (level: 'normal' | 'warning' | 'critical') => void): () => void {
+    this.listeners.push(callback);
+    return () => {
+      const index = this.listeners.indexOf(callback);
+      if (index > -1) {
+        this.listeners.splice(index, 1);
+      }
+    };
+  }
+
+  private notifyListeners(level: 'normal' | 'warning' | 'critical'): void {
+    this.listeners.forEach(listener => listener(level));
+  }
+}
 
 type Selected = { selectedSceneId?: string };
 
@@ -17,6 +95,9 @@ export type ManuscriptStoreState = Selected & {
   fullText: string;
   scenes: ManuscriptScene[];
   reveals: RevealGraphEntry[];
+  // performance optimization
+  sceneTextCache: LRUCache<string>; // Cache for full scene text
+  memoryMonitor: MemoryMonitor;
   // loading states
   loadingState: LoadingState;
   loadingError: string | null;
@@ -27,6 +108,7 @@ export type ManuscriptStoreState = Selected & {
   progressMessage: string | null;
   // actions
   loadManuscript: (path: string) => Promise<void>;
+  loadManuscriptSync: (path: string) => Promise<void>; // Legacy synchronous version
   openManuscriptDialog: () => Promise<string | null>;
   selectScene: (id?: string) => void;
   getSceneById: (id: string) => ManuscriptScene | undefined;
@@ -38,6 +120,10 @@ export type ManuscriptStoreState = Selected & {
   getSceneText: (sceneId: string) => string;
   /** Return byte/char offset for a sceneId start, or -1 if unknown. */
   jumpToScene: (sceneId: string) => number;
+  // performance actions
+  preloadScenes: (sceneIds: string[]) => Promise<void>;
+  clearSceneCache: () => void;
+  getCacheStats: () => { size: number; maxSize: number };
   // loading state actions
   setLoadingState: (state: LoadingState) => void;
   setLoadingError: (error: string | null) => void;
@@ -81,6 +167,9 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
   scenes: [],
   reveals: [],
   selectedSceneId: undefined,
+  // performance optimization
+  sceneTextCache: new LRUCache<string>(100), // Cache up to 100 scene texts
+  memoryMonitor: new MemoryMonitor(),
   loadingState: 'idle',
   loadingError: null,
   // progress tracking
@@ -104,7 +193,7 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
       const ms = importManuscript(raw);
       get().setProgress(50, 'segmenting', 'Segmenting scenes...');
 
-      const scenes = segmentScenes(ms, (progress, message) => {
+      const scenes = await segmentScenesAsync(ms, (progress, message) => {
         // Convert segmentation progress (0-95) to manuscript loading progress (50-75)
         const adjustedProgress = 50 + (progress * 0.25);
         get().setProgress(adjustedProgress, 'segmenting', message || 'Segmenting scenes...');
@@ -149,6 +238,11 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
       get().resetProgress();
       throw error; // Re-throw so calling code can handle it
     }
+  },
+
+  // Legacy synchronous version for backward compatibility
+  async loadManuscriptSync(path: string) {
+    return this.loadManuscript(path);
   },
   async openManuscriptDialog() {
     try {
@@ -208,22 +302,36 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
     return scenes.find((s) => s.id === id);
   },
   async ensureSceneLoaded(id: string) {
-    const { manuscript, scenes } = get();
+    const { manuscript, scenes, sceneTextCache } = get();
     if (!manuscript) return;
+
+    // Check cache first
+    const cachedText = sceneTextCache.get(id);
+    if (cachedText) return;
+
     const idx = scenes.findIndex((s) => s.id === id);
     if (idx < 0) return;
     const s = scenes[idx]!; // definite
     const expectedLen = Math.max(0, s.endOffset - s.startOffset);
+
     // If already hydrated, skip
     if (s.text && (s.text.length >= expectedLen || !manuscript.rawText)) return;
+
     // Hydrate from manuscript rawText using offsets
     const fullText = manuscript.rawText.substring(s.startOffset, s.endOffset);
     if (!fullText || fullText === s.text) return;
+
+    // Cache the full text
+    sceneTextCache.set(id, fullText);
+
     const next = scenes.slice();
     next[idx] = { ...s, text: fullText };
     set({ scenes: next });
   },
   clearAll() {
+    const { sceneTextCache } = get();
+    sceneTextCache.clear();
+
     set({
       manuscript: undefined,
       fullText: "",
@@ -246,13 +354,25 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
     // Note: scene offsets are not recomputed here; a background re-segmentation pass should update scenes.
   },
   getSceneText(sceneId: string) {
-    const { scenes, manuscript, fullText } = get();
+    const { scenes, manuscript, fullText, sceneTextCache } = get();
     const s = scenes.find((x) => x.id === sceneId);
     if (!s) return "";
-    if (s.text && s.text.length >= Math.max(0, s.endOffset - s.startOffset)) return s.text;
+
+    // Check cache first
+    const cachedText = sceneTextCache.get(sceneId);
+    if (cachedText) return cachedText;
+
+    // If scene text is not truncated, return it directly
+    if (s.text && !s.text.endsWith('…')) return s.text;
+
+    // Extract from source text
     const src = manuscript?.rawText || fullText || "";
     if (!src || s.startOffset == null || s.endOffset == null) return s.text || "";
-    return src.substring(s.startOffset, s.endOffset);
+    const sceneFullText = src.substring(s.startOffset, s.endOffset);
+
+    // Cache the full text for future use
+    sceneTextCache.set(sceneId, sceneFullText);
+    return sceneFullText;
   },
   jumpToScene(sceneId: string) {
     const { scenes } = get();
@@ -297,6 +417,47 @@ export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({
       progressMessage: null
     });
   },
+  // performance methods
+  async preloadScenes(sceneIds: string[]) {
+    const { manuscript, scenes, sceneTextCache, memoryMonitor } = get();
+    if (!manuscript) return;
+
+    // Check memory pressure before preloading
+    const memoryLevel = memoryMonitor.checkMemoryUsage();
+    if (memoryLevel === 'critical') {
+      console.warn('Memory pressure too high, skipping preload');
+      return;
+    }
+
+    // Clear cache if memory pressure is high
+    if (memoryLevel === 'warning' && sceneTextCache.size() > 25) {
+      sceneTextCache.clear();
+    }
+
+    for (const sceneId of sceneIds) {
+      const scene = scenes.find(s => s.id === sceneId);
+      if (scene && !sceneTextCache.get(sceneId)) {
+        // Only cache if scene text is truncated (has ellipsis)
+        if (scene.text.endsWith('…')) {
+          const fullText = manuscript.rawText.substring(scene.startOffset, scene.endOffset);
+          sceneTextCache.set(sceneId, fullText);
+        }
+      }
+    }
+  },
+
+  clearSceneCache() {
+    get().sceneTextCache.clear();
+  },
+
+  getCacheStats() {
+    const cache = get().sceneTextCache;
+    return {
+      size: cache.size(),
+      maxSize: 100 // Default max size
+    };
+  },
+
   // backward compatibility
   setLoading(loading: boolean) {
     set({ loadingState: loading ? 'loading' : 'idle' });
