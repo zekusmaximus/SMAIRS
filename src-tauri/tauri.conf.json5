@@ -25,6 +25,8 @@
         width: 1200,
         height: 800,
         resizable: true,
+        // Enable developer tools for debugging
+        devtools: true,
       },
     ],
   },

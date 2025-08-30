@@ -13,6 +13,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isTauriDebug = !!process.env.TAURI_DEBUG;
 
 export default defineConfig({
+  // Set base to relative path for Tauri compatibility
+  base: './',
+
   plugins: [
     react({
       // Optimize JSX in production

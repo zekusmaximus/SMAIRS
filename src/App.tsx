@@ -7,6 +7,7 @@ import { globalErrorRecovery } from '@/utils/error-recovery';
 import { useManuscriptStore } from '@/stores/manuscript.store';
 import { ProgressOverlay } from '@/ui/components/ProgressOverlay';
 
+
 export default function App() {
   const {
     isLoading: manuscriptLoading,

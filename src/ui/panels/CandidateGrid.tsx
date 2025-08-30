@@ -95,7 +95,10 @@ export default function CandidateGrid({ jobId, onJobStart }: CandidateGridProps 
         {/* Show skeleton cards for expected candidates */}
         <div
           className="grid gap-3"
-          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            maxWidth: "100%"
+          }}
         >
           {Array.from({ length: Math.max(3, list.length + 2) }, (_, i) => (
             <CandidateCardSkeleton key={`skeleton-${i}`} delay={i * 100} />
@@ -140,7 +143,10 @@ export default function CandidateGrid({ jobId, onJobStart }: CandidateGridProps 
   return (
     <div
       className="grid gap-3"
-      style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}
+      style={{
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        maxWidth: "100%"
+      }}
     >
       {list.map((c, index) => (
         <div

@@ -270,11 +270,16 @@ ${this.formatAlerts()}
   }
 
   private readEnvKeyForProvider(provider: string): string | undefined {
-    const env = (typeof process !== 'undefined' ? process.env : undefined) as Record<string, string | undefined> | undefined;
-    if (!env) return undefined;
-    if (provider === 'anthropic') return env.ANTHROPIC_API_KEY;
-    if (provider === 'openai') return env.OPENAI_API_KEY;
-    if (provider === 'google') return env.GOOGLE_API_KEY || env.GOOGLE_VERTEX_KEY;
+    // Use the same env reading approach as other parts of the codebase
+    const readEnv = (name: string): string | undefined => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyImportMeta: any = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
+      return (anyImportMeta && anyImportMeta[name]) || (typeof process !== 'undefined' ? process.env?.[name] : undefined);
+    };
+
+    if (provider === 'anthropic') return readEnv('ANTHROPIC_API_KEY');
+    if (provider === 'openai') return readEnv('OPENAI_API_KEY');
+    if (provider === 'google') return readEnv('GOOGLE_API_KEY') || readEnv('GEMINI_API_KEY');
     return undefined;
   }
 }
