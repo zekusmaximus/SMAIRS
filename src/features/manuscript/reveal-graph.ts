@@ -73,7 +73,7 @@ export class RevealGraph {
 
 // Build reveal graph from scenes with dependency inference
 export function buildRevealGraph(scenes: Scene[]): { reveals: RevealGraphEntry[] } {
-  const fast = process.env.SMAIRS_FAST_REVEALS === '1';
+  const fast = (import.meta as { env?: { SMAIRS_FAST_REVEALS?: string } })?.env?.SMAIRS_FAST_REVEALS === '1';
   const graph = new RevealGraph();
   const seenFirst: Map<string, Reveal> = new Map();
 

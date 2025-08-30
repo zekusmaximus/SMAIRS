@@ -271,9 +271,10 @@ export default function SceneNavigator() {
                   key={r.id}
                   ref={virt.getMeasureRef(rowIndex) as unknown as React.Ref<HTMLDivElement>}
                   style={{ position: "absolute", top: vi.start, left: 0, width: "100%" }}
-      role="listitem"
-      aria-selected={isActive}
-      aria-label={`Scene ${r.name}, hook score ${Math.round((r.hookScore||0)*100)/100}`}
+                  data-index={rowIndex}
+                  role="listitem"
+                  aria-selected={isActive}
+                  aria-label={`Scene ${r.name}, hook score ${Math.round((r.hookScore||0)*100)/100}`}
                 >
                   <SceneRow data={r} index={rowIndex} isActive={isActive} onClick={(id) => selectScene(id)} highlight={debouncedQuery} />
                 </div>

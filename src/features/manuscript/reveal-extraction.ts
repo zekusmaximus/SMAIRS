@@ -81,7 +81,7 @@ export function extractReveals(scene: Scene): Reveal[] {
   const chars = extractCharacters(scene);
   const charSet = new Set(chars);
 
-  const fast = process.env.SMAIRS_FAST_REVEALS === '1';
+  const fast = (import.meta as { env?: { SMAIRS_FAST_REVEALS?: string } })?.env?.SMAIRS_FAST_REVEALS === '1';
 
   // Utility guards
   const isNegated = (s: string) => /\bnot\b|\bnever\b|\bno longer\b/i.test(s);

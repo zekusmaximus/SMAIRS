@@ -91,6 +91,16 @@ export default defineConfig({
   // Prevent vite from obscuring rust errors
   clearScreen: false,
 
+  // Worker configuration
+  worker: {
+    format: 'es',
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/workers/[name]-[hash].js',
+      }
+    }
+  },
+
   // Development server configuration
   server: {
     port: 5173,
@@ -99,6 +109,17 @@ export default defineConfig({
     hmr: {
       overlay: true
     },
+    // Serve files from data directory
+    fs: {
+      allow: ['..']
+    },
+    // Configure MIME types for workers
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin'
+    },
+    // Configure middleware to fix worker MIME types
+    middlewareMode: false,
     // Proxy API calls in development if needed
     proxy: process.env.VITE_API_URL ? {
       '/api': {
@@ -167,7 +188,7 @@ export default defineConfig({
       },
 
       // External dependencies (for library builds)
-      external: isProduction ? [] : ['@tauri-apps/api']
+      external: isProduction ? [] : []
     },
 
     // Performance settings
@@ -184,11 +205,13 @@ export default defineConfig({
   // Dependency optimization
   optimizeDeps: {
     include: [
-  'react',
-  'react-dom',
-  'react/jsx-runtime'
+      'react',
+      'react-dom', 
+      'react/jsx-runtime',
+      '@tauri-apps/api',
+      '@tanstack/react-virtual'
     ],
-    exclude: ['@tauri-apps/api'],
+    exclude: ['@tauri-apps/plugin-shell'],
     esbuildOptions: {
       target: 'es2020'
     }

@@ -1,0 +1,11 @@
+{
+  "identifier": "main-dev",
+  "description": "Dev capability for main window: enable dialog open, resolve directories, shell access, and devtools toggling.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:path:allow-resolve-directory",
+    "core:webview:allow-internal-toggle-devtools",
+    "shell:allow-open"
+  ]
+}

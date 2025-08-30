@@ -181,30 +181,72 @@ export type ManuscriptStoreState = Selected & {
 };
 
 async function readText(path: string): Promise<string> {
-  // Prefer Tauri runtime when available; fallback to Node in dev/test
+  console.log('[readText] Attempting to read:', path);
+
+  // Prefer Tauri custom command (no extra FS permission required)
   try {
-    const mod = await import("@tauri-apps/api") as {
-      fs?: { readTextFile?: (p: string) => Promise<string> };
+    console.log('[readText] Attempting to import @tauri-apps/api...');
+    const mod = await import("@tauri-apps/api/core") as {
       invoke?: (cmd: string, args?: Record<string, unknown>) => Promise<unknown>;
     };
-    // Try invoke-based command first (works without FS capability)
+    console.log('[readText] @tauri-apps/api imported successfully, invoke available:', typeof mod.invoke);
     if (typeof mod.invoke === "function") {
       try {
+        console.log('[readText] Trying Tauri invoke:', path);
         const res = await mod.invoke("load_manuscript_text", { path });
-        if (typeof res === "string") return res;
-      } catch {
-        // fall through to fs/readFile
+        console.log('[readText] Tauri invoke result type:', typeof res, 'value:', res);
+        if (typeof res === "string") {
+          console.log('[readText] Success via Tauri invoke, length:', res.length);
+          return res;
+        }
+      } catch (error) {
+        console.warn('[readText] Tauri invoke failed:', error);
       }
+    } else {
+      console.warn('[readText] mod.invoke is not a function, type:', typeof mod.invoke);
     }
-    if (mod.fs && typeof mod.fs.readTextFile === "function") {
-      try { return await mod.fs.readTextFile(path); } catch { /* ignore */ }
-    }
-  } catch {
-    // ignore and fallback
+  } catch (error) {
+    console.warn('[readText] Failed to import @tauri-apps/api:', error);
   }
-  // Node fallback (tests / Node CLIs)
-  const { readFileSync } = await import("fs");
-  return readFileSync(path, "utf8");
+
+  // Browser/dev fallback: fetch from dev server (works for relative repo files like data/manuscript.txt)
+  if (typeof window !== 'undefined' && typeof fetch === 'function') {
+    try {
+      console.log('[readText] Trying fetch from dev server...');
+      // If given an absolute path or URL, fetch won't work — skip in that case
+      const isAbsoluteWin = /^[a-zA-Z]:\\/.test(path);
+      const isUNC = path.startsWith('\\\\');
+      const isFileUrl = path.startsWith('file://');
+      const isHttp = /^https?:\/\//.test(path);
+      const isRooted = path.startsWith('/');
+      const looksAbsolute = isAbsoluteWin || isUNC || isFileUrl || isHttp || isRooted;
+      if (!looksAbsolute) {
+        const url = path.startsWith('/') ? path : `/${path}`;
+        console.log('[readText] Fetching from URL:', url);
+        const resp = await fetch(url);
+        if (resp.ok) {
+          const result = await resp.text();
+          console.log('[readText] Success via fetch, length:', result.length);
+          return result;
+        } else {
+          console.warn('[readText] Fetch failed with status:', resp.status, resp.statusText);
+        }
+      } else {
+        console.log('[readText] Skipping fetch for absolute path:', path);
+      }
+    } catch (error) {
+      console.warn('[readText] Fetch failed:', error);
+    }
+  }
+
+  // Node fallback (tests/CLI): when Node is available (e.g., Vitest with jsdom)
+  const hasNode = typeof process !== 'undefined' && typeof (process as { versions?: { node?: string } }).versions?.node === 'string';
+  if (hasNode) {
+    const { readFileSync } = await import("fs");
+    return readFileSync(path, "utf8");
+  }
+
+  throw new Error('Unable to read manuscript in this environment. Tauri runtime or proper permissions are required.');
 }
 
 export const useManuscriptStore = create<ManuscriptStoreState>((set, get) => ({

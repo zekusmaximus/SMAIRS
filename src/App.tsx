@@ -93,6 +93,17 @@ export default function App() {
           }
         }
 
+        // Repo-default fallback: attempt to load data/manuscript.txt via Tauri command
+        // This works in dev: src-tauri runs with CWD at src-tauri, and backend command will also try ../data/manuscript.txt
+        try {
+          const defaultRepoPath = 'data/manuscript.txt';
+          console.log('Attempting default repository manuscript at:', defaultRepoPath);
+          await loadManuscript(defaultRepoPath);
+          return;
+        } catch (repoError) {
+          console.warn('Default repository manuscript not found/failed:', repoError);
+        }
+
         // Try to load from app resources using Tauri path resolution
         try {
           console.log('Attempting to load manuscript from app resources...');

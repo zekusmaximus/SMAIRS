@@ -11,6 +11,13 @@ async function getTauriInvoke(): Promise<(<T = unknown>(cmd: string, args?: unkn
     };
   }
 }
+
+// Simple check for Tauri availability
+function isTauriEnvironment(): boolean {
+  if (typeof window === 'undefined') return false;
+  const tauriWindow = window as Window & { __TAURI__?: unknown };
+  return !!tauriWindow.__TAURI__;
+}
 import type { Scene } from "@/features/manuscript/types";
 
 export type SearchOptions = { limit?: number };
@@ -22,41 +29,59 @@ export class SearchAPI {
   private recent: Array<{ q: string; at: number }> = [];
 
   async buildIndex(scenes: Scene[]): Promise<void> {
+    // Check Tauri availability at runtime
+    if (!isTauriEnvironment()) {
+      console.warn("Search index building skipped: Tauri runtime not available");
+      return;
+    }
+    
     try {
       const payload = scenes.map(s => ({ id: s.id, chapterId: s.chapterId, text: s.text, startOffset: s.startOffset }));
       // Align with Rust's camelCase names expected by serde
       const wire = payload.map(s => ({ id: s.id, chapter_id: s.chapterId, text: s.text, start_offset: s.startOffset }));
-  const invoke = await getTauriInvoke();
-  await invoke("build_search_index", { scenes: wire });
+      const invoke = await getTauriInvoke();
+      await invoke("build_search_index", { scenes: wire });
     } catch (e) {
-      console.error("buildIndex failed", e);
-      throw e;
+      console.warn("buildIndex failed", e);
+      // Don't throw, just log - this allows the app to continue working
     }
   }
 
   async search(query: string, options?: SearchOptions): Promise<SearchResult[]> {
+    // Check Tauri availability at runtime
+    if (!isTauriEnvironment()) {
+      console.warn("Search skipped: Tauri runtime not available");
+      return [];
+    }
+    
     const key = `${query}::${options?.limit ?? 50}`;
     if (this.cache.has(key)) return this.cache.get(key)!;
     try {
-  const invoke = await getTauriInvoke();
-  const res = await invoke<SearchResult[]>("search_manuscript", { query, limit: options?.limit });
+      const invoke = await getTauriInvoke();
+      const res = await invoke<SearchResult[]>("search_manuscript", { query, limit: options?.limit });
       this.cache.set(key, res);
       this.recent.unshift({ q: query, at: Date.now() });
       if (this.recent.length > 20) this.recent.pop();
       return res;
     } catch (e) {
-      console.error("search failed", e);
+      console.warn("search failed", e);
       return [];
     }
   }
 
   async findCharacter(name: string): Promise<CharacterMention[]> {
+    // Check Tauri availability at runtime
+    if (!isTauriEnvironment()) {
+      console.warn("Character search skipped: Tauri runtime not available");
+      return [];
+    }
+    
     try {
-  const invoke = await getTauriInvoke();
-  const res = await invoke<SearchResult[]>("find_character_occurrences", { character: name });
+      const invoke = await getTauriInvoke();
+      const res = await invoke<SearchResult[]>("find_character_occurrences", { character: name });
       return res.map((r) => ({ ...r, character: name }));
     } catch (e) {
-      console.error("findCharacter failed", e);
+      console.warn("findCharacter failed", e);
       return [];
     }
   }

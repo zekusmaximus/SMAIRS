@@ -20,12 +20,17 @@ export interface RevealRecord {
   prereqs: string; // JSON array of reveal ids
 }
 
-function dbPath(): string { return process.env.SMAIRS_DB_PATH || ".smairs/app.db"; }
+function dbPath(): string {
+  const envPath = (import.meta as { env?: { SMAIRS_DB_PATH?: string } })?.env?.SMAIRS_DB_PATH;
+  return envPath || ".smairs/app.db";
+}
 
 // Lightweight invoke wrapper; returns false if tauri runtime unavailable.
 async function tryInvoke(command: string, payload: Record<string, unknown>): Promise<boolean> {
   // In Vitest environment always skip tauri invoke so that sql.js fallback is exercised deterministically.
-  if (typeof process !== 'undefined' && (process.env.VITEST || process.env.JEST_WORKER_ID)) return false;
+  const processEnv = typeof process !== 'undefined' ? (process as { env?: { VITEST?: string; JEST_WORKER_ID?: string } }).env : undefined;
+  const isTest = processEnv?.VITEST || processEnv?.JEST_WORKER_ID;
+  if (isTest) return false;
   try {
   // Dynamic import (optional dependency inside Node tests)
   const mod = await import("@tauri-apps/api").then(m => m as unknown as { invoke?: (cmd: string, args: Record<string, unknown>) => Promise<unknown> });
@@ -93,7 +98,8 @@ export async function saveScenes(records: SceneRecord[]): Promise<void> {
   if (await tryInvoke("save_scenes", { scenes: records })) return;
   const db = await ensureSqlJsDb();
   // debug: indicate fallback path used
-  if (process.env.DEBUG_DB === '1') console.log('[db] saveScenes fallback inserting', records.length);
+  const debugDb = (import.meta as { env?: { DEBUG_DB?: string } })?.env?.DEBUG_DB === '1';
+  if (debugDb) console.log('[db] saveScenes fallback inserting', records.length);
   db.run('BEGIN');
   const stmt = db.prepare(`INSERT OR REPLACE INTO scenes (id, chapter_id, start_offset, end_offset, word_count, dialogue_ratio) VALUES (?, ?, ?, ?, ?, ?)`);
   try {
@@ -113,7 +119,8 @@ export async function saveReveals(records: RevealRecord[]): Promise<void> {
   if (!records.length) return;
   if (await tryInvoke("save_reveals", { reveals: records })) return;
   const db = await ensureSqlJsDb();
-  if (process.env.DEBUG_DB === '1') console.log('[db] saveReveals fallback inserting', records.length);
+  const debugDb = (import.meta as { env?: { DEBUG_DB?: string } })?.env?.DEBUG_DB === '1';
+  if (debugDb) console.log('[db] saveReveals fallback inserting', records.length);
   db.run('BEGIN');
   const stmt = db.prepare(`INSERT OR REPLACE INTO reveals (id, description, first_scene_id, prereqs) VALUES (?, ?, ?, ?)`);
   try {

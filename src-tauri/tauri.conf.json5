@@ -1,15 +1,23 @@
-// Tauri v2 minimal config (no APIs enabled yet)
+// Tauri v2 config with necessary permissions enabled
 {
   $schema: 'https://schema.tauri.app/config/2',
   productName: 'SMAIRS',
   identifier: 'com.smairs.app',
+
   build: {
     beforeDevCommand: 'npm run dev',
     beforeBuildCommand: 'npm run build',
     devUrl: 'http://localhost:5173',
     frontendDist: '../dist',
   },
+
   app: {
+    // Use capabilities to grant permissions (see src-tauri/capabilities and permissions)
+    security: {
+      // Include the dev capability which enables default core permissions and custom command access
+      capabilities: ['main-dev'],
+    },
+
     windows: [
       {
         label: 'main',
@@ -19,5 +27,21 @@
         resizable: true,
       },
     ],
+  },
+
+  // In Tauri v2, the "allowlist" is replaced by this "plugins" object.
+  // This is where you enable APIs like filesystem access.
+  plugins: {
+    // Filesystem plugin configuration
+    fs: {
+      // Sets the directories your app is allowed to access.
+      // Allow access to the project directory for manuscript.txt
+      scope: ['$APP/*', '../**']
+    },
+    // Shell plugin configuration
+    shell: {
+      // Allows your app to open files or links with the system's default program.
+      open: true,
+    },
   },
 }

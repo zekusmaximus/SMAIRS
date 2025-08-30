@@ -40,8 +40,8 @@ async function segmentScenesWithWorker(
 ): Promise<Scene[]> {
   return new Promise((resolve, reject) => {
     try {
-      // Create worker using Vite's worker import
-      const worker = new Worker(new URL('../workers/manuscript.worker.ts', import.meta.url), {
+      // Create worker using Vite's worker import - fix the path
+      const worker = new Worker(new URL('../../workers/manuscript.worker.ts', import.meta.url), {
         type: 'module'
       });
 

@@ -19,25 +19,38 @@ function regexHighlights() {
 
   function build(view: EditorView) {
     const builder = new RangeSetBuilder<Decoration>();
+    const ranges: Array<{ from: number; to: number; decoration: Decoration }> = [];
+    
     for (const { from, to } of view.visibleRanges) {
       const text = view.state.sliceDoc(from, to);
+      
       // Dialogue: lines that start with quote
-      const lineRegex = /(^|\n)(["“”])([^\n]*)/g;
+      const lineRegex = /(^|\n)(["""])([^\n]*)/g;
       let m: RegExpExecArray | null;
       while ((m = lineRegex.exec(text))) {
         const g1 = m[1] ?? "";
         const start = from + (m.index ?? 0) + g1.length;
         const end = start + (m[0]?.length ?? 0) - g1.length;
-        builder.add(start, end, dialogueClass);
+        ranges.push({ from: start, to: end, decoration: dialogueClass });
       }
+      
       // Character names: simple heuristic
       const nameRegex = /\b([A-Z]{2,}(?:\s+[A-Z]{2,})*|[A-Z][a-z]+)\b/g;
       while ((m = nameRegex.exec(text))) {
         const s = from + m.index;
         const e = s + m[0].length;
-        builder.add(s, e, nameClass);
+        ranges.push({ from: s, to: e, decoration: nameClass });
       }
     }
+    
+    // Sort ranges by position before adding to builder
+    ranges.sort((a, b) => a.from - b.from);
+    
+    // Add sorted ranges to builder
+    for (const range of ranges) {
+      builder.add(range.from, range.to, range.decoration);
+    }
+    
     return builder.finish();
   }
   return plugin;
