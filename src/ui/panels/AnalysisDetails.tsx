@@ -15,8 +15,8 @@ function CandidateSelector() {
       <label className="block text-sm font-medium text-gray-300 mb-2">
         Select Candidate ({candidateList.length} available):
       </label>
-      <select 
-        value={selectedCandidateId || ''} 
+      <select
+        value={selectedCandidateId || ''}
         onChange={(e) => selectCandidate(e.target.value || undefined)}
         className="w-full p-2 text-sm bg-gray-700 border border-gray-600 rounded text-white"
       >
@@ -62,7 +62,7 @@ export default function AnalysisDetails() {
 
   const renderTab = () => {
     if (!selectedCandidateId) return null;
-    
+
     switch (tab) {
       case "Decision":
         return <DecisionTab candidateId={selectedCandidateId} analysis={analysis} />;
@@ -84,7 +84,7 @@ export default function AnalysisDetails() {
   return (
     <div>
       <CandidateSelector />
-      
+
       {/* Empty state */}
       {(!selectedCandidateId || !candidate) ? (
         <div className="p-6 text-sm text-neutral-600">
