@@ -1,6 +1,36 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { useAnalysisStore } from "@/stores/analysis.store";
 
+// Simple candidate selector component
+function CandidateSelector() {
+  const { candidates, selectedCandidateId, selectCandidate } = useAnalysisStore();
+  const candidateList = Object.values(candidates);
+
+  if (candidateList.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 p-3 bg-gray-800 rounded-lg">
+      <label className="block text-sm font-medium text-gray-300 mb-2">
+        Select Candidate ({candidateList.length} available):
+      </label>
+      <select 
+        value={selectedCandidateId || ''} 
+        onChange={(e) => selectCandidate(e.target.value || undefined)}
+        className="w-full p-2 text-sm bg-gray-700 border border-gray-600 rounded text-white"
+      >
+        <option value="">Choose a candidate...</option>
+        {candidateList.map((candidate) => (
+          <option key={candidate.id} value={candidate.id}>
+            {candidate.id} ({candidate.type})
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 const DecisionTab = React.lazy(() => import("@/ui/tabs/DecisionTab"));
 const MetricsTab = React.lazy(() => import("@/ui/tabs/MetricsTab"));
 const SpoilersTab = React.lazy(() => import("@/ui/tabs/SpoilersTab"));
@@ -30,16 +60,9 @@ export default function AnalysisDetails() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Empty state
-  if (!selectedCandidateId || !candidate) {
-    return (
-      <div className="p-6 text-sm text-neutral-600">
-        Select a candidate to view detailed analysis.
-      </div>
-    );
-  }
-
   const renderTab = () => {
+    if (!selectedCandidateId) return null;
+    
     switch (tab) {
       case "Decision":
         return <DecisionTab candidateId={selectedCandidateId} analysis={analysis} />;
@@ -59,27 +82,38 @@ export default function AnalysisDetails() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <nav className="border-b border-neutral-200 dark:border-neutral-800">
-        <ul className="flex gap-2 px-2 py-1 overflow-auto">
-          {TABS.map((t, i) => (
-            <li key={t}>
-              <button
-                className={`px-2 py-1 rounded text-sm ${tab === t ? "bg-blue-600 text-white" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}
-                onClick={() => setTab(t)}
-                title={`${t} (press ${i + 1})`}
-              >
-                {t}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <div className="flex-1 overflow-auto">
-        <Suspense fallback={<div className="p-4 text-sm text-neutral-500">Loading…</div>}>
-          {renderTab()}
-        </Suspense>
-      </div>
+    <div>
+      <CandidateSelector />
+      
+      {/* Empty state */}
+      {(!selectedCandidateId || !candidate) ? (
+        <div className="p-6 text-sm text-neutral-600">
+          Select a candidate to view detailed analysis.
+        </div>
+      ) : (
+        <div className="flex flex-col h-full">
+          <nav className="border-b border-neutral-200 dark:border-neutral-800">
+            <ul className="flex gap-2 px-2 py-1 overflow-auto">
+              {TABS.map((t, i) => (
+                <li key={t}>
+                  <button
+                    className={`px-2 py-1 rounded text-sm ${tab === t ? "bg-blue-600 text-white" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}
+                    onClick={() => setTab(t)}
+                    title={`${t} (press ${i + 1})`}
+                  >
+                    {t}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="flex-1 overflow-auto">
+            <Suspense fallback={<div className="p-4 text-sm text-neutral-500">Loading…</div>}>
+              {renderTab()}
+            </Suspense>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

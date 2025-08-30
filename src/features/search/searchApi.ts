@@ -1,3 +1,5 @@
+import type { Scene } from "@/features/manuscript/types";
+
 // Use computed dynamic import to avoid transform-time resolution in Vitest/JSDOM
 async function getTauriInvoke(): Promise<(<T = unknown>(cmd: string, args?: unknown) => Promise<T>)> {
   try {
@@ -16,9 +18,11 @@ async function getTauriInvoke(): Promise<(<T = unknown>(cmd: string, args?: unkn
 function isTauriEnvironment(): boolean {
   if (typeof window === 'undefined') return false;
   const tauriWindow = window as Window & { __TAURI__?: unknown };
-  return !!tauriWindow.__TAURI__;
+  // In development, use fallback search to avoid Tauri runtime errors
+  const isDevelopment = import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost';
+  // Return false in development to force fallback search
+  return !!tauriWindow.__TAURI__ && !isDevelopment;
 }
-import type { Scene } from "@/features/manuscript/types";
 
 export type SearchOptions = { limit?: number };
 export type SearchResult = { sceneId: string; offset: number; snippet: string; score: number; highlights: Array<[number, number]> };
@@ -27,11 +31,14 @@ export type CharacterMention = SearchResult & { character: string };
 export class SearchAPI {
   private cache = new Map<string, SearchResult[]>();
   private recent: Array<{ q: string; at: number }> = [];
+  private fallbackScenes: Scene[] = [];
 
   async buildIndex(scenes: Scene[]): Promise<void> {
     // Check Tauri availability at runtime
     if (!isTauriEnvironment()) {
-      console.warn("Search index building skipped: Tauri runtime not available");
+      console.warn("Search index building using fallback: Tauri runtime not available");
+      // Store scenes for fallback search
+      this.fallbackScenes = scenes;
       return;
     }
 
@@ -50,8 +57,8 @@ export class SearchAPI {
   async search(query: string, options?: SearchOptions): Promise<SearchResult[]> {
     // Check Tauri availability at runtime
     if (!isTauriEnvironment()) {
-      console.warn("Search skipped: Tauri runtime not available");
-      return [];
+      console.warn("Search using fallback: Tauri runtime not available");
+      return this.fallbackSearch(query, options?.limit ?? 50);
     }
 
     const key = `${query}::${options?.limit ?? 50}`;
@@ -69,11 +76,43 @@ export class SearchAPI {
     }
   }
 
+  private fallbackSearch(query: string, limit: number): SearchResult[] {
+    // Simple text search fallback for development
+    const results: SearchResult[] = [];
+    const lowerQuery = query.toLowerCase();
+
+    for (const scene of this.fallbackScenes) {
+      const lowerText = scene.text.toLowerCase();
+      let index = lowerText.indexOf(lowerQuery);
+      let searchOffset = 0;
+
+      while (index !== -1 && results.length < limit) {
+        const start = Math.max(0, index - 50);
+        const end = Math.min(scene.text.length, index + query.length + 50);
+        const snippet = scene.text.slice(start, end);
+
+        results.push({
+          sceneId: scene.id,
+          offset: scene.startOffset + index,
+          snippet,
+          score: 1.0, // Basic scoring
+          highlights: [[index - start, index - start + query.length]]
+        });
+
+        searchOffset = index + 1;
+        index = lowerText.indexOf(lowerQuery, searchOffset);
+      }
+    }
+
+    return results.slice(0, limit);
+  }
+
   async findCharacter(name: string): Promise<CharacterMention[]> {
     // Check Tauri availability at runtime
     if (!isTauriEnvironment()) {
-      console.warn("Character search skipped: Tauri runtime not available");
-      return [];
+      console.warn("Character search using fallback: Tauri runtime not available");
+      const searchResults = this.fallbackSearch(name, 50);
+      return searchResults.map((r) => ({ ...r, character: name }));
     }
 
     try {

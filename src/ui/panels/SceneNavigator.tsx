@@ -44,7 +44,13 @@ export default function SceneNavigator() {
   }, [scenes]);
 
   // Potential openers set for filtering label
-  const openerIds = useMemo(() => new Set(generateCandidates(scenes).flatMap((c) => c.scenes)), [scenes]);
+  const openerIds = useMemo(() => new Set(generateCandidates(scenes, {
+    minHookScore: 0.2,
+    minDialogueRatio: 0,
+    minWordCount: 100,  // Much lower word count threshold
+    requireDialogue: false,
+    maxCandidates: 10
+  }).flatMap((c) => c.scenes)), [scenes]);
 
   const [filters, setFilters] = useState<SceneFilter[]>([]);
   const [query, setQuery] = useState("");

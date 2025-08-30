@@ -112,7 +112,7 @@ export function MainLayout() {
               }
             >
               <div ref={centerRef as unknown as React.RefObject<HTMLDivElement>} tabIndex={0} aria-label="Manuscript Editor">
-                <div style={{ height: "60vh" }}>
+                <div style={{ height: "60vh", background: "#1a1a1a", minHeight: "400px" }}>
                   <ManuscriptEditor />
                 </div>
               </div>

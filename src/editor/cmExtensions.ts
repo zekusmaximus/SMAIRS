@@ -78,8 +78,50 @@ export function cmManuscriptExtensions(): Extension {
 
 // Minimal CSS helpers (can be moved to stylesheet)
 export const cmStyles = `
-.cm-dialogue { color: var(--cm-dialogue, #0c7); }
-.cm-character { color: var(--cm-character, #79c); font-weight: 500; }
+/* Base editor styles for dark theme */
+.cm-editor {
+  background: #1a1a1a !important;
+  color: #e5e7eb !important;
+  height: 100% !important;
+}
+.cm-content {
+  color: #e5e7eb !important;
+  background: #1a1a1a !important;
+  min-height: 100% !important;
+  padding: 12px !important;
+}
+.cm-editor .cm-scroller {
+  background: #1a1a1a !important;
+  color: #e5e7eb !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+}
+.cm-focused {
+  outline: none !important;
+}
+.cm-gutters {
+  background: #2a2a2a;
+  color: #9ca3af;
+  border-right: 1px solid #374151;
+}
+.cm-activeLineGutter {
+  background: #374151;
+}
+.cm-activeLine {
+  background: #ffffff0a;
+}
+.cm-selectionBackground {
+  background: #3b82f644 !important;
+}
+.cm-cursor {
+  border-left: 2px solid #e5e7eb !important;
+}
+.cm-line {
+  color: #e5e7eb !important;
+}
+
+/* Manuscript-specific highlighting */
+.cm-dialogue { color: var(--cm-dialogue, #22d3ee); }
+.cm-character { color: var(--cm-character, #a78bfa); font-weight: 500; }
 .cm-scene-rule { --cm-rule: #7b7b7b55; }
 .cm-search-hit { background: #ffd54a55; border-radius: 2px; box-shadow: inset 0 0 0 1px #ffcc00aa; }
 `;
