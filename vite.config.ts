@@ -206,7 +206,7 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       'react',
-      'react-dom', 
+      'react-dom',
       'react/jsx-runtime',
       '@tauri-apps/api',
       '@tanstack/react-virtual'

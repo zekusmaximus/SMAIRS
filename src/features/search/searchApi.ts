@@ -34,7 +34,7 @@ export class SearchAPI {
       console.warn("Search index building skipped: Tauri runtime not available");
       return;
     }
-    
+
     try {
       const payload = scenes.map(s => ({ id: s.id, chapterId: s.chapterId, text: s.text, startOffset: s.startOffset }));
       // Align with Rust's camelCase names expected by serde
@@ -53,7 +53,7 @@ export class SearchAPI {
       console.warn("Search skipped: Tauri runtime not available");
       return [];
     }
-    
+
     const key = `${query}::${options?.limit ?? 50}`;
     if (this.cache.has(key)) return this.cache.get(key)!;
     try {
@@ -75,7 +75,7 @@ export class SearchAPI {
       console.warn("Character search skipped: Tauri runtime not available");
       return [];
     }
-    
+
     try {
       const invoke = await getTauriInvoke();
       const res = await invoke<SearchResult[]>("find_character_occurrences", { character: name });
