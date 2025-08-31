@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use crate::jobs::{emit_log, emit_progress, emit_error, emit_done};
+use std::io::Write;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -29,18 +30,40 @@ pub async fn analyze_candidate_command(app: tauri::AppHandle, payload: AnalyzeCa
     emit_log(&app, &job_id, "Starting candidate analysis", Some("info"));
     emit_progress(&app, &job_id, 1, Some("prepare"));
     if !validate_text(&payload.manuscript_text) { let msg = "Empty manuscript_text".to_string(); emit_error(&app, &job_id, &msg, Some("invalid_input")); return Err(msg); }
-    // Touch optional candidate_text to avoid dead_code warning while keeping API intact
-    if let Some(ct) = payload.candidate_text.as_ref() { let _ = !ct.is_empty(); }
-    // Note: actual LLM call happens in TS orchestrator; Rust side ensures basic sanitation and event lifecycle when called directly from UI.
-    // Here we return a placeholder to keep command contract simple; UI uses provider in frontend.
-    let result = OpeningAnalysisOut {
-        id: format!("{}::analysis", payload.candidate_id),
-        candidate_id: payload.candidate_id.clone(),
-        confidence: 0.72,
-        spoiler_count: 0,
-        edit_burden_percent: 0.28,
-        rationale: "Analysis executed via TS orchestrator (Rust stub)".into(),
-    };
+    // Prepare JSON payload for Node analysis script
+    let script_input = serde_json::json!({
+        "candidateId": payload.candidate_id,
+        "manuscriptText": payload.manuscript_text,
+        "candidateText": payload.candidate_text.clone().unwrap_or_default(),
+    }).to_string();
+
+    // Spawn Node process running tsx loader for TypeScript script
+    let output_res = tauri::async_runtime::spawn_blocking(move || {
+        let mut child = std::process::Command::new("node")
+            .arg("--loader")
+            .arg("tsx")
+            .arg("scripts/analyze-candidate.ts")
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn();
+        let mut child = child.map_err(|e| e.to_string())?;
+        if let Some(stdin) = child.stdin.as_mut() {
+            stdin.write_all(script_input.as_bytes()).map_err(|e| e.to_string())?;
+        }
+        let out = child.wait_with_output().map_err(|e| e.to_string())?;
+        Ok::<_, String>(out)
+    }).await.map_err(|e| e.to_string())?;
+
+    if !output_res.status.success() {
+        let err = String::from_utf8_lossy(&output_res.stderr).to_string();
+        emit_error(&app, &job_id, &err, Some("analysis_failed"));
+        return Err(err);
+    }
+
+    let json_str = String::from_utf8(output_res.stdout).map_err(|e| e.to_string())?;
+    let result: OpeningAnalysisOut = serde_json::from_str(&json_str).map_err(|e| e.to_string())?;
+
     emit_progress(&app, &job_id, 100, Some("complete"));
     emit_done(&app, &job_id, Some(&result));
     Ok(result)
