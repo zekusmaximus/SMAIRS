@@ -18,10 +18,11 @@ async function getTauriInvoke(): Promise<(<T = unknown>(cmd: string, args?: unkn
 function isTauriEnvironment(): boolean {
   if (typeof window === 'undefined') return false;
   const tauriWindow = window as Window & { __TAURI__?: unknown };
-  // In development, use fallback search to avoid Tauri runtime errors
-  const isDevelopment = import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost';
-  // Return false in development to force fallback search
-  return !!tauriWindow.__TAURI__ && !isDevelopment;
+  // In development, we typically use a JS fallback to avoid Tauri runtime errors in the browser/Vitest
+  const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
+  // Allow opting into native search while in dev when running via Tauri by setting VITE_TAURI_SEARCH_DEV=1
+  const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
+  return !!tauriWindow.__TAURI__ && (!isDevelopment || allowDevTauri);
 }
 
 export type SearchOptions = { limit?: number };
@@ -36,7 +37,11 @@ export class SearchAPI {
   async buildIndex(scenes: Scene[]): Promise<void> {
     // Check Tauri availability at runtime
     if (!isTauriEnvironment()) {
-      console.warn("Search index building using fallback: Tauri runtime not available");
+      const hasTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
+      const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
+      const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
+      const reason = hasTauri ? (isDevelopment && !allowDevTauri ? 'disabled in development mode' : 'unknown') : 'Tauri runtime not available';
+      console.warn(`Search index building using fallback: ${reason}`);
       // Store scenes for fallback search
       this.fallbackScenes = scenes;
       return;
@@ -57,7 +62,11 @@ export class SearchAPI {
   async search(query: string, options?: SearchOptions): Promise<SearchResult[]> {
     // Check Tauri availability at runtime
     if (!isTauriEnvironment()) {
-      console.warn("Search using fallback: Tauri runtime not available");
+      const hasTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
+      const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
+      const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
+      const reason = hasTauri ? (isDevelopment && !allowDevTauri ? 'disabled in development mode' : 'unknown') : 'Tauri runtime not available';
+      console.warn(`Search using fallback: ${reason}`);
       return this.fallbackSearch(query, options?.limit ?? 50);
     }
 
@@ -110,7 +119,11 @@ export class SearchAPI {
   async findCharacter(name: string): Promise<CharacterMention[]> {
     // Check Tauri availability at runtime
     if (!isTauriEnvironment()) {
-      console.warn("Character search using fallback: Tauri runtime not available");
+      const hasTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
+      const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
+      const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
+      const reason = hasTauri ? (isDevelopment && !allowDevTauri ? 'disabled in development mode' : 'unknown') : 'Tauri runtime not available';
+      console.warn(`Character search using fallback: ${reason}`);
       const searchResults = this.fallbackSearch(name, 50);
       return searchResults.map((r) => ({ ...r, character: name }));
     }

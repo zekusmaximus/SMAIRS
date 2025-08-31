@@ -2,6 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useManuscriptStore } from "@/stores/manuscript.store";
 import { useAnalysisStore } from "@/stores/analysis.store";
 import type { OpeningCandidate, OpeningAnalysis, Scene } from "@/types";
+// Local Opening Lab pathway for per-scene analysis
+import { OpeningLab } from "@/features/manuscript/opening-lab";
+import { extractReveals } from "@/features/manuscript/reveal-extraction";
+import { calculateActionDensity, calculateMysteryQuotient } from "@/features/manuscript/opening-candidates";
+import { analyzeScenes } from "@/features/manuscript/analyzer";
 
 type TauriApi = { invoke?: (cmd: string, args: Record<string, unknown>) => Promise<unknown> };
 
@@ -56,6 +61,63 @@ export function useAnalyzeCandidate() {
     },
     onSuccess(analysis) {
       addAnalysis(analysis);
+    },
+  });
+}
+
+// Analyze a single scene locally with Opening Lab (AI + heuristics) and store a simplified result
+export function useAnalyzeSceneLocal() {
+  const { fullText, scenes } = useManuscriptStore((s) => ({ fullText: s.fullText, scenes: s.scenes }));
+  const addCandidate = useAnalysisStore((s) => s.addCandidate);
+  const addAnalysis = useAnalysisStore((s) => s.addAnalysis);
+  return useMutation({
+    mutationKey: ["analyze-scene-local"],
+    mutationFn: async (payload: { sceneId: string }): Promise<OpeningAnalysis> => {
+      if (!payload.sceneId) throw new Error("sceneId required");
+      const scene = scenes.find((s) => s.id === payload.sceneId);
+      if (!scene) throw new Error(`Scene ${payload.sceneId} not found`);
+
+      // Build a minimal OpeningCandidate from this scene
+      const hookScores = analyzeScenes(scenes).hookScores;
+      const candidate = {
+        id: `single:${scene.id}`,
+        type: "single" as const,
+        scenes: [scene.id],
+        startOffset: scene.startOffset,
+        endOffset: scene.endOffset,
+        totalWords: scene.wordCount,
+        hookScore: hookScores.get(scene.id) ?? 0.5,
+        actionDensity: calculateActionDensity(scene.text),
+        mysteryQuotient: calculateMysteryQuotient(scene.text),
+        characterIntros: 0,
+        dialogueRatio: scene.dialogueRatio,
+      } as unknown as import("@/features/manuscript/opening-candidates").OpeningCandidate;
+
+      // Gather reveals on demand
+      const reveals = scenes.flatMap(extractReveals);
+
+      // Run Opening Lab analysis
+      const lab = new OpeningLab();
+      const rich = await lab.analyzeCandidate(candidate, fullText, scenes as unknown as import("@/features/manuscript/types").Scene[], reveals);
+
+      // Map to simplified UI analysis type
+      const simplified: OpeningAnalysis = {
+        id: `${candidate.id}::analysis`,
+        candidateId: candidate.id,
+        confidence: rich.confidence,
+        spoilerCount: rich.violations.length,
+        editBurdenPercent: (rich.burden?.metrics as { percentageOfText?: number } | undefined)?.percentageOfText ?? 0,
+        rationale: `${rich.recommendation.toUpperCase()} · hook=${(rich.scores.scores.hookStrength ?? 0).toFixed(2)} · spoilers=${rich.violations.length}`,
+      };
+
+      // Ensure candidate exists in UI store
+      addCandidate({ id: candidate.id, sceneIds: candidate.scenes, type: candidate.type } as unknown as OpeningCandidate);
+      return simplified;
+    },
+    onSuccess(analysis) {
+      addAnalysis(analysis);
+      // Auto-select candidate for details
+      try { useAnalysisStore.getState().selectCandidate(analysis.candidateId); } catch { /* no-op */ }
     },
   });
 }

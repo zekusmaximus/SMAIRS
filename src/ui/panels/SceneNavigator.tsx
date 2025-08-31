@@ -11,12 +11,15 @@ import { generateCandidates } from "@/features/manuscript/opening-candidates";
 import { useDebouncedValue } from "@/hooks/useDebounce";
 import { trackFrame } from "@/lib/metrics";
 import { createWorker, makeTextAnalysisWorker, makeSearchIndexWorker } from "@/lib/workers";
+import { useAnalyzeSceneLocal } from "@/lib/queries";
 
 // Filters
 export type SceneFilter = "High Hook" | "Has Reveals" | "Potential Openers";
 
 export default function SceneNavigator() {
   const { scenes, reveals, selectedSceneId, selectScene, preloadScenes } = useManuscriptStore();
+  const analyzeScene = useAnalyzeSceneLocal();
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
   // Hook scores via worker (fallback to local)
   const [hookScores, setHookScores] = useState<Map<string, number>>(new Map());
@@ -244,6 +247,26 @@ export default function SceneNavigator() {
         <div className="mt-2">
           <HeatStrip width={heatWidth} height={24} scores={heatScores} onSelect={(i) => selectScene(scenes[i]?.id)} />
         </div>
+        {selectedSceneId ? (
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              className="btn text-xs"
+              disabled={analyzeScene.isPending || analyzingId === selectedSceneId}
+              onClick={() => {
+                setAnalyzingId(selectedSceneId);
+                analyzeScene.mutate(
+                  { sceneId: selectedSceneId },
+                  { onSettled: () => setAnalyzingId(null) }
+                );
+              }}
+            >
+              {analyzingId === selectedSceneId ? "Analyzing…" : "Analyze this scene"}
+            </button>
+            {analyzeScene.error ? (
+              <span className="text-xs text-red-600">{String((analyzeScene.error as Error).message)}</span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="flex-1 relative">
