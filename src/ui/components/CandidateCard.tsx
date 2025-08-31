@@ -3,6 +3,7 @@ import type { OpeningCandidate, OpeningAnalysis } from "@/stores/analysis.store"
 import MetricPill from "@/ui/components/MetricPill";
 import { useAnalysisStore } from "@/stores/analysis.store";
 import useCompare from "@/hooks/useCompare";
+import { useAnalyzeCandidate } from "@/lib/queries";
 
 export interface CandidateCardProps {
   candidate: OpeningCandidate;
@@ -23,6 +24,9 @@ export default function CandidateCard({ candidate, analysis, status = "Ready" }:
   const { selectCandidate } = useAnalysisStore();
   const { isPinned, canPin, pinToggle } = useCompare();
   const pinned = isPinned(candidate.id);
+  const analyze = useAnalyzeCandidate();
+  const isAnalyzing = analyze.isPending && analyze.variables?.candidateId === candidate.id;
+  const analyzeError = analyze.isError && analyze.variables?.candidateId === candidate.id ? analyze.error as Error : null;
 
   const onPin = () => {
     const res = pinToggle(candidate.id);
@@ -47,7 +51,7 @@ export default function CandidateCard({ candidate, analysis, status = "Ready" }:
       role="button" aria-label={`Candidate ${candidate.id}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="font-semibold text-sm truncate">{candidate.id}</div>
-        <StatusBadge status={status} />
+        <StatusBadge status={isAnalyzing ? "Analyzing" : analyzeError ? "Error" : status} />
       </div>
   <div className="mt-2 text-xs text-neutral-500 truncate">Scenes: {candidate.sceneIds?.join(", ")}</div>
 
@@ -72,8 +76,17 @@ export default function CandidateCard({ candidate, analysis, status = "Ready" }:
           />
           <span className="text-xs">Pin for compare</span>
         </label>
-        <button className="text-xs text-blue-600 hover:underline" onClick={(e)=>{e.stopPropagation(); selectCandidate(candidate.id);}}>Analyze</button>
+        <button
+          className="text-xs text-blue-600 hover:underline disabled:opacity-50"
+          onClick={(e)=>{e.stopPropagation(); analyze.mutate({ candidateId: candidate.id });}}
+          disabled={isAnalyzing}
+        >
+          {isAnalyzing ? "Analyzing…" : "Analyze"}
+        </button>
       </div>
+      {analyzeError ? (
+        <div className="mt-1 text-xs text-red-600">{analyzeError.message}</div>
+      ) : null}
     </div>
   );
 }

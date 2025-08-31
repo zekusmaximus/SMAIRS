@@ -10,17 +10,40 @@ import { analyzeScenes } from "@/features/manuscript/analyzer";
 
 type TauriApi = { invoke?: (cmd: string, args: Record<string, unknown>) => Promise<unknown> };
 
-async function tauriInvoke<T>(cmd: string, args: Record<string, unknown>): Promise<T> {
+/**
+ * Call a backend command using Tauri when available or fall back to HTTP.
+ * Throws an explicit error if neither pathway is available.
+ */
+async function backendInvoke<T>(cmd: string, args: Record<string, unknown>): Promise<T> {
+  // Prefer Tauri invoke when the runtime is available
   try {
     const mod = (await import("@tauri-apps/api")) as unknown as TauriApi;
     if (typeof mod.invoke === "function") {
       return (await mod.invoke(cmd, args)) as T;
     }
   } catch {
-    // not in tauri runtime; fall back to mock behavior
+    // ignore - not in tauri runtime
   }
-  // Simple fallback: echo args for tests/dev
-  return args as unknown as T;
+
+  // HTTP fallback using a configurable base URL (defaults to /api)
+  if (typeof fetch === "function") {
+    const base = (import.meta.env?.VITE_API_URL as string | undefined) ?? "/api";
+    try {
+      const res = await fetch(`${base}/${cmd}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(args),
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return (await res.json()) as T;
+    } catch (e) {
+      throw new Error(`HTTP backend unavailable for ${cmd}: ${String((e as Error).message)}`);
+    }
+  }
+
+  throw new Error(`Backend APIs unavailable for ${cmd}`);
 }
 
 export function useManuscript(path: string | undefined) {
@@ -41,7 +64,7 @@ export function useGenerateCandidates() {
   return useMutation({
     mutationKey: ["generate-candidates"],
     mutationFn: async (payload: { scenes: Scene[]; strategy?: string }): Promise<OpeningCandidate[]> => {
-      const result = await tauriInvoke<OpeningCandidate[]>("generate_candidates", payload);
+      const result = await backendInvoke<OpeningCandidate[]>("generate_candidates", payload);
       return result;
     },
     onSuccess(cands) {
@@ -56,7 +79,7 @@ export function useAnalyzeCandidate() {
   return useMutation({
     mutationKey: ["analyze-candidate"],
     mutationFn: async (payload: { candidateId: string }): Promise<OpeningAnalysis> => {
-      const result = await tauriInvoke<OpeningAnalysis>("analyze_candidate", payload);
+      const result = await backendInvoke<OpeningAnalysis>("analyze_candidate", payload);
       return result;
     },
     onSuccess(analysis) {
@@ -126,7 +149,7 @@ export function useExportBundle() {
   return useMutation({
     mutationKey: ["export-bundle"],
     mutationFn: async (payload: { destination: string; candidateIds: string[] }) => {
-      await tauriInvoke<unknown>("export_bundle", payload);
+      await backendInvoke<unknown>("export_bundle", payload);
       return true;
     },
   });
