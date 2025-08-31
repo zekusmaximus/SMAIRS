@@ -20,8 +20,9 @@ export function DecisionBar({ onToggleCompare }: { onToggleCompare?: () => void 
       autoRun.current = true;
       generate.mutate({ scenes }, {
         onSuccess: (c) => {
-          if (c.length > 0) {
-            useAnalysisStore.getState().selectCandidate(c[0].id);
+          const first = c && c.length > 0 ? c[0] : undefined;
+          if (first?.id) {
+            useAnalysisStore.getState().selectCandidate(first.id);
           }
         }
       });
@@ -35,8 +36,9 @@ export function DecisionBar({ onToggleCompare }: { onToggleCompare?: () => void 
     }
     generate.mutate({ scenes }, {
       onSuccess: (c) => {
-        if (c.length > 0 && !selectedCandidateId) {
-          useAnalysisStore.getState().selectCandidate(c[0].id);
+        const first = c && c.length > 0 ? c[0] : undefined;
+        if (first?.id && !selectedCandidateId) {
+          useAnalysisStore.getState().selectCandidate(first.id);
         }
       }
     });

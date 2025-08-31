@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useManuscriptStore } from "@/stores/manuscript.store";
 import { useAnalysisStore } from "@/stores/analysis.store";
-import type { OpeningCandidate, OpeningAnalysis, Scene } from "@/types";
+import type { OpeningCandidate, OpeningAnalysis } from "@/types";
+import type { Scene as ManuscriptScene } from "@/features/manuscript/types";
 // Local Opening Lab pathway for per-scene analysis
 import { OpeningLab } from "@/features/manuscript/opening-lab";
 import { extractReveals } from "@/features/manuscript/reveal-extraction";
@@ -63,7 +64,8 @@ export function useGenerateCandidates() {
   const addCandidate = useAnalysisStore((s) => s.addCandidate);
   return useMutation({
     mutationKey: ["generate-candidates"],
-    mutationFn: async (payload: { scenes: Scene[]; strategy?: string }): Promise<OpeningCandidate[]> => {
+  // Accept scenes from the manuscript store shape (runtime payload is forwarded to backend)
+  mutationFn: async (payload: { scenes: ManuscriptScene[]; strategy?: string }): Promise<OpeningCandidate[]> => {
       const result = await backendInvoke<OpeningCandidate[]>("generate_candidates", payload);
       return result;
     },

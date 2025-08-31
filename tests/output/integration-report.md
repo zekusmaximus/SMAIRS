@@ -1,5 +1,5 @@
 # Opening Lab Analysis Report
-Generated: 2025-08-31T17:53:38.271Z
+Generated: 2025-08-31T21:27:04.809Z
 Analyzing 3 opening options
 
 ## Executive Summary
@@ -9,16 +9,16 @@ Recommended opening: Current Opening (score 100 confidence).
 
 **Recommended Opening:** Current Opening
 **Confidence:** 100%
-**Key Advantage:** Lower edit workload tie-break
+**Key Advantage:** Strong initial hook
 **Implementation Time:** under 1 hour
 
 ## Detailed Comparison
 
 | Metric | Current Opening | Alt 1 | Alt 2 |
 |---|---|---|---|
-| Overall Score | **86/100** | 86/100 | 86/100 |
+| Overall Score | **NaN/100** | NaN/100 | NaN/100 |
 | Hook Strength | **70/100** | 70/100 | 70/100 |
-| Context Clarity | **100/100** | 100/100 | 100/100 |
+| Context Clarity | **NaN/100** | NaN/100 | NaN/100 |
 | Spoiler Freedom | **100/100** | 100/100 | 100/100 |
 | Edit Feasibility | **100/100** | 100/100 | 100/100 |
 | Market Appeal | **50/100** | 50/100 | 50/100 |
@@ -28,21 +28,21 @@ Recommended opening: Current Opening (score 100 confidence).
 ## Opening-by-Opening Analysis
 
 ### Current Opening
-Score: 86/100 (confidence 100%)
+Score: NaN/100 (confidence 100%)
 - Strengths: Strong initial hook; Clean of major spoilers; Low edit burden
 - Weaknesses: —
 - Risks: —
 - Opportunities: —
 
 ### Alt 1
-Score: 86/100 (confidence 100%)
+Score: NaN/100 (confidence 100%)
 - Strengths: Strong initial hook; Clean of major spoilers; Low edit burden
 - Weaknesses: —
 - Risks: —
 - Opportunities: —
 
 ### Alt 2
-Score: 86/100 (confidence 100%)
+Score: NaN/100 (confidence 100%)
 - Strengths: Strong initial hook; Clean of major spoilers; Low edit burden
 - Weaknesses: —
 - Risks: —
@@ -74,7 +74,7 @@ Edits             :            |            |
 | Component | Current Opening | Alt 1 | Alt 2 |
 |----------|----------|----------|
 | Hook Strength | 70 | 70 | 70 |
-| Context Clarity | 100 | 100 | 100 |
+| Context Clarity | NaN | NaN | NaN |
 | Spoiler Freedom | 100 | 100 | 100 |
 | Edit Feasibility | 100 | 100 | 100 |
 | Market Appeal | 50 | 50 | 50 |
