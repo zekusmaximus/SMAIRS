@@ -1,79 +1,45 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { VersionSelector } from "@/ui/components/VersionSelector";
 import { PreflightPill, type PillStatus } from "@/ui/components/PreflightPill";
 import { useAnalysisStore } from "@/stores/analysis.store";
 import { useManuscriptStore } from "@/stores/manuscript.store";
 import { usePreferences } from "@/stores/preferences.store";
-import { generateCandidates } from "@/features/manuscript/opening-candidates";
+import { useGenerateCandidates } from "@/lib/queries";
 
 export function DecisionBar({ onToggleCompare }: { onToggleCompare?: () => void }) {
   const selectedCandidateId = useAnalysisStore((s) => s.selectedCandidateId);
   const getAnalysis = useAnalysisStore((s) => s.getAnalysis);
-  const addCandidate = useAnalysisStore((s) => s.addCandidate);
   const candidateCount = useAnalysisStore((s) => Object.keys(s.candidates).length);
   const scenes = useManuscriptStore((s) => s.scenes);
+  const generate = useGenerateCandidates();
+  const autoRun = useRef(false);
 
   // Auto-generate candidates when scenes are loaded (only if none exist)
   useEffect(() => {
-    if (scenes.length > 0 && candidateCount === 0) {
-      console.log("Auto-generating opening candidates...");
-      const localCandidates = generateCandidates(scenes, {
-        minHookScore: 0.2,
-        minDialogueRatio: 0,
-        minWordCount: 100,
-        requireDialogue: false,
-        maxCandidates: 10
+    if (scenes.length > 0 && candidateCount === 0 && !autoRun.current) {
+      autoRun.current = true;
+      generate.mutate({ scenes }, {
+        onSuccess: (c) => {
+          if (c.length > 0) {
+            useAnalysisStore.getState().selectCandidate(c[0].id);
+          }
+        }
       });
-
-      console.log(`Auto-generated ${localCandidates.length} candidates`);
-
-      localCandidates.forEach(candidate => {
-        const convertedCandidate = {
-          id: candidate.id,
-          sceneIds: candidate.scenes,
-          type: candidate.type
-        };
-        addCandidate(convertedCandidate);
-      });
-
-      // Auto-select the first candidate
-      if (localCandidates.length > 0 && localCandidates[0]) {
-        useAnalysisStore.getState().selectCandidate(localCandidates[0].id);
-      }
     }
-  }, [scenes.length, candidateCount, addCandidate]);
+  }, [scenes, candidateCount, generate]);
 
   const handleGenerate = () => {
     if (scenes.length === 0) {
       console.warn("No scenes available for candidate generation");
       return;
     }
-
-    console.log("Generating opening candidates...");
-    const localCandidates = generateCandidates(scenes, {
-      minHookScore: 0.2,
-      minDialogueRatio: 0,
-      minWordCount: 100,  // Much lower word count threshold
-      requireDialogue: false,
-      maxCandidates: 10
+    generate.mutate({ scenes }, {
+      onSuccess: (c) => {
+        if (c.length > 0 && !selectedCandidateId) {
+          useAnalysisStore.getState().selectCandidate(c[0].id);
+        }
+      }
     });
-
-    console.log(`Generated ${localCandidates.length} candidates`);
-
-    // Convert to expected format for the UI store
-    localCandidates.forEach(candidate => {
-      const convertedCandidate = {
-        id: candidate.id,
-        sceneIds: candidate.scenes, // Map 'scenes' to 'sceneIds'
-        type: candidate.type
-      };
-      addCandidate(convertedCandidate);
-    });
-
-    // Auto-select the first candidate if none is selected
-    if (localCandidates.length > 0 && localCandidates[0] && !selectedCandidateId) {
-      useAnalysisStore.getState().selectCandidate(localCandidates[0].id);
-    }
   };
 
   // Derive pill statuses from store
@@ -114,7 +80,18 @@ export function DecisionBar({ onToggleCompare }: { onToggleCompare?: () => void 
             <input aria-label="Editor font size" type="range" min={12} max={22} value={prefs.editorFontSize} onChange={(e)=> prefs.set('editorFontSize', Number(e.target.value))} />A<sup>+</sup>
           </label>
         </div>
-        <button className="btn" title="Generate (G)" aria-label="Generate" onClick={handleGenerate}>G</button>
+        {generate.error ? (
+          <span className="text-xs text-red-600 mr-2">{String((generate.error as Error).message)}</span>
+        ) : null}
+        <button
+          className="btn"
+          title="Generate (G)"
+          aria-label="Generate"
+          onClick={handleGenerate}
+          disabled={generate.isPending}
+        >
+          {generate.isPending ? "…" : "G"}
+        </button>
         <button className="btn" title="Compare (C)" aria-label="Compare" onClick={onToggleCompare}>C</button>
         <button className="btn primary" title="Export (E)" aria-label="Export" disabled={!allPass}>E</button>
       </div>
