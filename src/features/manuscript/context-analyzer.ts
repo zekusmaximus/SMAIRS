@@ -42,6 +42,7 @@ export interface ContextGap {
   confusion: ContextGapConfusion;
   requiredInfo: RequiredInfo;
   bridge: ContextBridgeSuggestion;
+  confidence?: number; // 0..1 confidence the gap is real
 }
 
 export interface ContextAnalysis {
@@ -54,9 +55,18 @@ export interface ContextAnalysis {
 
 // --- Reference requirement analysis -------------------------------------------------
 
-interface EntityIntro { name: string; sceneIndex: number; anchor: TextAnchor; facts: string[]; }
+interface EntityIntro {
+  name: string;
+  sceneIndex: number;
+  anchor: TextAnchor;
+  facts: string[];
+}
 
-export function analyzeRequiredContext(ref: EntityReference, originalScenes: Scene[], candidateStart: number): RequiredInfo {
+export function analyzeRequiredContext(
+  ref: EntityReference,
+  originalScenes: Scene[],
+  candidateStart: number,
+): RequiredInfo {
   const intro = findEntityIntroduction(ref.name, originalScenes);
   if (!intro || intro.sceneIndex >= candidateStart) {
     return generateMinimalContext(ref);
@@ -69,11 +79,16 @@ export function analyzeRequiredContext(ref: EntityReference, originalScenes: Sce
 function findEntityIntroduction(name: string, scenes: Scene[]): EntityIntro | null {
   const lower = name.toLowerCase();
   for (let i = 0; i < scenes.length; i++) {
-  const sc = scenes[i];
-  if (!sc) continue; // defensive under noUncheckedIndexedAccess
-  const idx = sc.text.toLowerCase().indexOf(lower);
+    const sc = scenes[i];
+    if (!sc) continue; // defensive under noUncheckedIndexedAccess
+    const idx = sc.text.toLowerCase().indexOf(lower);
     if (idx !== -1) {
-      return { name, sceneIndex: i, anchor: { sceneId: sc.id, offset: idx, length: name.length }, facts: extractEntityFacts(sc, name) };
+      return {
+        name,
+        sceneIndex: i,
+        anchor: { sceneId: sc.id, offset: idx, length: name.length },
+        facts: extractEntityFacts(sc, name),
+      };
     }
   }
   return null;
@@ -86,7 +101,12 @@ function extractEntityFacts(scene: Scene, name: string): string[] {
   for (const s of sentences) {
     if (s.includes(name) && /\b(is|was|has|had|can|could)\b/.test(s)) {
       // Shorten
-      facts.push(s.trim().replace(/[\n\r]/g,' ').slice(0, 120));
+      facts.push(
+        s
+          .trim()
+          .replace(/[\n\r]/g, ' ')
+          .slice(0, 120),
+      );
     }
     if (facts.length >= 3) break;
   }
@@ -95,9 +115,9 @@ function extractEntityFacts(scene: Scene, name: string): string[] {
 
 function selectMinimalFacts(all: string[], refType: EntityReference['referenceType']): string[] {
   if (!all.length) return [];
-  if (refType === 'pronoun') return all.slice(0,1);
-  if (refType === 'definite') return all.slice(0,2);
-  return all.slice(0,2);
+  if (refType === 'pronoun') return all.slice(0, 1);
+  if (refType === 'definite') return all.slice(0, 2);
+  return all.slice(0, 2);
 }
 
 function estimateWordCount(facts: string[]): number {
@@ -110,26 +130,30 @@ function inferRole(context: string): string {
   if (/\bdoctor|dr\.\b/i.test(context)) return 'doctor';
   return 'operative';
 }
-function inferRelationship(): string | undefined { return undefined; }
+function inferRelationship(): string | undefined {
+  return undefined;
+}
 function inferLocationType(context: string): string {
   if (/\blab|laboratory\b/i.test(context)) return 'research facility';
   if (/\bwarehouse\b/i.test(context)) return 'storage site';
   return 'location';
 }
-function inferLocationPurpose(): string | undefined { return undefined; }
+function inferLocationPurpose(): string | undefined {
+  return undefined;
+}
 
 export function generateMinimalContext(ref: EntityReference): RequiredInfo {
   if (ref.category === 'character') {
     const role = inferRole(ref.context);
-  const rel = inferRelationship();
+    const rel = inferRelationship();
     const facts = [`${ref.name} is a ${role}`];
     if (rel) facts.push(rel);
     return { facts, wordCount: 10, dependencies: [] };
   }
   if (ref.category === 'location') {
     const type = inferLocationType(ref.context);
-  const purpose = inferLocationPurpose();
-    const facts = [`The ${ref.name.replace(/^the\s+/i,'')} is a ${type}`];
+    const purpose = inferLocationPurpose();
+    const facts = [`The ${ref.name.replace(/^the\s+/i, '')} is a ${type}`];
     if (purpose) facts.push(purpose);
     return { facts, wordCount: 12, dependencies: [] };
   }
@@ -139,9 +163,13 @@ export function generateMinimalContext(ref: EntityReference): RequiredInfo {
 
 // --- Gap construction ----------------------------------------------------
 
-function readerQuestionFor(ref: EntityReference, confusionType: ContextGapConfusion['type']): string {
+function readerQuestionFor(
+  ref: EntityReference,
+  confusionType: ContextGapConfusion['type'],
+): string {
   if (ref.referenceType === 'pronoun') return 'Who is ' + ref.name + '?';
-  if (confusionType === 'assumed_knowledge' && /^the /i.test(ref.name)) return `What ${ref.name.replace(/^the\s+/i,'')}?`;
+  if (confusionType === 'assumed_knowledge' && /^the /i.test(ref.name))
+    return `What ${ref.name.replace(/^the\s+/i, '')}?`;
   return `Who or what is ${ref.name}?`;
 }
 
@@ -149,42 +177,79 @@ export function calculateConfusionSeverity(gap: ContextGap): 'high' | 'medium' |
   const { entity, confusion, requiredInfo } = gap;
   if (entity.referenceType === 'pronoun') return 'high';
   if (confusion.type === 'undefined' && requiredInfo.facts.length > 2) return 'high';
-  if (/^(the|this|that)\s/i.test(entity.name) && confusion.type !== 'assumed_knowledge') return 'high';
+  if (/^(the|this|that)\s/i.test(entity.name) && confusion.type !== 'assumed_knowledge')
+    return 'high';
   if (gap.category === 'location' && confusion.type === 'ambiguous') return 'medium';
   if (requiredInfo.wordCount > 20) return 'medium';
   return 'low';
 }
 
-export function calculateContextScore(analysis: { gaps: { confusion: { severity: 'high'|'medium'|'low' } }[]; totalWordCount: number }): number {
+export function calculateContextScore(analysis: {
+  gaps: { confusion: { severity: 'high' | 'medium' | 'low' }; confidence?: number }[];
+  totalWordCount: number;
+}): number {
   let score = 1.0;
   const weights = { high: 0.15, medium: 0.08, low: 0.03 } as const;
-  for (const g of analysis.gaps) score -= weights[g.confusion.severity];
-  if (analysis.gaps.length === 0) score = 1.0; // removed small-bridge bonus to align with spec tests
+  for (const g of analysis.gaps) {
+    const conf = g.confidence ?? 1;
+    score -= weights[g.confusion.severity] * conf;
+  }
+  if (analysis.gaps.length === 0) score = 1.0;
   return Math.max(0, Math.min(1, score));
 }
 
 // Public: analyze a single scene as if it were the starting candidate.
-export function analyzeContext(scene: Scene, originalScenes: Scene[], candidateStart: number): ContextGap[] {
-  const refs = detectReferences(scene);
+function gatherPriorEntities(scenes: Scene[], start: number): Set<string> {
+  const set = new Set<string>();
+  for (let i = 0; i < start; i++) {
+    const sc = scenes[i];
+    if (!sc) continue;
+    const refs = detectReferences(sc);
+    for (const r of refs) {
+      if (r.referenceType !== 'pronoun') set.add(r.canonical);
+    }
+  }
+  return set;
+}
+
+export function analyzeContext(
+  scene: Scene,
+  originalScenes: Scene[],
+  candidateStart: number,
+): ContextGap[] {
+  const prior = gatherPriorEntities(originalScenes, candidateStart);
+  const refs = detectReferences(scene, prior);
   const gaps: ContextGap[] = [];
   const introduced = new Set<string>();
   for (const ref of refs) {
     const canonical = ref.canonical;
-    const previously = introduced.has(canonical) || (candidateStart > 0 && originalScenes.slice(0, candidateStart).some(s => s.text.toLowerCase().includes(canonical)));
+    const previously =
+      introduced.has(canonical) ||
+      (candidateStart > 0 &&
+        originalScenes
+          .slice(0, candidateStart)
+          .some((s) => s.text.toLowerCase().includes(canonical)));
     // Determine confusion type
     let confusionType: ContextGapConfusion['type'] = 'undefined';
     if (/^the /i.test(ref.name) && !previously) confusionType = 'assumed_knowledge';
-  if (previously) continue; // if genuinely introduced earlier in chronology
+    if (previously) continue; // if genuinely introduced earlier in chronology
     const requiredInfo = analyzeRequiredContext(ref, originalScenes, candidateStart);
     const gap: ContextGap = {
       id: sha256(scene.id + ':' + ref.name + ':' + ref.anchor.offset),
       category: ref.category,
       entity: { name: ref.name, firstReference: ref.anchor, referenceType: ref.referenceType },
-      confusion: { type: confusionType, severity: 'low', readerQuestion: readerQuestionFor(ref, confusionType) },
+      confusion: {
+        type: confusionType,
+        severity: 'low',
+        readerQuestion: readerQuestionFor(ref, confusionType),
+      },
       requiredInfo,
-      bridge: { text: '', insertPoint: ref.anchor, intrusiveness: 0 }
+      bridge: { text: '', insertPoint: ref.anchor, intrusiveness: 0 },
+      confidence: 0.5,
     };
     gap.confusion.severity = calculateConfusionSeverity(gap);
+    gap.confidence =
+      gap.confusion.severity === 'high' ? 0.9 : gap.confusion.severity === 'medium' ? 0.7 : 0.4;
     const bridge = DefaultBridgeGenerator.generateBridge(gap);
     gap.bridge = {
       text: bridge.text,
@@ -201,12 +266,18 @@ export function analyzeContext(scene: Scene, originalScenes: Scene[], candidateS
   return gaps;
 }
 
-export function analyzeCandidateContext(candidateId: string, scenes: Scene[], originalScenes: Scene[], candidateStartIndex: number): ContextAnalysis {
+export function analyzeCandidateContext(
+  candidateId: string,
+  scenes: Scene[],
+  originalScenes: Scene[],
+  candidateStartIndex: number,
+): ContextAnalysis {
   const firstScene = scenes[0];
-  if (!firstScene) return { candidateId, gaps: [], totalWordCount: 0, criticalGaps: 0, contextScore: 1 };
+  if (!firstScene)
+    return { candidateId, gaps: [], totalWordCount: 0, criticalGaps: 0, contextScore: 1 };
   const gaps = analyzeContext(firstScene, originalScenes, candidateStartIndex);
-  const totalWordCount = gaps.reduce((a,g)=> a + g.requiredInfo.wordCount, 0);
-  const criticalGaps = gaps.filter(g => g.confusion.severity === 'high').length;
+  const totalWordCount = gaps.reduce((a, g) => a + g.requiredInfo.wordCount, 0);
+  const criticalGaps = gaps.filter((g) => g.confusion.severity === 'high').length;
   const contextScore = calculateContextScore({ gaps, totalWordCount });
   return { candidateId, gaps, totalWordCount, criticalGaps, contextScore };
 }

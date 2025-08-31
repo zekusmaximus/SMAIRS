@@ -8,26 +8,29 @@ export type EntityCategory = 'character' | 'location' | 'object' | 'event' | 'co
 export type ReferenceType = 'pronoun' | 'definite' | 'possessive' | 'action' | 'comparative';
 
 export interface EntityReference {
-  name: string;               // surface form ("Marcus" | "the facility")
-  canonical: string;          // canonical entity key (lowercased / stripped articles)
+  name: string; // surface form ("Marcus" | "the facility")
+  canonical: string; // canonical entity key (lowercased / stripped articles)
   category: EntityCategory;
   referenceType: ReferenceType;
-  anchor: TextAnchor;         // where encountered
-  context: string;            // local sentence / span
+  anchor: TextAnchor; // where encountered
+  context: string; // local sentence / span
 }
 
 // Generic pronouns that don't imply a specific unresolved antecedent.
-const GENERIC_PRONOUNS = new Set(['one','someone','anyone','everyone','nobody']);
+const GENERIC_PRONOUNS = new Set(['one', 'someone', 'anyone', 'everyone', 'nobody']);
 
 // Common everyday locations we treat as self-evident.
-const COMMON_PLACES = new Set(['home','office','street','room','door']);
+const COMMON_PLACES = new Set(['home', 'office', 'street', 'room', 'door']);
 
 // Universal / cosmic concepts that rarely need introduction.
-const UNIVERSAL_CONCEPTS = new Set(['sun','moon','sky','ground','air']);
+const UNIVERSAL_CONCEPTS = new Set(['sun', 'moon', 'sky', 'ground', 'air']);
 
 const PRONOUNS = /(\b)(He|She|They|Him|Her|Them|His|Hers|Their|Theirs|It|Its)(\b)/g; // capitalized start acceptable
 
-export interface PronounRef { pronoun: string; index: number; }
+export interface PronounRef {
+  pronoun: string;
+  index: number;
+}
 
 export function detectUnresolvedPronouns(text: string): PronounRef[] {
   const refs: PronounRef[] = [];
@@ -53,16 +56,20 @@ function buildAnchor(scene: Scene, offset: number, length: number): TextAnchor {
 
 function classifyDefinite(noun: string): EntityCategory {
   if (!noun) return 'concept';
-  if (/\b(room|hall|facility|lab|office|street|alley|compound|ship)\b/i.test(noun)) return 'location';
+  if (/\b(room|hall|facility|lab|office|street|alley|compound|ship)\b/i.test(noun))
+    return 'location';
   if (/\b(team|crew|squad|family)\b/i.test(noun)) return 'concept';
   return 'object';
 }
 
 function canonicalize(name: string): string {
-  return name.replace(/^(the|a|an)\s+/i,'').toLowerCase();
+  return name.replace(/^(the|a|an)\s+/i, '').toLowerCase();
 }
 
-export function detectReferences(scene: Scene): EntityReference[] {
+export function detectReferences(
+  scene: Scene,
+  priorEntities: Set<string> = new Set(),
+): EntityReference[] {
   const text = scene.text || '';
   const references: EntityReference[] = [];
   const seenSpans = new Set<string>(); // avoid duplicate anchors for same substring + type
@@ -79,16 +86,18 @@ export function detectReferences(scene: Scene): EntityReference[] {
     const whole = m[0];
     const noun = m[1];
     if (!whole || !noun) continue;
-    if (COMMON_PLACES.has(noun.toLowerCase()) || UNIVERSAL_CONCEPTS.has(noun.toLowerCase())) continue;
+    if (COMMON_PLACES.has(noun.toLowerCase()) || UNIVERSAL_CONCEPTS.has(noun.toLowerCase()))
+      continue;
     const key = `${m.index}:${whole}`;
-    if (seenSpans.has(key)) continue; seenSpans.add(key);
+    if (seenSpans.has(key)) continue;
+    seenSpans.add(key);
     references.push({
       name: `the ${noun}`,
       canonical: canonicalize(noun),
       category: classifyDefinite(noun),
       referenceType: 'definite',
       anchor: buildAnchor(scene, m.index, whole.length),
-      context: findSentenceForOffset(sentences, text, m.index)
+      context: findSentenceForOffset(sentences, text, m.index),
     });
   }
 
@@ -101,26 +110,29 @@ export function detectReferences(scene: Scene): EntityReference[] {
     if (!owner || !thing) continue;
     const whole = m[0];
     const key = `${m.index}:${whole}`;
-    if (seenSpans.has(key)) continue; seenSpans.add(key);
+    if (seenSpans.has(key)) continue;
+    seenSpans.add(key);
     references.push({
       name: owner, // entity is the owner needing intro
       canonical: canonicalize(owner),
       category: 'character',
       referenceType: 'possessive',
       anchor: buildAnchor(scene, m.index, owner.length),
-      context: findSentenceForOffset(sentences, text, m.index)
+      context: findSentenceForOffset(sentences, text, m.index),
     });
   }
 
   // Pattern 3: Unresolved pronouns at scene start
   for (const p of detectUnresolvedPronouns(text)) {
+    // Simple coreference resolution: if prior entities exist, assume pronoun refers to them
+    if (priorEntities.size > 0) continue;
     references.push({
       name: p.pronoun,
       canonical: canonicalize(p.pronoun),
       category: 'character',
       referenceType: 'pronoun',
       anchor: buildAnchor(scene, p.index, p.pronoun.length),
-      context: sentences[0] || text.slice(0, 120)
+      context: sentences[0] || text.slice(0, 120),
     });
   }
 
@@ -133,14 +145,15 @@ export function detectReferences(scene: Scene): EntityReference[] {
     const name: string = captured;
     const whole = m[0] || name;
     const key = `${m.index}:${whole}`;
-    if (seenSpans.has(key)) continue; seenSpans.add(key);
+    if (seenSpans.has(key)) continue;
+    seenSpans.add(key);
     references.push({
       name: name,
       canonical: canonicalize(name),
       category: 'character',
       referenceType: 'action',
       anchor: buildAnchor(scene, m.index, name.length),
-      context: findSentenceForOffset(sentences, text, m.index)
+      context: findSentenceForOffset(sentences, text, m.index),
     });
   }
 
@@ -150,14 +163,15 @@ export function detectReferences(scene: Scene): EntityReference[] {
   while ((m = compRe.exec(text)) !== null) {
     const whole = m[0];
     const key = `${m.index}:${whole}`;
-    if (seenSpans.has(key)) continue; seenSpans.add(key);
+    if (seenSpans.has(key)) continue;
+    seenSpans.add(key);
     references.push({
       name: whole,
       canonical: canonicalize(whole),
       category: 'concept',
       referenceType: 'comparative',
       anchor: buildAnchor(scene, m.index, whole.length),
-      context: findSentenceForOffset(sentences, text, m.index)
+      context: findSentenceForOffset(sentences, text, m.index),
     });
   }
 
@@ -168,7 +182,7 @@ export function detectReferences(scene: Scene): EntityReference[] {
       const [, rawToken = ''] = firstTokenMatch; // ensure string
       const token = rawToken;
       if (token && !/^(The|A|An|When|After|Before|During|If|On|At|In|From)$/i.test(token)) {
-        const already = references.some(r => r.anchor.offset === 0 && r.name === token);
+        const already = references.some((r) => r.anchor.offset === 0 && r.name === token);
         if (!already) {
           references.unshift({
             name: token,
@@ -176,7 +190,7 @@ export function detectReferences(scene: Scene): EntityReference[] {
             category: 'character',
             referenceType: 'definite',
             anchor: buildAnchor(scene, 0, token.length),
-            context: sentences[0] || text.slice(0, 120)
+            context: sentences[0] || text.slice(0, 120),
           });
         }
       }
