@@ -47,8 +47,8 @@
     "postinstall": "npm run generate:types",
     "dev:web": "vite --mode development",
     "dev:tauri": "npm run generate:types && vite --mode tauri",
-    "tauri:dev": "cross-env VITE_RUNTIME=tauri LLM_OFFLINE=0 tauri dev",
-    "tauri:build": "cross-env VITE_RUNTIME=tauri LLM_OFFLINE=0 tauri build"
+  "tauri:dev": "cross-env RUST_LOG=info,tantivy=error VITE_RUNTIME=tauri LLM_OFFLINE=0 tauri dev",
+  "tauri:build": "cross-env RUST_LOG=info,tantivy=error VITE_RUNTIME=tauri LLM_OFFLINE=0 tauri build"
   },
   "engines": {
     "node": ">=20"

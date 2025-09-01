@@ -24,6 +24,7 @@ pub struct VersionSnapshot {
 
 fn versions_dir() -> PathBuf {
     let mut dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    if dir.file_name().map(|n| n == "src-tauri").unwrap_or(false) { dir.pop(); }
     dir.push(".smairs");
     dir.push("versions");
     dir

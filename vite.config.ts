@@ -256,7 +256,11 @@ export default defineConfig({
     // Performance monitoring flags
     __ENABLE_PERFORMANCE_MONITORING__: isProduction,
     __ENABLE_ERROR_REPORTING__: isProduction,
-    __RUNTIME__: JSON.stringify(process.env.TAURI_PLATFORM ? 'tauri' : 'web'),
+    // Prefer explicit VITE_RUNTIME (set by tauri scripts) and fall back to TAURI_* envs
+    __RUNTIME__: JSON.stringify(
+      (process.env.VITE_RUNTIME && process.env.VITE_RUNTIME.toLowerCase()) ||
+      (process.env.TAURI_PLATFORM ? 'tauri' : 'web')
+    ),
   },
   // === END: runtime-wiring ===
 });

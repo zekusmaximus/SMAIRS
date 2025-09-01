@@ -3,7 +3,7 @@ use anyhow::{Result, anyhow};
 use once_cell::sync::OnceCell;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use serde::{Deserialize, Serialize};
-use tantivy::{schema::*, Index, IndexReader, IndexWriter};
+use tantivy::{schema::*, Index, IndexReader, IndexWriter, ReloadPolicy};
 use tantivy::doc;
 
 
@@ -30,6 +30,10 @@ pub struct SearchIndex {
 
 pub fn index_dir() -> PathBuf {
     let mut dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    // In dev, the current_dir is typically src-tauri; store index at project root
+    if dir.file_name().map(|n| n == "src-tauri").unwrap_or(false) {
+        dir.pop();
+    }
     dir.push(".smairs");
     dir.push("index");
     dir
@@ -54,13 +58,17 @@ impl SearchIndex {
     pub fn new(path: &Path) -> Result<Self> {
         let schema = build_schema();
         std::fs::create_dir_all(path)?;
-        let index = if path.join("meta.json").exists() {
-            Index::open_in_dir(path)?
-        } else {
-            Index::create_in_dir(path, schema.clone())?
+        // Try opening an existing index; if it fails (e.g., meta.json missing/corrupt), create a fresh one.
+        let index = match Index::open_in_dir(path) {
+            Ok(idx) => idx,
+            Err(_) => Index::create_in_dir(path, schema.clone())?,
         };
         // default tokenizer is fine; for fuzzy we'll use FuzzyTermQuery
-        let reader = index.reader()?;
+        // Use manual reload to avoid background file watcher spam on Windows
+        let reader = index
+            .reader_builder()
+            .reload_policy(ReloadPolicy::Manual)
+            .try_into()?;
         let scene_f = index.schema().get_field("scene_id").unwrap();
         let chapter_f = index.schema().get_field("chapter_id").unwrap();
         let text_f = index.schema().get_field("text").unwrap();

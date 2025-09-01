@@ -93,6 +93,9 @@ __pycache__/
 # --- Experimental / Scratch ---
 scratch/
 
+# --- Local App Data (indexes, versions, caches) ---
+.smairs/
+
 # --- Added (baseline confirm) ---
 # (These entries already existed but ensured per scaffold requirements)
 node_modules/

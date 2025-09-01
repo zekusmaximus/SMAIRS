@@ -21,7 +21,7 @@ pub async fn build_search_index(scenes: Vec<BuildIndexScene>) -> Result<(), Stri
         Err(e) => {
             // If the writer was killed or index corrupted, nuke and recreate once
             let msg = e.to_string();
-            if msg.contains("writer was killed") || msg.contains("writer") || msg.contains("killed") {
+            if msg.contains("writer was killed") || msg.contains("writer") || msg.contains("killed") || msg.contains("meta.json") || msg.to_lowercase().contains("does not exist") {
                 let dir = crate::search::index_dir();
                 let _ = std::fs::remove_dir_all(&dir);
                 let _ = std::fs::create_dir_all(&dir);

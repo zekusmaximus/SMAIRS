@@ -1,4 +1,5 @@
 import type { CallArgs, LLMCaller, LLMResult, Profile } from '../providers.js';
+import { httpFetch } from '../http.js';
 import { ProviderFactory } from '../provider-factory.js';
 import { globalLLMCache } from '../cache-manager.js';
 
@@ -95,7 +96,7 @@ export class AnthropicProvider implements LLMCaller {
       const start = Date.now();
       try {
         if (!this.apiKey) throw new AnthropicAuthError('Missing ANTHROPIC_API_KEY');
-        const res = await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
+  const res = await httpFetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
         if (!res.ok) {
           await this.throwForResponse(res);
         }
@@ -136,7 +137,7 @@ export class AnthropicProvider implements LLMCaller {
     const body = this.buildRequestBody(args, true);
     const headers = this.buildHeaders({ useCaching: this.shouldUseCaching(args), stream: true });
     if (!this.apiKey) throw new AnthropicAuthError('Missing ANTHROPIC_API_KEY');
-    const res = await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
+  const res = await httpFetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
   if (!res.ok) await this.throwForResponse(res);
   const bodyStream = res.body;
   if (!bodyStream) throw new AnthropicNetworkError('No response body from Anthropic streaming endpoint');

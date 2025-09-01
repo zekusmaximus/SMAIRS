@@ -4,7 +4,29 @@ fn main() {
     tauri::Builder::default()
         // === BEGIN: runtime-wiring ===
         .plugin(tauri_plugin_http::init())
-    .plugin(tauri_plugin_log::Builder::default().build())
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                // Default to info across the app
+                .level(log::LevelFilter::Info)
+                // Downgrade Tantivy to errors only
+                .filter(|metadata| {
+                    // Only allow tantivy records at Error level
+                    if metadata.target().starts_with("tantivy") {
+                        metadata.level() <= log::Level::Error
+                    } else {
+                        // For non-tantivy, respect global level
+                        metadata.level() <= log::Level::Info
+                    }
+                })
+                .build(),
+        )
+        // Ensure search index directory and meta.json are initialized early
+        .setup(|_app| {
+            if let Ok(guard) = smairs::search::search_index_write() {
+                drop(guard);
+            }
+            Ok(())
+        })
         // === END: runtime-wiring ===
         .invoke_handler(tauri::generate_handler![
             smairs::db::save_scenes,

@@ -3,6 +3,7 @@
 
 import { globalErrorReporter, ErrorCategory, ErrorSeverity, RecoveryAction } from '../../utils/error-reporter';
 import { globalErrorRecovery } from '../../utils/error-recovery';
+import { resolveProvider as resolveByModel } from './provider-factory.js';
 
 export type Profile = 'STRUCTURE_LONGCTX' | 'FAST_ITERATE' | 'JUDGE_SCORER';
 
@@ -380,8 +381,14 @@ export function resolveProfile(p: Profile): LLMCaller {
   const modelId = getModelId(p);
   const offline = (readEnv('LLM_OFFLINE') || '0') === '1';
   if (offline) return new MockCaller(p, modelId);
-  // Phase 1 stub – real providers to be implemented in Phase 2.
-  return new MockCaller(p, modelId);
+  // Use ProviderFactory to create a real provider instance when available.
+  // This will fall back to mock only if missing API keys or browser CORS constraints.
+  try {
+    return resolveByModel(modelId);
+  } catch {
+    // As a last resort, use a mock but label it for easier diagnostics.
+    return new MockCaller(p, `mock:fallback:${modelId}`);
+  }
 }
 
 export function currentProfileModelMap(): Record<Profile, string> {

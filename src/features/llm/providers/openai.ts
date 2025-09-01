@@ -1,4 +1,5 @@
 import type { CallArgs, LLMCaller, LLMResult, Profile } from '../providers.js';
+import { httpFetch } from '../http.js';
 import { ProviderFactory } from '../provider-factory.js';
 import { globalLLMCache } from '../cache-manager.js';
 
@@ -50,7 +51,7 @@ export class OpenAIProvider implements LLMCaller {
       const headers = this.buildHeaders();
       const start = Date.now();
       if (!this.apiKey) throw new OpenAIAuthError('Missing OPENAI_API_KEY');
-      const res = await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(request) });
+  const res = await httpFetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(request) });
       if (!res.ok) await this.throwForResponse(res);
   const data = (await res.json()) as OpenAIResponse;
       const text = data.choices?.[0]?.message?.content || '';
@@ -86,7 +87,7 @@ export class OpenAIProvider implements LLMCaller {
     const request = this.buildRequest(args, true);
     const headers = this.buildHeaders(true);
     if (!this.apiKey) throw new OpenAIAuthError('Missing OPENAI_API_KEY');
-    const res = await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(request) });
+  const res = await httpFetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(request) });
     if (!res.ok) await this.throwForResponse(res);
     const bodyStream = res.body; if (!bodyStream) throw new OpenAINetworkError('No response body from OpenAI streaming endpoint');
     const reader = bodyStream.getReader(); const decoder = new TextDecoder();

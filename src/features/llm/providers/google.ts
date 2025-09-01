@@ -1,4 +1,5 @@
 import type { CallArgs, LLMCaller, LLMResult } from '../providers.js';
+import { httpFetch } from '../http.js';
 import { ProviderFactory } from '../provider-factory.js';
 import { globalLLMCache } from '../cache-manager.js';
 
@@ -40,7 +41,7 @@ export class GeminiProvider implements LLMCaller {
     return await globalLLMCache.getOrCompute(key, async () => {
       const start = Date.now();
       const url = this.buildURL(':generateContent');
-      const res = await this.doFetch(url, request);
+  const res = await this.doFetch(url, request);
       if (!res.ok) await this.throwForResponse(res, url);
       const data = (await res.json()) as GenerateResponse;
       const { text, blocked } = this.extractText(data);
@@ -176,11 +177,11 @@ export class GeminiProvider implements LLMCaller {
     if (!this.apiKey) throw new GoogleAuthError('Missing GOOGLE_API_KEY / GEMINI_API_KEY');
     const headers: HeadersInit = { 'content-type': 'application/json' };
     try {
-      const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+      const res = await httpFetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
       if (res.status === 403 && this.regionFallback) {
         // Try region-specific fallback once
         const alt = this.buildURL(url.includes(':streamGenerateContent') ? ':streamGenerateContent' : ':generateContent', this.regionFallback);
-        return await fetch(alt, { method: 'POST', headers, body: JSON.stringify(body) });
+        return await httpFetch(alt, { method: 'POST', headers, body: JSON.stringify(body) });
       }
       return res;
     } catch (e) {

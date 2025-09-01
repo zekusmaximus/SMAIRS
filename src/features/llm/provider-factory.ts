@@ -98,6 +98,9 @@ function readEnv(name: string): string | undefined {
 function shouldForceOfflineInRenderer(): boolean {
   const allow = ((readEnv('ALLOW_BROWSER_LLM') || readEnv('VITE_ALLOW_BROWSER_LLM') || '').toLowerCase() === '1');
   if (allow) return false;
+  // If we're in a Tauri runtime, use plugin-http and allow calls (no CORS)
+  const runtime = (readEnv('VITE_RUNTIME') || '').toLowerCase();
+  if (runtime === 'tauri') return false;
   const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
   if (!isBrowser) return false;
   const origin = (window.location && window.location.origin) || '';
