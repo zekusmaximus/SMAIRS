@@ -16,7 +16,25 @@ pub struct BuildIndexScene {
 pub async fn build_search_index(scenes: Vec<BuildIndexScene>) -> Result<(), String> {
     let mut guard = search_index_write().map_err(|e| e.to_string())?;
     let data: Vec<IndexScene> = scenes.into_iter().map(|s| IndexScene { id: s.id, chapter_id: s.chapter_id, text: s.text, start_offset: s.start_offset }).collect();
-    guard.index_manuscript(&data).map_err(|e| e.to_string())
+    match guard.index_manuscript(&data) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            // If the writer was killed or index corrupted, nuke and recreate once
+            let msg = e.to_string();
+            if msg.contains("writer was killed") || msg.contains("writer") || msg.contains("killed") {
+                let dir = crate::search::index_dir();
+                let _ = std::fs::remove_dir_all(&dir);
+                let _ = std::fs::create_dir_all(&dir);
+                drop(guard);
+                // Re-init global index by taking a new write guard
+                let mut retry_guard = search_index_write().map_err(|e| e.to_string())?;
+                let data2 = data; // reuse moved data by having it prior
+                retry_guard.index_manuscript(&data2).map_err(|e| e.to_string())
+            } else {
+                Err(msg)
+            }
+        }
+    }
 }
 
 #[derive(Deserialize)]

@@ -1,17 +1,50 @@
 import type { Scene } from "@/features/manuscript/types";
 
-// Use computed dynamic import to avoid transform-time resolution in Vitest/JSDOM
-async function getTauriInvoke(): Promise<(<T = unknown>(cmd: string, args?: unknown) => Promise<T>)> {
+// Lazy-load Tauri invoke without using eval/new Function (compatible with Tauri CSP)
+async function getTauriInvoke(): Promise<<T = unknown>(cmd: string, args?: unknown) => Promise<T>> {
+  // First, try the official API import
   try {
-    const spec = ["@tauri-apps/api", "core"].join("/");
-    const dynamicImport = new Function("s", "return import(s)") as (s: string) => Promise<unknown>;
-    const mod = (await dynamicImport(spec)) as { invoke: <T = unknown>(cmd: string, args?: unknown) => Promise<T> };
-    return mod.invoke;
-  } catch {
-    return async () => {
-      throw new Error("tauri runtime not available");
+    const mod = (await import("@tauri-apps/api/core")) as {
+      invoke?: <T = unknown>(cmd: string, args?: unknown) => Promise<T>;
     };
+    if (typeof mod?.invoke === "function") {
+      // console.debug("[search] using @tauri-apps/api/core.invoke");
+      return mod.invoke;
+    }
+  } catch {
+    // ignore and try global fallbacks below
   }
+
+  // Then, try global fallbacks present in the Tauri runtime
+  const g = globalThis as unknown as { [k: string]: unknown };
+  const maybeInvoke =
+    // v2 internal shape
+    (g as { __TAURI__?: { core?: { invoke?: unknown }; invoke?: unknown } })?.__TAURI__?.core?.invoke ||
+    // legacy aliases sometimes present
+    (g as { __TAURI__?: { core?: { invoke?: unknown }; invoke?: unknown } })?.__TAURI__?.invoke ||
+    (g as { __TAURI_INVOKE__?: unknown })?.__TAURI_INVOKE__;
+  if (typeof maybeInvoke === "function") {
+    // console.debug("[search] using global __TAURI__ invoke");
+    return maybeInvoke as <T = unknown>(cmd: string, args?: unknown) => Promise<T>;
+  }
+
+  // Briefly wait for the Tauri runtime to attach (race at startup)
+  for (let i = 0; i < 10; i++) {
+    await new Promise((r) => setTimeout(r, 50));
+    const g2 = globalThis as unknown as { [k: string]: unknown };
+    const retry =
+      (g2 as { __TAURI__?: { core?: { invoke?: unknown }; invoke?: unknown } })?.__TAURI__?.core?.invoke ||
+      (g2 as { __TAURI__?: { core?: { invoke?: unknown }; invoke?: unknown } })?.__TAURI__?.invoke ||
+      (g2 as { __TAURI_INVOKE__?: unknown })?.__TAURI_INVOKE__;
+    if (typeof retry === "function") {
+      return retry as <T = unknown>(cmd: string, args?: unknown) => Promise<T>;
+    }
+  }
+
+  // Finally, signal unavailability
+  return async () => {
+    throw new Error("tauri runtime not available");
+  };
 }
 
 // Simple check for Tauri availability
@@ -25,18 +58,21 @@ export class SearchAPI {
   private cache = new Map<string, SearchResult[]>();
   private recent: Array<{ q: string; at: number }> = [];
   private fallbackScenes: Scene[] = [];
+  private indexReady = false;
 
   async buildIndex(scenes: Scene[]): Promise<void> {
     try {
-      const payload = scenes.map(s => ({ id: s.id, chapterId: s.chapterId, text: s.text, startOffset: s.startOffset }));
-      // Align with Rust's camelCase names expected by serde
-      const wire = payload.map(s => ({ id: s.id, chapter_id: s.chapterId, text: s.text, start_offset: s.startOffset }));
+  // Align with Rust's camelCase names expected by serde (rename_all = "camelCase")
+  const payload = scenes.map(s => ({ id: s.id, chapterId: s.chapterId, text: s.text, startOffset: s.startOffset }));
       const invoke = await getTauriInvoke();
-      await invoke("build_search_index", { scenes: wire });
+  await invoke("build_search_index", { scenes: payload });
+  this.indexReady = true;
+  this.fallbackScenes = [];
     } catch (e) {
       console.warn("Search index building using fallback:", (e as Error)?.message || e);
       // Store scenes for fallback search
       this.fallbackScenes = scenes;
+  this.indexReady = false;
     }
   }
 
@@ -45,6 +81,13 @@ export class SearchAPI {
     if (this.cache.has(key)) return this.cache.get(key)!;
     try {
       const invoke = await getTauriInvoke();
+      // If we previously fell back, try to build the index now that Tauri may be ready
+      if (!this.indexReady && this.fallbackScenes.length > 0) {
+        const payload = this.fallbackScenes.map(s => ({ id: s.id, chapterId: s.chapterId, text: s.text, startOffset: s.startOffset }));
+        await invoke("build_search_index", { scenes: payload });
+        this.indexReady = true;
+        this.fallbackScenes = [];
+      }
       const res = await invoke<SearchResult[]>("search_manuscript", { query, limit: options?.limit });
       this.cache.set(key, res);
       this.recent.unshift({ q: query, at: Date.now() });
@@ -90,6 +133,12 @@ export class SearchAPI {
   async findCharacter(name: string): Promise<CharacterMention[]> {
     try {
       const invoke = await getTauriInvoke();
+      if (!this.indexReady && this.fallbackScenes.length > 0) {
+        const payload = this.fallbackScenes.map(s => ({ id: s.id, chapterId: s.chapterId, text: s.text, startOffset: s.startOffset }));
+        await invoke("build_search_index", { scenes: payload });
+        this.indexReady = true;
+        this.fallbackScenes = [];
+      }
       const res = await invoke<SearchResult[]>("find_character_occurrences", { character: name });
       return res.map((r) => ({ ...r, character: name }));
     } catch (e) {

@@ -81,7 +81,8 @@ export function useGenerateCandidates() {
           return res;
         }
         throw new Error("invoke not available");
-      } catch {
+      } catch (e) {
+        console.warn("[candidates] tauri invoke failed:", (e as Error)?.message || e);
         console.log("[candidates] using local heuristics");
         const local = generateOpeningCandidates(payload.scenes as unknown as import("@/features/manuscript/types").Scene[], undefined);
         return local.map(c => ({ id: c.id, sceneIds: c.scenes, type: c.type } as unknown as OpeningCandidate));

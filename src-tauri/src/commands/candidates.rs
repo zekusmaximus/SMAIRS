@@ -34,8 +34,7 @@ pub async fn generate_candidates(payload: GenerateCandidatesInput) -> Result<Vec
 
     let output_res = tauri::async_runtime::spawn_blocking(move || {
         let child = std::process::Command::new("node")
-            .arg("--loader")
-            .arg("tsx")
+            .arg("--import=tsx")
             .arg("scripts/generate-candidates.ts")
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
@@ -55,7 +54,14 @@ pub async fn generate_candidates(payload: GenerateCandidatesInput) -> Result<Vec
         let err = String::from_utf8_lossy(&output.stderr).to_string();
         return Err(err);
     }
-    let json_str = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
-    let result: Vec<OpeningCandidateOut> = serde_json::from_str(&json_str).map_err(|e| e.to_string())?;
+    let stdout_str = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
+    if stdout_str.trim().is_empty() {
+        let stderr_str = String::from_utf8_lossy(&output.stderr).to_string();
+        return Err(format!("candidate script produced no output. stderr: {}", stderr_str));
+    }
+    let result: Vec<OpeningCandidateOut> = serde_json::from_str(&stdout_str).map_err(|e| {
+        let stderr_str = String::from_utf8_lossy(&output.stderr).to_string();
+        format!("failed to parse candidate JSON: {}. stdout prefix: {:?} stderr: {}", e, &stdout_str.chars().take(200).collect::<String>(), stderr_str)
+    })?;
     Ok(result)
 }

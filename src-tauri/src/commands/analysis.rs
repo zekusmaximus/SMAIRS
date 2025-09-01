@@ -37,11 +37,10 @@ pub async fn analyze_candidate_command(app: tauri::AppHandle, payload: AnalyzeCa
         "candidateText": payload.candidate_text.clone().unwrap_or_default(),
     }).to_string();
 
-    // Spawn Node process running tsx loader for TypeScript script
+    // Spawn Node process running tsx via --import (Node >= 18.19 / 20.6)
     let output_res = tauri::async_runtime::spawn_blocking(move || {
         let child = std::process::Command::new("node")
-            .arg("--loader")
-            .arg("tsx")
+            .arg("--import=tsx")
             .arg("scripts/analyze-candidate.ts")
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())

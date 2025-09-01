@@ -28,7 +28,7 @@ pub struct SearchIndex {
     reader: IndexReader,
 }
 
-fn index_dir() -> PathBuf {
+pub fn index_dir() -> PathBuf {
     let mut dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     dir.push(".smairs");
     dir.push("index");

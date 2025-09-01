@@ -42,6 +42,12 @@ export class OpeningLab {
   private burdenCalculator = new EditBurdenCalculator();
   private scorer = new OpeningScorer();
 
+  // Read env from Vite/Tauri or Node when available without assuming `process` exists
+  private readEnv(name: string): string | undefined {
+    const meta = (typeof import.meta !== 'undefined' ? (import.meta as unknown as { env?: Record<string, string> }).env : undefined);
+    return (meta && meta[name]) || (typeof process !== 'undefined' ? (process.env as Record<string, string | undefined>)[name] : undefined);
+  }
+
   async analyzeCandidate(
     candidate: OpeningCandidate,
     manuscript: string,
@@ -51,9 +57,10 @@ export class OpeningLab {
   ): Promise<OpeningAnalysis> {
     const startTime = Date.now();
 
-    // Simulate provider auth failure for integration tests when explicitly requested
-    const offline = (process.env.LLM_OFFLINE === '1' || String(process.env.LLM_OFFLINE).toLowerCase() === 'true');
-    if (!offline && process.env.ANTHROPIC_API_KEY === 'invalid') {
+  // Simulate provider auth failure for integration tests when explicitly requested
+  const offlineFlag = this.readEnv('LLM_OFFLINE');
+  const offline = (offlineFlag === '1' || String(offlineFlag).toLowerCase() === 'true');
+  if (!offline && this.readEnv('ANTHROPIC_API_KEY') === 'invalid') {
       onProgress?.({ phase: 'error', progress: -1, message: 'LLM provider auth failed (simulated)' });
       throw new Error('LLM provider auth failed');
     }

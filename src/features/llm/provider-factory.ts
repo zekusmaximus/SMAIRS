@@ -41,6 +41,12 @@ export class ProviderFactory {
   static create(vendorModel: string): LLMCaller {
     const offline = (readEnv('LLM_OFFLINE') || '0') === '1';
     if (offline) return new MockCaller('FAST_ITERATE', 'mock:offline');
+    // In browser/Vite or Tauri dev webview, direct fetch to vendor APIs will hit CORS.
+    // Unless explicitly allowed, force mock provider to avoid noisy failures.
+    if (shouldForceOfflineInRenderer()) {
+      console.warn('[llm] Forcing offline mock provider in browser dev (CORS protection). Set VITE_ALLOW_BROWSER_LLM=1 to enable direct API calls.');
+      return new MockCaller('FAST_ITERATE', 'mock:browser-dev');
+    }
     // API key validation: return MockCaller with clear diagnostics if missing keys
     const { vendor: vend } = parseVendorModel(vendorModel);
     if (vend === 'anthropic' && !readEnv('ANTHROPIC_API_KEY')) return new MockCaller('FAST_ITERATE', 'mock:anthropic-missing-key');
@@ -85,6 +91,19 @@ function readEnv(name: string): string | undefined {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const anyImportMeta: any = typeof import.meta !== 'undefined' ? (import.meta as any).env : undefined;
   return (anyImportMeta && anyImportMeta[name]) || (typeof process !== 'undefined' ? process.env?.[name] : undefined);
+}
+
+// Detect when we're running in a browser (or Tauri webview) hitting the Vite dev server,
+// where cross-origin requests to vendor APIs will fail due to CORS.
+function shouldForceOfflineInRenderer(): boolean {
+  const allow = ((readEnv('ALLOW_BROWSER_LLM') || readEnv('VITE_ALLOW_BROWSER_LLM') || '').toLowerCase() === '1');
+  if (allow) return false;
+  const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+  if (!isBrowser) return false;
+  const origin = (window.location && window.location.origin) || '';
+  const isViteDev = /:\/\/localhost:5173$/.test(origin) || /:\/\/127\.0\.0\.1:5173$/.test(origin);
+  // In Tauri dev, origin is also the Vite dev URL; treat it the same unless explicitly allowed.
+  return isViteDev;
 }
 
 // Register mock provider
