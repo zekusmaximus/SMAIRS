@@ -5,8 +5,10 @@
   identifier: 'com.smairs.app',
 
   build: {
-    beforeDevCommand: 'npm run dev',
-    beforeBuildCommand: 'npm run build',
+    // === BEGIN: runtime-wiring ===
+    beforeDevCommand: 'npm run dev:tauri',
+    beforeBuildCommand: 'npm run build:tauri',
+    // === END: runtime-wiring ===
     devUrl: 'http://localhost:5173',
     frontendDist: '../dist',
   },
@@ -45,5 +47,15 @@
       // Allows your app to open files or links with the system's default program.
       open: true,
     },
+    // === BEGIN: runtime-wiring ===
+    http: {
+      permissions: {
+        default: true,
+        scope: [
+          'https://api.openai.com/*'
+        ]
+      }
+    }
+    // === END: runtime-wiring ===
   },
 }

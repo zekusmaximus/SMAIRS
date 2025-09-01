@@ -2,7 +2,18 @@
 
 fn main() {
     tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![
+        // === BEGIN: runtime-wiring ===
+        .plugin(tauri_plugin_http::HttpPlugin::default())
+        .plugin(
+            tauri_plugin_log::LoggerBuilder::new()
+                .targets([
+                    tauri_plugin_log::LogTarget::Stdout,
+                    tauri_plugin_log::LogTarget::LogDir,
+                ])
+                .build(),
+        )
+        // === END: runtime-wiring ===
+        .invoke_handler(tauri::generate_handler![
             smairs::db::save_scenes,
             smairs::db::save_reveals,
             smairs::db::list_scenes,
