@@ -6,6 +6,9 @@ import { PageErrorBoundary } from '@/ui/components/ErrorBoundary';
 import { globalErrorRecovery } from '@/utils/error-recovery';
 import { useManuscriptStore } from '@/stores/manuscript.store';
 import { ProgressOverlay } from '@/ui/components/ProgressOverlay';
+// === BEGIN: runtime-wiring ===
+import { SanityPanel } from '@/features/dev/SanityPanel';
+// === END: runtime-wiring ===
 
 
 export default function App() {
@@ -226,6 +229,9 @@ export default function App() {
         {!manuscriptLoading && !manuscriptError && (
           <div data-testid="app-ready">
             <MainLayout />
+            {/* === BEGIN: runtime-wiring === */}
+            {import.meta.env.DEV && <SanityPanel />}
+            {/* === END: runtime-wiring === */}
           </div>
         )}
       </PageErrorBoundary>

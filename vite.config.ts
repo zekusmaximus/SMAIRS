@@ -248,12 +248,15 @@ export default defineConfig({
   },
 
   // Define global constants
+  // === BEGIN: runtime-wiring ===
   define: {
     __DEV__: !isProduction,
     __VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.0'),
     __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
     // Performance monitoring flags
     __ENABLE_PERFORMANCE_MONITORING__: isProduction,
-    __ENABLE_ERROR_REPORTING__: isProduction
-  }
+    __ENABLE_ERROR_REPORTING__: isProduction,
+    __RUNTIME__: JSON.stringify(process.env.TAURI_PLATFORM ? 'tauri' : 'web'),
+  },
+  // === END: runtime-wiring ===
 });
