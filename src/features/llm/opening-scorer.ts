@@ -3,9 +3,10 @@ import { globalProviderAdapter as adapter } from './provider-adapter.js';
 import { globalLLMCache } from './cache-manager.js';
 import { OPENING_SCORER_PROMPTS } from './prompt-templates.js';
 import { z } from 'zod';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+// Use Vite raw import to avoid node:fs in browser bundles
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore – Vite provides this query import as string
+import fixtureRaw from './fixtures/opening-scores.json?raw';
 
 export interface OpeningScoringRequest {
   candidate: OpeningCandidate;
@@ -176,17 +177,11 @@ function readEnv(name: string): string | undefined { // esm safe env reader
 
 function readFixture(): { scores: OpeningScoringResult['scores']; analysis: OpeningScoringResult['analysis'] } {
   try {
-    // Resolve JSON path relative to this file (works in Vitest/Node)
-    const here = dirname(fileURLToPath(import.meta.url));
-    const p = resolve(here, './fixtures/opening-scores.json');
-    const raw = readFileSync(p, 'utf-8');
-    const data = JSON.parse(raw) as unknown;
+    const data = JSON.parse(fixtureRaw) as unknown;
     // Allow either default export style or direct object
-    let obj: unknown = data;
-    if (typeof data === 'object' && data !== null && 'default' in (data as Record<string, unknown>)) {
-      const rec = data as Record<string, unknown>;
-      obj = rec.default as unknown;
-    }
+    const obj = (data && typeof data === 'object' && 'default' in (data as Record<string, unknown>))
+      ? (data as Record<string, unknown>).default as unknown
+      : data;
     return obj as { scores: OpeningScoringResult['scores']; analysis: OpeningScoringResult['analysis'] };
   } catch {
     return { scores: { hookStrength: 0.7, marketAppeal: 0.6, agentReadability: 0.7, clarityScore: 0.7, voiceDistinction: 0.6 }, analysis: { strengths: [], weaknesses: [], suggestions: [] } };

@@ -15,15 +15,7 @@ async function getTauriInvoke(): Promise<(<T = unknown>(cmd: string, args?: unkn
 }
 
 // Simple check for Tauri availability
-function isTauriEnvironment(): boolean {
-  if (typeof window === 'undefined') return false;
-  const tauriWindow = window as Window & { __TAURI__?: unknown };
-  // In development, we typically use a JS fallback to avoid Tauri runtime errors in the browser/Vitest
-  const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
-  // Allow opting into native search while in dev when running via Tauri by setting VITE_TAURI_SEARCH_DEV=1
-  const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
-  return !!tauriWindow.__TAURI__ && (!isDevelopment || allowDevTauri);
-}
+// (runtime env detection not needed; we'll attempt Tauri invoke and fallback on error)
 
 export type SearchOptions = { limit?: number };
 export type SearchResult = { sceneId: string; offset: number; snippet: string; score: number; highlights: Array<[number, number]> };
@@ -35,18 +27,6 @@ export class SearchAPI {
   private fallbackScenes: Scene[] = [];
 
   async buildIndex(scenes: Scene[]): Promise<void> {
-    // Check Tauri availability at runtime
-    if (!isTauriEnvironment()) {
-      const hasTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
-      const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
-      const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
-      const reason = hasTauri ? (isDevelopment && !allowDevTauri ? 'disabled in development mode' : 'unknown') : 'Tauri runtime not available';
-      console.warn(`Search index building using fallback: ${reason}`);
-      // Store scenes for fallback search
-      this.fallbackScenes = scenes;
-      return;
-    }
-
     try {
       const payload = scenes.map(s => ({ id: s.id, chapterId: s.chapterId, text: s.text, startOffset: s.startOffset }));
       // Align with Rust's camelCase names expected by serde
@@ -54,22 +34,13 @@ export class SearchAPI {
       const invoke = await getTauriInvoke();
       await invoke("build_search_index", { scenes: wire });
     } catch (e) {
-      console.warn("buildIndex failed", e);
-      // Don't throw, just log - this allows the app to continue working
+      console.warn("Search index building using fallback:", (e as Error)?.message || e);
+      // Store scenes for fallback search
+      this.fallbackScenes = scenes;
     }
   }
 
   async search(query: string, options?: SearchOptions): Promise<SearchResult[]> {
-    // Check Tauri availability at runtime
-    if (!isTauriEnvironment()) {
-      const hasTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
-      const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
-      const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
-      const reason = hasTauri ? (isDevelopment && !allowDevTauri ? 'disabled in development mode' : 'unknown') : 'Tauri runtime not available';
-      console.warn(`Search using fallback: ${reason}`);
-      return this.fallbackSearch(query, options?.limit ?? 50);
-    }
-
     const key = `${query}::${options?.limit ?? 50}`;
     if (this.cache.has(key)) return this.cache.get(key)!;
     try {
@@ -80,8 +51,8 @@ export class SearchAPI {
       if (this.recent.length > 20) this.recent.pop();
       return res;
     } catch (e) {
-      console.warn("search failed", e);
-      return [];
+      console.warn("Search using fallback:", (e as Error)?.message || e);
+      return this.fallbackSearch(query, options?.limit ?? 50);
     }
   }
 
@@ -117,24 +88,14 @@ export class SearchAPI {
   }
 
   async findCharacter(name: string): Promise<CharacterMention[]> {
-    // Check Tauri availability at runtime
-    if (!isTauriEnvironment()) {
-      const hasTauri = typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== 'undefined';
-      const isDevelopment = !!(import.meta.env?.DEV || import.meta.env?.MODE === 'development' || window.location.hostname === 'localhost');
-      const allowDevTauri = (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === '1' || (import.meta.env?.VITE_TAURI_SEARCH_DEV as unknown as string) === 'true';
-      const reason = hasTauri ? (isDevelopment && !allowDevTauri ? 'disabled in development mode' : 'unknown') : 'Tauri runtime not available';
-      console.warn(`Character search using fallback: ${reason}`);
-      const searchResults = this.fallbackSearch(name, 50);
-      return searchResults.map((r) => ({ ...r, character: name }));
-    }
-
     try {
       const invoke = await getTauriInvoke();
       const res = await invoke<SearchResult[]>("find_character_occurrences", { character: name });
       return res.map((r) => ({ ...r, character: name }));
     } catch (e) {
-      console.warn("findCharacter failed", e);
-      return [];
+      console.warn("Character search using fallback:", (e as Error)?.message || e);
+      const searchResults = this.fallbackSearch(name, 50);
+      return searchResults.map((r) => ({ ...r, character: name }));
     }
   }
 }

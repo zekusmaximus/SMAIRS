@@ -11,7 +11,7 @@ pub struct AnalyzeCandidateInput {
     pub candidate_text: Option<String>,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct OpeningAnalysisOut {
     pub id: String,
@@ -39,29 +39,34 @@ pub async fn analyze_candidate_command(app: tauri::AppHandle, payload: AnalyzeCa
 
     // Spawn Node process running tsx loader for TypeScript script
     let output_res = tauri::async_runtime::spawn_blocking(move || {
-        let mut child = std::process::Command::new("node")
+        let child = std::process::Command::new("node")
             .arg("--loader")
             .arg("tsx")
             .arg("scripts/analyze-candidate.ts")
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
+            // Ensure the script path and tsx loader resolve from the project root
+            .current_dir(std::path::Path::new(".."))
             .spawn();
-        let mut child = child.map_err(|e| e.to_string())?;
-        if let Some(stdin) = child.stdin.as_mut() {
+    let mut child = child.map_err(|e| e.to_string())?;
+    if let Some(stdin) = child.stdin.as_mut() {
             stdin.write_all(script_input.as_bytes()).map_err(|e| e.to_string())?;
         }
         let out = child.wait_with_output().map_err(|e| e.to_string())?;
         Ok::<_, String>(out)
     }).await.map_err(|e| e.to_string())?;
 
-    if !output_res.status.success() {
-        let err = String::from_utf8_lossy(&output_res.stderr).to_string();
+    // Unwrap the inner Result<Output, String>
+    let output = output_res?;
+
+    if !output.status.success() {
+        let err = String::from_utf8_lossy(&output.stderr).to_string();
         emit_error(&app, &job_id, &err, Some("analysis_failed"));
         return Err(err);
     }
 
-    let json_str = String::from_utf8(output_res.stdout).map_err(|e| e.to_string())?;
+    let json_str = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
     let result: OpeningAnalysisOut = serde_json::from_str(&json_str).map_err(|e| e.to_string())?;
 
     emit_progress(&app, &job_id, 100, Some("complete"));

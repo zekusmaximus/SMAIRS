@@ -13,6 +13,7 @@ fn main() {
             smairs::db::clear_all,
             smairs::jobs::run_example_job,
             smairs::commands::analysis::analyze_candidate_command,
+            smairs::commands::candidates::generate_candidates,
             smairs::commands::export::export_write_temp,
             smairs::commands::export::export_pandoc_docx,
             smairs::commands::export::export_pandoc_pdf,

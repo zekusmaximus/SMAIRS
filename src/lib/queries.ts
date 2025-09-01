@@ -8,8 +8,9 @@ import { OpeningLab } from "@/features/manuscript/opening-lab";
 import { extractReveals } from "@/features/manuscript/reveal-extraction";
 import { calculateActionDensity, calculateMysteryQuotient } from "@/features/manuscript/opening-candidates";
 import { analyzeScenes } from "@/features/manuscript/analyzer";
+import { generateCandidates as generateOpeningCandidates } from "@/features/manuscript/opening-candidates";
 
-type TauriApi = { invoke?: (cmd: string, args: Record<string, unknown>) => Promise<unknown> };
+// (no direct Tauri type import here; loaded dynamically at runtime)
 
 /**
  * Call a backend command using Tauri when available or fall back to HTTP.
@@ -18,17 +19,20 @@ type TauriApi = { invoke?: (cmd: string, args: Record<string, unknown>) => Promi
 async function backendInvoke<T>(cmd: string, args: Record<string, unknown>): Promise<T> {
   // Prefer Tauri invoke when the runtime is available
   try {
-    const mod = (await import("@tauri-apps/api")) as unknown as TauriApi;
-    if (typeof mod.invoke === "function") {
-      return (await mod.invoke(cmd, args)) as T;
+    // Tauri v2 exposes invoke from '@tauri-apps/api/core'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const core = (await import("@tauri-apps/api/core")) as any;
+    const inv: undefined | ((c: string, a: Record<string, unknown>) => Promise<unknown>) = core?.invoke;
+    if (typeof inv === "function") {
+      return (await inv(cmd, args)) as T;
     }
   } catch {
     // ignore - not in tauri runtime
   }
 
-  // HTTP fallback using a configurable base URL (defaults to /api)
-  if (typeof fetch === "function") {
-    const base = (import.meta.env?.VITE_API_URL as string | undefined) ?? "/api";
+  // Optional HTTP fallback only when VITE_API_URL is explicitly configured
+  const base = import.meta.env?.VITE_API_URL as string | undefined;
+  if (typeof fetch === "function" && base) {
     try {
       const res = await fetch(`${base}/${cmd}`, {
         method: "POST",
@@ -64,10 +68,24 @@ export function useGenerateCandidates() {
   const addCandidate = useAnalysisStore((s) => s.addCandidate);
   return useMutation({
     mutationKey: ["generate-candidates"],
-  // Accept scenes from the manuscript store shape (runtime payload is forwarded to backend)
-  mutationFn: async (payload: { scenes: ManuscriptScene[]; strategy?: string }): Promise<OpeningCandidate[]> => {
-      const result = await backendInvoke<OpeningCandidate[]>("generate_candidates", payload);
-      return result;
+    // Try Tauri backend directly; fall back to local heuristics in browser
+    mutationFn: async (payload: { scenes: ManuscriptScene[]; strategy?: string }): Promise<OpeningCandidate[]> => {
+      // Attempt direct Tauri invoke to avoid any HTTP path
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const core = (await import("@tauri-apps/api/core")) as any;
+        const inv: undefined | ((cmd: string, args: Record<string, unknown>) => Promise<unknown>) = core?.invoke;
+        if (typeof inv === "function") {
+          console.log("[candidates] using Tauri invoke");
+          const res = await inv("generate_candidates", { payload: { scenes: payload.scenes, strategy: payload.strategy } }) as OpeningCandidate[];
+          return res;
+        }
+        throw new Error("invoke not available");
+      } catch {
+        console.log("[candidates] using local heuristics");
+        const local = generateOpeningCandidates(payload.scenes as unknown as import("@/features/manuscript/types").Scene[], undefined);
+        return local.map(c => ({ id: c.id, sceneIds: c.scenes, type: c.type } as unknown as OpeningCandidate));
+      }
     },
     onSuccess(cands) {
       cands.forEach(addCandidate);

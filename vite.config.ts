@@ -107,7 +107,8 @@ export default defineConfig({
   // Development server configuration
   server: {
     port: 5173,
-    strictPort: true,
+  // Keep a fixed port to match Tauri devUrl
+  strictPort: true,
     host: true,
     hmr: {
       overlay: true
